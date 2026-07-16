@@ -114,6 +114,17 @@ authoritative; every artifact must be edited to match exactly. No re-litigation.
 
 Updated sitemap adds: `/privacy` (Privacy Policy). `/home-2` stays noindex.
 
+## 9c. MODEL ROUTING — build phase (decided 2026-07-14)
+Overrides the AGENTS.md default table where noted. Applied via per-agent `model` overrides.
+- **UI/UX Designer** → **frontier (Opus)** — upgraded from Sonnet (design-led site; craft matters
+  most here). Optional: run as a 2-model panel (Opus + Fable) → judge & synthesize if user opts in.
+- **Frontend** → **frontier (Opus)** — whole FE, incl. the canvas image-sequence scrub hero + GSAP.
+- **Backend** → **Sonnet** — conventional Strapi v5 + MySQL; correctness guarded by the review loop.
+- Orchestrator / Architect / Security Reviewer / Critic → **Opus** (per AGENTS.md).
+- API Designer / DB / QA / Code Reviewer / A11y / SEO-Perf / Content / DevOps → **Sonnet**.
+- Mechanical (formatting, boilerplate, renames) → **Haiku**.
+Rationale: the meaningful jump is Sonnet→frontier; spend it on UI/UX + FE, not on standard CRUD.
+
 ## 9. Assumptions (correct these if wrong)
 - Single-tenant marketing site (no multi-tenant SaaS, no auth-gated app, no payments).
 - Contact form emails the studio; no account system.

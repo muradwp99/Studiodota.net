@@ -1,0 +1,16 @@
+# Claude Code local config & scratch
+.claude/
+
+# Installed agent skills (third-party, reinstallable)
+.agents/
+
+# Dependencies / build (belt-and-suspenders; web/ has its own too)
+node_modules/
+.next/
+out/
+dist/
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
