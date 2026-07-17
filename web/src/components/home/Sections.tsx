@@ -790,6 +790,23 @@ function FinalCTA() {
   );
 }
 
+/* ---------------- Promo banner (made in Canva) ---------------- */
+function PromoBanner() {
+  return (
+    <section className="section pt-0">
+      <div className="shell">
+        <Reveal>
+          <Link href="/contact" className="group block overflow-hidden rounded-3xl border border-[var(--line)]">
+            <div className="relative aspect-[1600/592] w-full">
+              <Image src="/media/cta-banner.png" alt="Start your project — architecture built to endure" fill sizes="(max-width:1440px) 100vw, 1440px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02]" />
+            </div>
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 export default function Sections() {
   return (
     <>
@@ -805,6 +822,7 @@ export default function Sections() {
       <StatementBand />
       <FAQ />
       <Journals />
+      <PromoBanner />
       <FinalCTA />
     </>
   );

@@ -28,10 +28,10 @@ const items: Item[] = [
   { id: "harbour", title: "Harbour Quarter", sector: "Masterplan", img: "harbour-masterplan", cat: "commercial", type: "photo" },
   { id: "leafy", title: "Leafy Precinct", sector: "Residential", img: "leafy-precinct", cat: "residential", type: "photo" },
   { id: "riverside", title: "Riverside Works", sector: "Commercial", img: "riverside-warehouse", cat: "commercial", type: "photo" },
-  { id: "material", title: "Material Study", sector: "Detail", img: "interior", cat: "architecture", type: "photo" },
-  { id: "terrace", title: "Terrace Living", sector: "Walkthrough", img: "urban-oasis", cat: "residential", type: "video" },
+  { id: "material", title: "Glass & Steel", sector: "Commercial", img: "office-tower", cat: "commercial", type: "photo" },
+  { id: "terrace", title: "Sky Terrace", sector: "Rooftop amenity", img: "rooftop-pool", cat: "residential", type: "video" },
   { id: "public-realm", title: "Public Realm", sector: "Commercial", img: "harbour-masterplan", cat: "commercial", type: "photo", tall: true },
-  { id: "daylight", title: "Daylight House", sector: "Residence", img: "atelier-house", cat: "architecture", type: "photo" },
+  { id: "daylight", title: "Poolside Living", sector: "Residential interior", img: "living-pool", cat: "residential", type: "photo" },
   { id: "civic-hall", title: "Civic Hall", sector: "Institutional", img: "meridian-sports", cat: "commercial", type: "photo" },
   { id: "courtyard", title: "Courtyard", sector: "Landscape film", img: "leafy-precinct", cat: "residential", type: "video" },
 ];

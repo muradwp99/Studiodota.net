@@ -434,7 +434,7 @@ export const posts: Post[] = [
     category: "Interiors",
     date: "2026-01-20",
     readingTime: 5,
-    image: "interior",
+    image: "living-pool",
     inlineImage: "urban-oasis",
     author: { name: "Sofia Lindqvist", role: "Head of Interior Architecture" },
     intro:

@@ -76,6 +76,20 @@ export default function JournalPage() {
               </Reveal>
             ))}
           </div>
+
+          <Reveal className="mt-16">
+            <Link href="/contact" className="group block overflow-hidden rounded-3xl border border-[var(--line)]">
+              <div className="relative aspect-[8/3] w-full">
+                <Image
+                  src="/media/blog-banner.png"
+                  alt="Let's build something lasting — get in touch"
+                  fill
+                  sizes="(max-width:1440px) 100vw, 1440px"
+                  className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02]"
+                />
+              </div>
+            </Link>
+          </Reveal>
         </div>
       </section>
     </>

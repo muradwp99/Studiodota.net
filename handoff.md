@@ -42,9 +42,11 @@ Work is on branch **`feature/cinematic-redesign`** (3 commits; `master` untouche
 - **VideoPlayer** (`components/VideoPlayer.tsx`): branding-hidden YouTube (nocookie, controls=0, cropped) **or** mp4. Currently **fail-safe** (`VIDEO_ENABLED = false` → shows a moving poster) because the YouTube videos found return **Error 153 (embedding disabled)** and the in-app browser can't rasterize the iframe to verify. **To activate the Kling clip:** set `SITE_VIDEO_MP4` (drop mp4 in `web/public/media/`) or `SITE_VIDEO_ID` (embeddable id) and `VIDEO_ENABLED = true`.
 - **Blog:** `Post` model extended (image, inlineImage, author, intro, sections). **6 SEO articles.** `/journal` = hero + featured + image grid; `/journal/[slug]` = featured-image header + sectioned article + inline image + sticky sidebar (TOC + related).
 
-### Remaining (requested, not yet done)
-- **Magnific image enrichment** — pull more distinct architecture renders (e.g. corporate glass facade `cDGEdGy0eP`, others) via `creations_get` → download to `web/public/media/renders/` → reduce image repetition across gallery/blog.
-- **Canva + Figma banners** — produce a branded banner in both and place on site (blog hero / homepage CTA). User said "wherever you can."
+### Phase 3 — Magnific images + Canva/Figma banners (DONE), merged to master
+- **Magnific images:** pulled 3 distinct renders (`office-tower.jpg` = corporate glass facade, `living-pool.jpg` = bright interior, `rooftop-pool.jpg` = rooftop amenity) into `web/public/media/renders/` at ~1024px; swapped into the gallery (Glass & Steel / Sky Terrace / Poolside Living) and the "interiors-that-last" post to cut image repetition.
+- **Canva banner** → `web/public/media/cta-banner.png` (sans-serif "Start your project"); placed as a full-width homepage CTA banner (`PromoBanner`) before the contact form, linking to `/contact`.
+- **Figma banner** → built in Figma file `XRqkv5Nt2wqwbMwo4Ikhma` ("Studiodota Banner", Dependopolis 2 team), exported to `web/public/media/blog-banner.png` (Archivo "Let's build something lasting."); placed as a CTA banner at the foot of `/journal`.
+- **Branch `feature/cinematic-redesign` merged into `master`.** `npm run build` CLEAN (24 routes). Not pushed to origin (say the word).
 
 ## What this is
 Marketing/portfolio website for **Studiodota — a real architecture & design practice**
