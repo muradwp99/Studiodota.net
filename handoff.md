@@ -31,6 +31,21 @@ Large homepage motion/design pass. **`npm run build` CLEAN (20 routes).** Verifi
 - **New components:** `PageHero`, `ScrollHighlightText`, `ImageMaskText`, `gallery/GalleryClient`, `projects/ProjectsClient`.
 - **Impeccable:** wrote root `PRODUCT.md` + `DESIGN.md` (register = **brand**); design hook active. `npm run build` CLEAN — **21 routes** (`/gallery` new; `/projects` is now dynamic ƒ due to searchParams).
 
+### Phase 2 — font, menu, sliders, showreel, gallery, blog (branch `feature/cinematic-redesign`)
+Work is on branch **`feature/cinematic-redesign`** (3 commits; `master` untouched). `npm run build` CLEAN — **24 routes**.
+- **Font:** Poppins → **Archivo** (calm/business grotesque) via `lib/fonts.ts` on the `--font-gilroy` var; Geist Mono kept.
+- **Menu:** top-level Services/Gallery/Projects are now **links** (navigate) + a caret `<button>` toggles the dropdown (hover still works); `▾` → rotating chevron SVG. (`Navbar.tsx`)
+- **Inside/Outside:** matched `Featured Project Section.jpg` — "All" on a left rail, Living/Playing/Working on the right, animated filter.
+- **Homepage services:** the old "OUR SERVICE" rows were **replaced by `ServicesSlider`** (full-bleed slider, each slide a service); the projects `ProjectSlider` was removed.
+- **Showreel:** reverted dark→**light** + `GeometricBackground` (drifting grid, wireframe shapes, cursor spotlight; reduced-motion gated in globals `.geo-*`).
+- **Gallery:** 4 → **2 big columns**; video items render `VideoPlayer`.
+- **VideoPlayer** (`components/VideoPlayer.tsx`): branding-hidden YouTube (nocookie, controls=0, cropped) **or** mp4. Currently **fail-safe** (`VIDEO_ENABLED = false` → shows a moving poster) because the YouTube videos found return **Error 153 (embedding disabled)** and the in-app browser can't rasterize the iframe to verify. **To activate the Kling clip:** set `SITE_VIDEO_MP4` (drop mp4 in `web/public/media/`) or `SITE_VIDEO_ID` (embeddable id) and `VIDEO_ENABLED = true`.
+- **Blog:** `Post` model extended (image, inlineImage, author, intro, sections). **6 SEO articles.** `/journal` = hero + featured + image grid; `/journal/[slug]` = featured-image header + sectioned article + inline image + sticky sidebar (TOC + related).
+
+### Remaining (requested, not yet done)
+- **Magnific image enrichment** — pull more distinct architecture renders (e.g. corporate glass facade `cDGEdGy0eP`, others) via `creations_get` → download to `web/public/media/renders/` → reduce image repetition across gallery/blog.
+- **Canva + Figma banners** — produce a branded banner in both and place on site (blog hero / homepage CTA). User said "wherever you can."
+
 ## What this is
 Marketing/portfolio website for **Studiodota — a real architecture & design practice**
 (NOT a 3D-rendering studio; that was an earlier concept, repositioned to real architecture
