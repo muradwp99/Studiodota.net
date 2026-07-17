@@ -7,11 +7,20 @@ import { useSectionTone } from "@/lib/useSectionTone";
 
 export type NavbarProps = {
   siteName: string;
-  nav: { getStartedLabel: string; blogLabel: string; contactLabel: string };
+  nav: { getStartedLabel: string };
+  /** Primary menu from Appearance → Menus. Known hrefs keep their mega panels. */
+  menuItems: { label: string; href: string }[];
   services: { t: string; d: string; href: string }[];
   galleryVideos: { img: string; t: string }[];
   galleryPhotos: string[];
   projects: { img: string; n: string; c: string }[];
+};
+
+/** hrefs that open a rich dropdown panel (panel id → content below) */
+const MEGA_BY_HREF: Record<string, "Services" | "Gallery" | "Projects"> = {
+  "/services": "Services",
+  "/gallery": "Gallery",
+  "/projects": "Projects",
 };
 
 function Sun() {
@@ -21,7 +30,7 @@ function Moon() {
   return (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>);
 }
 
-export default function Navbar({ siteName, nav, services, galleryVideos, galleryPhotos, projects: megaProjects }: NavbarProps) {
+export default function Navbar({ siteName, nav, menuItems, services, galleryVideos, galleryPhotos, projects: megaProjects }: NavbarProps) {
   const [active, setActive] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
@@ -80,12 +89,6 @@ export default function Navbar({ siteName, nav, services, galleryVideos, gallery
   const openMega = (k: string) => { if (closeTimer.current) clearTimeout(closeTimer.current); setActive(k); };
   const scheduleClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setActive(null), 150); };
 
-  const megaItems = [
-    { label: "Services", href: "/services" },
-    { label: "Gallery", href: "/gallery" },
-    { label: "Projects", href: "/projects" },
-  ];
-
   // Adaptive glass: tint follows the section behind the pill. In dark theme
   // every surface is dark, so the nav stays dark there regardless of section.
   const sectionTone = useSectionTone(44);
@@ -101,28 +104,36 @@ export default function Navbar({ siteName, nav, services, galleryVideos, gallery
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
-            {megaItems.map(({ label, href }) => {
-              const on = active === label;
+            {menuItems.map((item) => {
+              const panel = MEGA_BY_HREF[item.href];
+              if (!panel) {
+                return (
+                  <li key={item.label + item.href} onMouseEnter={scheduleClose}>
+                    <Link href={item.href} className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{item.label}</Link>
+                  </li>
+                );
+              }
+              const on = active === panel;
               return (
-                <li key={label} className="flex items-center" onMouseEnter={() => openMega(label)}>
+                <li key={item.label + item.href} className="flex items-center" onMouseEnter={() => openMega(panel)}>
                   <Link
-                    href={href}
+                    href={item.href}
                     onClick={() => setActive(null)}
                     className={`rounded-full py-2 pl-3.5 pr-1.5 text-sm font-medium transition-colors duration-300 ${on ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
                   >
-                    {label}
+                    {item.label}
                   </Link>
                   <button
-                    ref={(el) => { triggerRefs.current[label] = el; }}
-                    aria-label={`${label} menu`}
+                    ref={(el) => { triggerRefs.current[panel] = el; }}
+                    aria-label={`${item.label} menu`}
                     aria-haspopup="true"
                     aria-expanded={on}
                     aria-controls="nav-mega-panel"
-                    onClick={() => (on ? setActive(null) : openMega(label))}
+                    onClick={() => (on ? setActive(null) : openMega(panel))}
                     onKeyDown={(e) => {
                       if (e.key === "ArrowDown") {
                         e.preventDefault();
-                        openMega(label);
+                        openMega(panel);
                         requestAnimationFrame(focusFirstInPanel);
                       }
                     }}
@@ -135,8 +146,6 @@ export default function Navbar({ siteName, nav, services, galleryVideos, gallery
                 </li>
               );
             })}
-            <li onMouseEnter={scheduleClose}><Link href="/journal" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{nav.blogLabel}</Link></li>
-            <li onMouseEnter={scheduleClose}><Link href="/contact" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{nav.contactLabel}</Link></li>
           </ul>
 
           <div className="flex items-center gap-2">
@@ -219,8 +228,8 @@ export default function Navbar({ siteName, nav, services, galleryVideos, gallery
       <div className={`fixed inset-0 z-40 lg:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}>
         <div className={`absolute inset-0 transition-opacity duration-500 ${open ? "opacity-100" : "opacity-0"}`} style={{ background: "var(--ink)", backdropFilter: "blur(24px)" }}>
           <div className="shell flex h-full flex-col justify-center gap-3 pt-24">
-            {[{ l: "Services", h: "/services" }, { l: "Gallery", h: "/gallery" }, { l: "Projects", h: "/projects" }, { l: nav.blogLabel, h: "/journal" }, { l: nav.contactLabel, h: "/contact" }].map((l, i) => (
-              <Link key={l.l} href={l.h} onClick={() => setOpen(false)} className="text-4xl font-extrabold transition-all duration-500" style={{ transitionDelay: open ? `${120 + i * 60}ms` : "0ms", opacity: open ? 1 : 0, transform: open ? "none" : "translateY(20px)" }}>{l.l}</Link>
+            {menuItems.map((item, i) => (
+              <Link key={item.label + item.href} href={item.href} onClick={() => setOpen(false)} className="text-4xl font-extrabold transition-all duration-500" style={{ transitionDelay: open ? `${120 + i * 60}ms` : "0ms", opacity: open ? 1 : 0, transform: open ? "none" : "translateY(20px)" }}>{item.label}</Link>
             ))}
             <Link href="/contact" onClick={() => setOpen(false)} className="btn btn-primary mt-6 w-max">{nav.getStartedLabel}</Link>
           </div>

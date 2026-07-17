@@ -1,15 +1,7 @@
 import Link from "next/link";
 import type { BlockData } from "@/content/defaults";
 
-const pages = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Portfolio", href: "/projects" },
-  { label: "Journal", href: "/journal" },
-  { label: "Contact", href: "/contact" },
-];
-
-export default function Footer({ site }: { site: BlockData["site"] }) {
+export default function Footer({ site, pages }: { site: BlockData["site"]; pages: { label: string; href: string }[] }) {
   return (
     <footer className="relative overflow-hidden border-t border-[var(--line)] bg-[var(--ink)]">
       <div className="shell pt-20">

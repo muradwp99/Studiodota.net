@@ -348,6 +348,36 @@ export const BLOCK_DEFAULTS = {
     ],
   },
 
+  menus: {
+    primary: [
+      { label: "Services", href: "/services" },
+      { label: "Gallery", href: "/gallery" },
+      { label: "Projects", href: "/projects" },
+      { label: "Blog", href: "/journal" },
+      { label: "Contact", href: "/contact" },
+    ],
+    footerPages: [
+      { label: "Home", href: "/" },
+      { label: "About", href: "/about" },
+      { label: "Portfolio", href: "/projects" },
+      { label: "Journal", href: "/journal" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+
+  taxonomies: {
+    postCategories: ["Craft", "Philosophy", "Urbanism", "Sustainability", "Interiors", "Process", "Lifestyle"],
+  },
+
+  plugins: {
+    /** [{ id, active, settings }] — settings validated against each plugin's own field spec */
+    states: [] as { id: string; active: boolean; settings: Record<string, unknown> }[],
+  },
+
+  appearance: {
+    activeTheme: "studiodota",
+  },
+
   "page.privacy": {
     eyebrow: "Legal",
     title: "Privacy policy",

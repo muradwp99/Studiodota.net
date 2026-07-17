@@ -46,7 +46,8 @@ export const BLOCK_SPECS: BlockSpec[] = [
   {
     key: "nav",
     title: "Navigation",
-    fields: [t("getStartedLabel", "Get Started button"), t("blogLabel", "Blog link label"), t("contactLabel", "Contact link label")],
+    description: "Menu items are managed under Appearance → Menus.",
+    fields: [t("getStartedLabel", "Get Started button")],
   },
   {
     key: "home.hero",
@@ -256,6 +257,26 @@ export const BLOCK_SPECS: BlockSpec[] = [
       t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"),
       { kind: "list", key: "sections", label: "Sections", addable: true, item: [t("heading", "Heading"), ta("body", "Body", 4)] },
     ],
+  },
+  {
+    key: "menus",
+    title: "Menus",
+    description: "The header navigation and the footer Pages column. Services/Gallery/Projects keep their dropdown panels automatically.",
+    fields: [
+      { kind: "list", key: "primary", label: "Primary menu (header)", addable: true, item: [t("label", "Label"), t("href", "Link")] },
+      { kind: "list", key: "footerPages", label: "Footer — Pages column", addable: true, item: [t("label", "Label"), t("href", "Link")] },
+    ],
+  },
+  {
+    key: "taxonomies",
+    title: "Categories",
+    description: "Categories available when writing posts.",
+    fields: [{ kind: "stringList", key: "postCategories", label: "Post categories" }],
+  },
+  {
+    key: "appearance",
+    title: "Appearance",
+    fields: [t("activeTheme", "Active theme id")],
   },
 ];
 
