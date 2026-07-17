@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site } from "@/content/site";
+import type { BlockData } from "@/content/defaults";
 
 const pages = [
   { label: "Home", href: "/" },
@@ -8,16 +8,8 @@ const pages = [
   { label: "Journal", href: "/journal" },
   { label: "Contact", href: "/contact" },
 ];
-const services = [
-  "Architectural Design",
-  "Interior Architecture",
-  "Urban & Masterplanning",
-  "Renovation & Restoration",
-  "Sustainability",
-];
-const socials = ["IG", "LI", "FB", "YT", "X"];
 
-export default function Footer() {
+export default function Footer({ site }: { site: BlockData["site"] }) {
   return (
     <footer className="relative overflow-hidden border-t border-[var(--line)] bg-[var(--ink)]">
       <div className="shell pt-20">
@@ -25,16 +17,14 @@ export default function Footer() {
           {/* brand + contact */}
           <div>
             <div className="flex items-center gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-[var(--gold)] text-[var(--ink)] text-lg font-extrabold">
-                S
+              <span className="grid h-9 w-9 place-items-center rounded-md bg-[var(--gold)] text-lg font-extrabold text-[#17191c]">
+                {site.name.charAt(0)}
               </span>
               <span className="text-2xl font-extrabold uppercase tracking-[0.12em]">
-                Studiodota
+                {site.name}
               </span>
             </div>
-            <h2 className="display-m mt-7 max-w-[16ch]">
-              An architecture &amp; design studio shaping spaces built to endure.
-            </h2>
+            <h2 className="display-m mt-7 max-w-[16ch]">{site.footerHeadline}</h2>
 
             <div className="mt-10">
               <h3 className="text-lg font-extrabold">Contact information</h3>
@@ -47,7 +37,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <div className="eyebrow eyebrow-muted text-[var(--muted)]">Our offices</div>
-                  <p className="mt-2 text-[var(--bone-dim)]">88 Grand Avenue, Suite 1200<br />London, UK</p>
+                  <p className="mt-2 text-[var(--bone-dim)]">{site.address1}<br />{site.address2}</p>
                 </div>
                 <div>
                   <div className="eyebrow eyebrow-muted text-[var(--muted)]">Phone number</div>
@@ -56,8 +46,8 @@ export default function Footer() {
                 <div>
                   <div className="eyebrow eyebrow-muted text-[var(--muted)]">Follow</div>
                   <div className="mt-2 flex gap-4 text-sm text-[var(--bone-dim)]">
-                    {socials.map((s) => (
-                      <a key={s} href="#" className="hover:text-[var(--gold)]">{s}</a>
+                    {site.socials.map((s) => (
+                      <a key={s.label} href={s.href} className="hover:text-[var(--gold)]">{s.label}</a>
                     ))}
                   </div>
                 </div>
@@ -69,7 +59,7 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-extrabold">Services</h3>
             <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
-              {services.map((s) => (
+              {site.footerServices.map((s) => (
                 <li key={s}>
                   <Link href="/services" className="hover:text-[var(--bone)]">{s}</Link>
                 </li>
@@ -84,12 +74,12 @@ export default function Footer() {
             className="font-extrabold uppercase leading-none"
             style={{ fontSize: "clamp(2.5rem, 13vw, 12rem)", color: "var(--watermark)", letterSpacing: "0.02em" }}
           >
-            Studiodota
+            {site.name}
           </span>
         </div>
 
         <div className="flex flex-col gap-4 border-t border-[var(--line)] py-8 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Studiodota. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {site.name}. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-[var(--bone)]">Privacy Policy</Link>
             <Link href="/privacy" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>

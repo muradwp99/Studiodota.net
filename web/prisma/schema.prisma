@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String    @default("Admin")
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+}
+
+model Session {
+  token     String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// One row per editable page section / settings group. `data` is the section's
+/// JSON payload; shape is defined by the page registry + content defaults.
+model Block {
+  key       String   @id
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  summary       String   @db.Text
+  category      String
+  sector        String
+  location      String   @default("")
+  year          String
+  services      Json
+  heroImage     String
+  interiorImage String   @default("")
+  published     Boolean  @default(true)
+  sort          Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String   @db.Text
+  category    String
+  date        String
+  readingTime Int      @default(5)
+  image       String
+  inlineImage String   @default("")
+  authorName  String
+  authorRole  String
+  intro       String   @db.Text
+  sections    Json
+  published   Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryItem {
+  id        String  @id @default(cuid())
+  title     String
+  sector    String
+  image     String
+  category  String
+  type      String  @default("photo")
+  youtubeId String  @default("")
+  tall      Boolean @default(false)
+  published Boolean @default(true)
+  sort      Int     @default(0)
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  path      String   @unique
+  alt       String   @default("")
+  mime      String   @default("")
+  size      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String   @db.Text
+  service   String   @default("")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

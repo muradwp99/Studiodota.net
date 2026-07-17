@@ -5,9 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import type { Project } from "@/content/site";
 
-const R = (n: string) => `/media/renders/${n}.jpg`;
+export type ProjectCardData = {
+  slug: string;
+  title: string;
+  summary: string;
+  category: string;
+  sector: string;
+  year: string;
+  heroImage: string;
+};
 
 const filters = [
   { key: "all", label: "All work" },
@@ -21,7 +28,7 @@ export default function ProjectsClient({
   projects,
   initial = "all",
 }: {
-  projects: Project[];
+  projects: ProjectCardData[];
   initial?: string;
 }) {
   const reduced = useReducedMotion();
@@ -66,7 +73,7 @@ export default function ProjectsClient({
                   <Link href={`/projects/${p.slug}`} className="group block">
                     <div className={`relative w-full overflow-hidden rounded-2xl ${feature ? "aspect-[16/9]" : "aspect-[4/3]"}`}>
                       <Image
-                        src={R(p.slug)}
+                        src={p.heroImage}
                         alt={`${p.title} — ${p.sector}`}
                         fill
                         sizes={feature ? "100vw" : "(max-width:768px) 100vw, 50vw"}

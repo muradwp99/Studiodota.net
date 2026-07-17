@@ -4,6 +4,29 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
+## Session update — 2026-07-17 (LATEST: custom CMS + homepage polish + real video)
+**`npm run build` CLEAN.** Everything below verified live in-browser (admin round trip included).
+
+**Custom CMS (from scratch) — the site is now fully editable at `/admin`:**
+- **Stack:** MySQL 8.4 + Prisma 6 (v7 has breaking config changes — stay on 6 unless migrating deliberately) + bcryptjs sessions + zod + server actions. No Strapi.
+- **Database:** project-local MySQL instance on `127.0.0.1:3307`, data in `.mysql/data` (gitignored), binaries from the system MySQL 8.4 install. **Start it with `cd web && npm run db:start`** (script: `web/scripts/db.ps1`). The app + `npm run build` need it running. DB `studiodota`, user `studiodota` (password in `web/.env` DATABASE_URL). Re-initialize if ever lost: `mysqld --no-defaults --initialize-insecure --datadir=D:\Studiodota.net\.mysql\data` then create db/user per this section.
+- **Admin login:** `/admin/login` — email `marketing.realistic3d@gmail.com`, password in `web/.env` (`ADMIN_PASSWORD`, currently `studiodota-admin-2026` — CHANGE IT: update the User row's bcrypt hash or re-seed with new env values).
+- **Schema** (`web/prisma/schema.prisma`): User, Session, Block (key+JSON per page section), Project (+location), Post, GalleryItem (+youtubeId), Media, ContactMessage. Seed: `npx prisma db seed` (idempotent — never overwrites edited rows; sources `src/content/defaults.ts` + posts from `src/content/site.ts`).
+- **Admin surfaces:** Dashboard · Pages (every page section-by-section via a spec-driven form engine — `src/lib/pageRegistry.ts` drives BOTH the forms and server validation) · Projects CRUD · Posts CRUD (sectioned articles) · Gallery CRUD (incl. YouTube IDs) · Media (upload to `public/uploads/`, magic-byte validated) · Messages inbox · Settings (site/nav/footer/SEO). Saves `revalidatePath("/","layout")` → live instantly.
+- **Content flow:** `(site)` route group layout + pages read via `src/lib/content.ts` (React-cached, falls back to `src/content/defaults.ts` if DB is down); ALL public strings/images come from blocks or tables. `site.ts` remains only as seed source + home-2 legacy.
+- **Contact forms** (contact page + homepage CTA) persist to ContactMessage via a server action (zod, honeypot, per-IP in-memory rate limit) → admin Messages (unread badge).
+
+**Homepage polish (all verified):**
+- **Featured "Inside, Outside"** rebuilt to the client's new card design (`Homepage_ref/inside_outside_section.jpg`): dark band, light cards (quote-mark SVG, title, location/year, circled-arrow View Details pill → project pages), offset second row, whileInView stagger + Parallax drift + hover zoom.
+- **ServicesSlider "Learn more" pill** was white-on-white in light theme → fixed dark-ink-on-light literals; `.btn-primary` text now fixed `#17191c` (was `var(--ink)` = paper-white in light theme).
+- **PromoBanner (Canva "Start your project") removed**; **GeometricBackground removed** from Showreel.
+- **FinalCTA** → immersive full-bleed parallax band (harbour render, scrim, display headline, contact links, glass form card) wired to the real contact action.
+- **Video:** `VideoPlayer.tsx` rewritten — **ambient** (muted autoplay while ≥35% on screen; rect-math visibility + poll, since IntersectionObserver delivery proved unreliable; iframe-API `playVideo` nudge because `autoplay=1` alone gets ignored in some webviews) and **cinema** (click → unmuted autoplay + controls, used by showreel modal + gallery lightbox). **Error 153 in the last session was a red herring** — it means "no referrer" (direct embed-URL navigation), NOT embedding-disabled; embeds from a real page work. Showreel slides + gallery videos carry verified-embeddable placeholder films (B1M/NEVER TOO SMALL/Local Project) — **swap in the studio's own YouTube IDs in /admin** (Pages → Homepage → Showreel; Gallery items).
+
+**Structure:** public pages moved to `web/src/app/(site)/` (own layout w/ Navbar/Footer fed from DB); admin in `web/src/app/admin/` (guarded `(panel)` group + `/admin/login`). Root layout = fonts + DB-driven metadata only. `next.config.ts`: serverActions bodySizeLimit 12mb.
+
+**Known limitations / next steps:** login + contact rate limits are in-memory (fine single-instance); uploads live on disk (`public/uploads/`, committed); the dev MySQL process dies with the session — run `npm run db:start`; `/home-2` still uses legacy components + `site.ts`; no email notification on new enquiries yet; Prisma pinned to 6.x.
+
 ## Session update — 2026-07-17 (cinematic redesign + P1 a11y)
 Large homepage motion/design pass. **`npm run build` CLEAN (20 routes).** Verified in-browser, light + dark.
 

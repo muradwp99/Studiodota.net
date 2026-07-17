@@ -6,36 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import VideoPlayer from "@/components/VideoPlayer";
 
-const R = (n: string) => `/media/renders/${n}.jpg`;
-
 type Cat = "architecture" | "residential" | "commercial";
-type Item = {
+export type GalleryItemData = {
   id: string;
   title: string;
   sector: string;
-  img: string;
-  cat: Cat;
-  type: "photo" | "video";
-  yt?: string;
+  image: string;
+  category: string;
+  type: string;
+  youtubeId?: string;
   tall?: boolean;
 };
-
-const items: Item[] = [
-  { id: "alpine", title: "Alpine House", sector: "Private residence", img: "hero", cat: "architecture", type: "photo", tall: true },
-  { id: "atelier", title: "Atelier House", sector: "Residential", img: "atelier-house", cat: "residential", type: "photo" },
-  { id: "studio-vale", title: "Studio Vale", sector: "Interior film", img: "interior", cat: "residential", type: "video", yt: "daL7TkzyW7k" },
-  { id: "urban-oasis", title: "Urban Oasis", sector: "Apartments", img: "urban-oasis", cat: "residential", type: "photo" },
-  { id: "meridian", title: "Meridian Centre", sector: "Civic flythrough", img: "meridian-sports", cat: "architecture", type: "video", yt: "FnrPZuN0m-0", tall: true },
-  { id: "harbour", title: "Harbour Quarter", sector: "Masterplan", img: "harbour-masterplan", cat: "commercial", type: "photo" },
-  { id: "leafy", title: "Leafy Precinct", sector: "Residential", img: "leafy-precinct", cat: "residential", type: "photo" },
-  { id: "riverside", title: "Riverside Works", sector: "Commercial", img: "riverside-warehouse", cat: "commercial", type: "photo" },
-  { id: "material", title: "Glass & Steel", sector: "Commercial", img: "office-tower", cat: "commercial", type: "photo" },
-  { id: "terrace", title: "Sky Terrace", sector: "Rooftop amenity", img: "rooftop-pool", cat: "residential", type: "video", yt: "gToL_3ouPcI" },
-  { id: "public-realm", title: "Public Realm", sector: "Commercial", img: "harbour-masterplan", cat: "commercial", type: "photo", tall: true },
-  { id: "daylight", title: "Poolside Living", sector: "Residential interior", img: "living-pool", cat: "residential", type: "photo" },
-  { id: "civic-hall", title: "Civic Hall", sector: "Institutional", img: "meridian-sports", cat: "commercial", type: "photo" },
-  { id: "courtyard", title: "Courtyard", sector: "Landscape film", img: "leafy-precinct", cat: "residential", type: "video", yt: "zwagmtVuZoI" },
-];
 
 const filters = [
   { key: "all", label: "All" },
@@ -46,14 +27,14 @@ const filters = [
 
 const PAGE = 8;
 
-export default function GalleryClient() {
+export default function GalleryClient({ items }: { items: GalleryItemData[] }) {
   const reduced = useReducedMotion();
   const [cat, setCat] = useState<"all" | Cat>("all");
   const [page, setPage] = useState(0);
-  const [active, setActive] = useState<Item | null>(null);
+  const [active, setActive] = useState<GalleryItemData | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  const filtered = useMemo(() => items.filter((it) => cat === "all" || it.cat === cat), [cat]);
+  const filtered = useMemo(() => items.filter((it) => cat === "all" || it.category === cat), [cat, items]);
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const shown = filtered.slice(page * PAGE, page * PAGE + PAGE);
 
@@ -120,11 +101,11 @@ export default function GalleryClient() {
                 <div className="group relative h-full w-full overflow-hidden rounded-2xl">
                   {it.type === "video" ? (
                     <div className="absolute inset-0">
-                      <VideoPlayer youtubeId={it.yt} poster={R(it.img)} className="h-full w-full" rounded="" title={`${it.title} — ${it.sector}`} mode="ambient" />
+                      <VideoPlayer youtubeId={it.youtubeId} poster={it.image} className="h-full w-full" rounded="" title={`${it.title} — ${it.sector}`} mode="ambient" />
                     </div>
                   ) : (
                     <Image
-                      src={R(it.img)}
+                      src={it.image}
                       alt={`${it.title} — ${it.sector}`}
                       fill
                       sizes="(max-width:768px) 100vw, 50vw"
@@ -197,9 +178,9 @@ export default function GalleryClient() {
             >
               <div className="relative aspect-video w-full overflow-hidden bg-black">
                 {active.type === "video" ? (
-                  <VideoPlayer youtubeId={active.yt} poster={R(active.img)} className="h-full w-full" rounded="" title={`${active.title} — ${active.sector}`} mode="cinema" />
+                  <VideoPlayer youtubeId={active.youtubeId} poster={active.image} className="h-full w-full" rounded="" title={`${active.title} — ${active.sector}`} mode="cinema" />
                 ) : (
-                  <Image src={R(active.img)} alt={`${active.title} — ${active.sector}`} fill sizes="90vw" className="object-cover" />
+                  <Image src={active.image} alt={`${active.title} — ${active.sector}`} fill sizes="90vw" className="object-cover" />
                 )}
               </div>
               <div className="flex items-center justify-between gap-4 p-5">

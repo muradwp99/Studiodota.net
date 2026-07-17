@@ -1,0 +1,58 @@
+"use server";
+
+import { z } from "zod";
+import { db } from "@/lib/db";
+import { clientKey } from "@/lib/auth";
+
+export type ContactState = { ok?: boolean; error?: string };
+
+const schema = z.object({
+  name: z.string().trim().min(1, "Please tell us your name.").max(120),
+  email: z.string().trim().email("Enter a valid email address.").max(200),
+  message: z.string().trim().min(10, "A sentence or two about the project helps.").max(5000),
+  service: z.string().trim().max(80).optional().default(""),
+  phone: z.string().trim().max(40).optional().default(""),
+  // Honeypot — humans never fill this.
+  company: z.string().max(200).optional().default(""),
+});
+
+/* Per-IP submission limiting (in-memory; resets on restart). */
+const submissions = new Map<string, { count: number; resetAt: number }>();
+const MAX_PER_HOUR = 5;
+
+export async function submitContact(input: unknown): Promise<ContactState> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the form and try again." };
+  }
+  const { name, email, message, service, phone, company } = parsed.data;
+
+  // Bots that fill the honeypot get a quiet "success" and no row.
+  if (company) return { ok: true };
+
+  const key = await clientKey();
+  const bucket = submissions.get(key);
+  if (bucket && Date.now() < bucket.resetAt && bucket.count >= MAX_PER_HOUR) {
+    return { error: "Too many enquiries from this connection — please try again later or email us directly." };
+  }
+
+  try {
+    await db.contactMessage.create({
+      data: {
+        name,
+        email,
+        service,
+        message: phone ? `Phone: ${phone}\n\n${message}` : message,
+      },
+    });
+    if (!bucket || Date.now() > bucket.resetAt) {
+      submissions.set(key, { count: 1, resetAt: Date.now() + 60 * 60 * 1000 });
+    } else {
+      bucket.count += 1;
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error("submitContact", e);
+    return { error: "Something interrupted the send. Please try again, or email us directly." };
+  }
+}

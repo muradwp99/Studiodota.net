@@ -6,14 +6,10 @@ import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import type { BlockData } from "@/content/defaults";
 
-const slides = [
-  "/media/renders/hero.jpg",
-  "/media/renders/meridian-sports.jpg",
-  "/media/renders/harbour-masterplan.jpg",
-];
-
-export default function Hero() {
+export default function Hero({ d }: { d: BlockData["home.hero"] }) {
+  const slides = d.slides.map((s) => s.image);
   const [active, setActive] = useState(0);
   const next = () => setActive((a) => (a + 1) % slides.length);
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,27 +66,25 @@ export default function Hero() {
               className="grad-text-media font-extrabold leading-[0.82] tracking-[-0.045em]"
               style={{ fontSize: "clamp(4rem, 13vw, 12rem)" }}
             >
-              Studio
+              {d.titleAccent}
             </span>
             <span
               className="font-light leading-[0.95] tracking-[-0.02em]"
               style={{ fontSize: "clamp(2rem, 5.5vw, 4.75rem)", paddingTop: "0.2em" }}
             >
-              of architecture
+              {d.titleRestLine1}
               <br />
-              &amp; design
+              {d.titleRestLine2}
             </span>
           </div>
           <p className="lede mt-8 max-w-[52ch]" style={{ color: "var(--on-media-dim)" }}>
-            Studiodota is an architecture and design practice. We shape
-            buildings and spaces that are precise, human, and built to endure —
-            guiding every project from first sketch to completion.
+            {d.lede}
           </p>
           <Link
-            href="/projects"
-            className="mt-9 inline-flex items-center gap-3 rounded-full bg-[var(--gold)] px-8 py-4 text-[0.78rem] font-extrabold uppercase tracking-[0.16em] text-[var(--ink)] shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)] transition-all duration-300 hover:scale-[1.03] hover:bg-[var(--gold-hi)]"
+            href={d.ctaHref || "/projects"}
+            className="mt-9 inline-flex items-center gap-3 rounded-full bg-[var(--gold)] px-8 py-4 text-[0.78rem] font-extrabold uppercase tracking-[0.16em] text-[#17191c] shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)] transition-all duration-300 hover:scale-[1.03] hover:bg-[var(--gold-hi)]"
           >
-            Show Portfolio
+            {d.ctaLabel}
             <span aria-hidden="true">→</span>
           </Link>
         </div>

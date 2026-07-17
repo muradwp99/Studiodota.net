@@ -5,26 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSectionTone } from "@/lib/useSectionTone";
 
-const R = (n: string) => `/media/renders/${n}.jpg`;
-
-const services = [
-  { t: "Architectural Design", d: "Concept to completion", href: "/services#architecture" },
-  { t: "Interior Architecture", d: "Light, material, flow", href: "/services#interior" },
-  { t: "Urban & Masterplanning", d: "Precincts & public realm", href: "/services#urban" },
-  { t: "Renovation & Restoration", d: "Existing & heritage", href: "/services#renovation" },
-  { t: "Landscape & Environment", d: "Site & context", href: "/services#landscape" },
-  { t: "Sustainability", d: "Low-carbon performance", href: "/services#sustainability" },
-];
-const galleryVideos = [
-  { img: "meridian-sports", t: "Meridian — flythrough" },
-  { img: "harbour-masterplan", t: "Harbour — aerial" },
-];
-const galleryPhotos = ["atelier-house", "interior", "urban-oasis", "riverside-warehouse"];
-const megaProjects = [
-  { img: "urban-oasis", n: "Urban Oasis", c: "Residential" },
-  { img: "meridian-sports", n: "Meridian Sports", c: "Institutional" },
-  { img: "harbour-masterplan", n: "Harbour Quarter", c: "Masterplan" },
-];
+export type NavbarProps = {
+  siteName: string;
+  nav: { getStartedLabel: string; blogLabel: string; contactLabel: string };
+  services: { t: string; d: string; href: string }[];
+  galleryVideos: { img: string; t: string }[];
+  galleryPhotos: string[];
+  projects: { img: string; n: string; c: string }[];
+};
 
 function Sun() {
   return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="4" /><path strokeLinecap="round" d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" /></svg>);
@@ -33,7 +21,7 @@ function Moon() {
   return (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>);
 }
 
-export default function Navbar() {
+export default function Navbar({ siteName, nav, services, galleryVideos, galleryPhotos, projects: megaProjects }: NavbarProps) {
   const [active, setActive] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
@@ -108,8 +96,8 @@ export default function Navbar() {
       <div className="pointer-events-none flex justify-center px-4 pt-4">
         <nav data-tone={tone} className="nav-shell pointer-events-auto flex w-[min(1120px,94vw)] items-center justify-between gap-4 rounded-full py-2 pl-4 pr-2 shadow-[0_18px_50px_-24px_rgba(17,19,21,0.4)]">
           <Link href="/" className="flex items-center gap-2.5" onMouseEnter={scheduleClose}>
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--gold)] text-sm font-extrabold text-[var(--ink)]">S</span>
-            <span className="text-[1.05rem] font-bold tracking-tight">Studiodota</span>
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--gold)] text-sm font-extrabold text-[#17191c]">{siteName.charAt(0)}</span>
+            <span className="text-[1.05rem] font-bold tracking-tight">{siteName}</span>
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
@@ -147,15 +135,15 @@ export default function Navbar() {
                 </li>
               );
             })}
-            <li onMouseEnter={scheduleClose}><Link href="/journal" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">Blog</Link></li>
-            <li onMouseEnter={scheduleClose}><Link href="/contact" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">Contact</Link></li>
+            <li onMouseEnter={scheduleClose}><Link href="/journal" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{nav.blogLabel}</Link></li>
+            <li onMouseEnter={scheduleClose}><Link href="/contact" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{nav.contactLabel}</Link></li>
           </ul>
 
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
               {dark ? <Sun /> : <Moon />}
             </button>
-            <Link href="/contact" className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>Get Started</Link>
+            <Link href="/contact" className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
             <button className="grid h-9 w-9 place-items-center lg:hidden" aria-label={open ? "Close" : "Menu"} onClick={() => setOpen((v) => !v)}>
               <div className="flex flex-col gap-[5px]">
                 <span className={`h-px w-5 bg-[var(--nav-fg)] transition-transform duration-500 ${open ? "translate-y-[6px] rotate-45" : ""}`} />
@@ -193,7 +181,7 @@ export default function Navbar() {
                 <div className="grid grid-cols-2 gap-3">
                   {galleryVideos.map((v) => (
                     <Link key={v.img} href="/gallery" onClick={() => setActive(null)} className="group relative aspect-video overflow-hidden rounded-xl">
-                      <video className="h-full w-full object-cover" autoPlay muted loop playsInline poster={R(v.img)}><source src="/media/hero-loop.mp4" type="video/mp4" /></video>
+                      <Image src={v.img} alt={v.t} fill sizes="260px" className="img-zoom object-cover" />
                       <span className="absolute left-1/2 top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.2)] text-xs text-white backdrop-blur">▶</span>
                       <span className="absolute bottom-2 left-3 text-xs font-medium text-white">{v.t}</span>
                     </Link>
@@ -205,7 +193,7 @@ export default function Navbar() {
                 <div className="grid grid-cols-4 gap-2">
                   {galleryPhotos.map((p) => (
                     <Link key={p} href="/gallery" onClick={() => setActive(null)} className="group relative aspect-square overflow-hidden rounded-lg">
-                      <Image src={R(p)} alt="" fill sizes="120px" className="img-zoom object-cover" />
+                      <Image src={p} alt="" fill sizes="120px" className="img-zoom object-cover" />
                     </Link>
                   ))}
                 </div>
@@ -217,7 +205,7 @@ export default function Navbar() {
             <div className="grid grid-cols-3 gap-4">
               {megaProjects.map((p) => (
                 <Link key={p.n} href="/projects" onClick={() => setActive(null)} className="group block">
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-xl"><Image src={R(p.img)} alt={p.n} fill sizes="300px" className="img-zoom object-cover" /></div>
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-xl"><Image src={p.img} alt={p.n} fill sizes="300px" className="img-zoom object-cover" /></div>
                   <div className="mt-3 text-xs uppercase tracking-[0.12em] text-[var(--muted)]">{p.c}</div>
                   <div className="text-base font-medium transition-colors duration-300 group-hover:text-[var(--gold)]">{p.n}</div>
                 </Link>
@@ -231,10 +219,10 @@ export default function Navbar() {
       <div className={`fixed inset-0 z-40 lg:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}>
         <div className={`absolute inset-0 transition-opacity duration-500 ${open ? "opacity-100" : "opacity-0"}`} style={{ background: "var(--ink)", backdropFilter: "blur(24px)" }}>
           <div className="shell flex h-full flex-col justify-center gap-3 pt-24">
-            {[{ l: "Services", h: "/services" }, { l: "Gallery", h: "/gallery" }, { l: "Projects", h: "/projects" }, { l: "Blog", h: "/journal" }, { l: "Contact", h: "/contact" }].map((l, i) => (
+            {[{ l: "Services", h: "/services" }, { l: "Gallery", h: "/gallery" }, { l: "Projects", h: "/projects" }, { l: nav.blogLabel, h: "/journal" }, { l: nav.contactLabel, h: "/contact" }].map((l, i) => (
               <Link key={l.l} href={l.h} onClick={() => setOpen(false)} className="text-4xl font-extrabold transition-all duration-500" style={{ transitionDelay: open ? `${120 + i * 60}ms` : "0ms", opacity: open ? 1 : 0, transform: open ? "none" : "translateY(20px)" }}>{l.l}</Link>
             ))}
-            <Link href="/contact" onClick={() => setOpen(false)} className="btn btn-primary mt-6 w-max">Get Started</Link>
+            <Link href="/contact" onClick={() => setOpen(false)} className="btn btn-primary mt-6 w-max">{nav.getStartedLabel}</Link>
           </div>
         </div>
       </div>

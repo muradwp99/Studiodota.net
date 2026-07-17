@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { serviceOptions } from "@/content/site";
+import { submitContact } from "@/lib/actions/contact";
 
 type Status = "idle" | "submitting" | "success" | "error";
 type Errors = Partial<Record<"name" | "email" | "service" | "message" | "consent", string>>;
@@ -11,7 +11,7 @@ const field =
 const labelCls = "mb-2 block text-sm text-[var(--bone-dim)]";
 const errCls = "mt-2 flex items-center gap-2 text-sm text-[var(--gold-ink)]";
 
-export default function ContactForm() {
+export default function ContactForm({ serviceOptions }: { serviceOptions: string[] }) {
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Errors>({});
 
@@ -40,10 +40,24 @@ export default function ContactForm() {
 
     setStatus("submitting");
     try {
-      // Front-end only for now — wires to POST /api/contact with the backend.
-      await new Promise((r) => setTimeout(r, 900));
-      setStatus("success");
-      form.reset();
+      // The visible "Company" input is real user data — fold it into the
+      // message body (the action's `company` field is a hidden bot honeypot).
+      const companyVal = String(data.get("company") || "").trim();
+      const res = await submitContact({
+        name,
+        email,
+        service,
+        message: companyVal ? `Company: ${companyVal}\n\n${message}` : message,
+        phone: String(data.get("phone") || ""),
+        company: "",
+      });
+      if (res.ok) {
+        setStatus("success");
+        form.reset();
+      } else {
+        setErrors(res.error ? { message: res.error } : {});
+        setStatus("error");
+      }
     } catch {
       setStatus("error");
     }
