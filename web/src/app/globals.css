@@ -273,7 +273,7 @@ a {
 }
 .btn-primary {
   background: var(--gold);
-  color: var(--ink);
+  color: #17191c; /* fixed dark ink — --ink is paper-white in the light theme */
 }
 .btn-primary:hover {
   background: var(--gold-hi);

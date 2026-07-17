@@ -8,7 +8,7 @@ import Reveal from "@/components/Reveal";
 import ScrollHighlightText from "@/components/ScrollHighlightText";
 import ImageMaskText from "@/components/ImageMaskText";
 import VideoPlayer from "@/components/VideoPlayer";
-import GeometricBackground from "@/components/GeometricBackground";
+import { Parallax, ParallaxImage } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 const R = (n: string) => `/media/renders/${n}.jpg`;
@@ -169,7 +169,7 @@ function ServicesSlider() {
                           <span key={t} className="rounded-full border border-[rgba(246,245,242,0.28)] px-3.5 py-1.5 text-[0.7rem] uppercase tracking-[0.08em]" style={{ color: "var(--on-media-dim)" }}>{t}</span>
                         ))}
                       </div>
-                      <Link href="/services" className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "var(--on-media)", color: "var(--ink)" }}>
+                      <Link href="/services" className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "#f7f6f3", color: "#17191c" }}>
                         Learn more <span aria-hidden="true">→</span>
                       </Link>
                     </div>
@@ -244,104 +244,101 @@ function StatDarkCard({ end, suffix, label }: { end: number; suffix: string; lab
   );
 }
 
-/* ---------------- Featured: Inside, Outside (filter tabs) ---------------- */
-const gallery = [
-  { id: "trellis", name: "Trellis", label: "Multi-residential", cat: "Living", img: "atelier-house" },
-  { id: "claremont", name: "The Claremont Hotel", label: "Hotels & hospitality", cat: "Playing", img: "interior" },
-  { id: "seaglass", name: "Sea Glass", label: "Multi-residential", cat: "Living", img: "urban-oasis" },
-  { id: "dune", name: "Dune", label: "Multi-residential", cat: "Living", img: "leafy-precinct" },
-  { id: "bankst", name: "Bank Street", label: "Build to rent", cat: "Working", img: "riverside-warehouse" },
-  { id: "meridian", name: "Meridian Centre", label: "Sport & civic", cat: "Playing", img: "meridian-sports" },
-  { id: "harbour", name: "Harbour Quarter", label: "Masterplan", cat: "Working", img: "harbour-masterplan" },
+/* ---------------- Featured: Inside, Outside (editorial project cards) ---------------- */
+const featured = [
+  { slug: "urban-oasis", title: "Urban Oasis Apartments", location: "London, UK", year: "2025", img: "urban-oasis" },
+  { slug: "atelier-house", title: "Atelier House", location: "Copenhagen, Denmark", year: "2025", img: "atelier-house" },
+  { slug: "meridian-sports", title: "Meridian Sports Centre", location: "Manchester, UK", year: "2024", img: "meridian-sports" },
+  { slug: "harbour-masterplan", title: "Harbour Quarter Masterplan", location: "Oslo, Norway", year: "2025", img: "harbour-masterplan" },
 ];
-const tabs = ["All", "Living", "Playing", "Working"] as const;
-function Featured() {
-  const [tab, setTab] = useState<(typeof tabs)[number]>("All");
-  const items = gallery.filter((g) => tab === "All" || g.cat === tab);
+
+function QuoteMark({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 46 34" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M12 0h9l-3 9h-9L12 0Z" />
+      <path d="M33 0h9l-3 9h-9L33 0Z" />
+      <path d="M7.7 13h9l-7 21h-9l7-21Z" />
+      <path d="M28.7 13h9l-7 21h-9l7-21Z" />
+    </svg>
+  );
+}
+
+function FeaturedCard({ p, i }: { p: (typeof featured)[number]; i: number }) {
   const reduced = useReducedMotion();
   return (
-    <section className="section bg-[var(--ink-2)] pattern-grid">
-      <div className="shell">
-        <Reveal><h2 className="display-l text-center">Inside, <span className="text-[var(--muted)]">Outside</span></h2></Reveal>
-
-        <div className="mt-6 flex flex-wrap justify-center gap-2 lg:hidden">
-          {tabs.map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`rounded-full border px-4 py-2 text-sm transition-colors ${tab === t ? "border-[var(--gold)] text-[var(--gold)]" : "border-[var(--line-strong)] text-[var(--bone-dim)]"}`}>{t}</button>
-          ))}
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-[3rem_1fr_3rem] lg:gap-8">
-          {/* left rail — All */}
-          <button
-            onClick={() => setTab("All")}
-            aria-pressed={tab === "All"}
-            className="hidden items-center justify-center rounded-full transition-colors duration-300 lg:flex"
-            style={{
-              writingMode: "vertical-rl",
-              letterSpacing: "0.2em",
-              background: tab === "All" ? "var(--bone)" : "var(--surface-2)",
-              color: tab === "All" ? "var(--ink)" : "var(--bone-dim)",
-              fontWeight: tab === "All" ? 700 : 500,
-            }}
+    <motion.article
+      initial={reduced ? false : { opacity: 0, y: 64 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: reduced ? 0 : 0.9, delay: reduced ? 0 : (i % 2) * 0.14, ease: [0.22, 1, 0.36, 1] }}
+      className="group grid overflow-hidden rounded-lg md:grid-cols-2"
+      style={{ background: "#f7f6f3", color: "#17191c" }}
+    >
+      <div className="flex min-h-[300px] flex-col justify-between gap-10 p-8 md:min-h-[430px] md:p-10">
+        <QuoteMark className="h-8 w-auto self-start" />
+        <div>
+          <h3 className="max-w-[14ch] text-[1.65rem] font-medium leading-[1.12] tracking-[-0.015em] md:text-[2rem]">{p.title}</h3>
+          <div className="mt-3 text-sm" style={{ color: "#6b7178" }}>{p.location} / {p.year}</div>
+          <Link
+            href={`/projects/${p.slug}`}
+            className="mt-8 inline-flex items-center gap-2.5 rounded-full border border-[rgba(23,25,28,0.28)] py-2 pl-2.5 pr-5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#17191c] hover:bg-[#17191c] hover:text-[#f7f6f3]"
           >
-            All
-          </button>
-
-          <motion.div layout={!reduced} className="grid auto-rows-[minmax(0,1fr)] gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <AnimatePresence mode="popLayout">
-              {items.map((g, i) => {
-                const tall = tab === "All" && i === 0;
-                return (
-                  <motion.div key={g.id} layout={!reduced} initial={reduced ? false : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96 }} transition={{ duration: reduced ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }} className={tall ? "lg:row-span-2" : ""}>
-                    <Link href="/projects" className="group block h-full">
-                      <div className={`relative w-full overflow-hidden rounded-xl ${tall ? "h-full min-h-[320px]" : "aspect-[4/3]"}`}>
-                        <Image src={R(g.img)} alt={g.name} fill sizes="(max-width:1024px) 100vw, 33vw" className="img-zoom object-cover" />
-                      </div>
-                      <div className="mt-3 text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{g.label}</div>
-                      <div className="text-xl font-medium transition-colors duration-300 group-hover:text-[var(--gold-ink)]">{g.name}</div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* right rail — Living / Playing / Working */}
-          <div className="hidden flex-col items-center justify-between py-2 lg:flex">
-            {tabs.slice(1).map((t) => {
-              const on = tab === t;
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  aria-pressed={on}
-                  className="transition-colors duration-300 hover:text-[var(--bone)]"
-                  style={{
-                    writingMode: "vertical-rl",
-                    letterSpacing: "0.16em",
-                    color: on ? "var(--gold-ink)" : "var(--bone-dim)",
-                    fontWeight: on ? 700 : 500,
-                  }}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
+            <span className="grid h-6 w-6 place-items-center rounded-full border border-current text-[0.7rem]" aria-hidden="true">→</span>
+            View Details
+          </Link>
         </div>
-        <CTA href="/projects" label="View all projects" center />
+      </div>
+      <div className="relative min-h-[280px] overflow-hidden md:min-h-full">
+        <Image
+          src={R(p.img)}
+          alt={p.title}
+          fill
+          sizes="(max-width:768px) 100vw, 44vw"
+          className={`object-cover ${reduced ? "" : "transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07]"}`}
+        />
+      </div>
+    </motion.article>
+  );
+}
+
+function Featured() {
+  return (
+    <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,11vw,9rem)]" style={{ color: "var(--on-media)" }}>
+      <div className="shell">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <Reveal><span className="font-mono text-xs tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>(SD 04) — FEATURED PROJECTS</span></Reveal>
+            <Reveal delay={70}><h2 className="display-l mt-6">Inside, <span style={{ color: "rgba(246,245,242,0.45)" }}>Outside</span></h2></Reveal>
+          </div>
+          <Reveal delay={130}>
+            <Link href="/projects" className="link-underline hidden text-sm font-semibold sm:inline-block" style={{ color: "var(--gold-media)" }}>View all projects →</Link>
+          </Reveal>
+        </div>
+        <Parallax amount={26}>
+          <div className="mt-14 grid gap-6 lg:grid-cols-2">
+            <FeaturedCard p={featured[0]} i={0} />
+            <FeaturedCard p={featured[1]} i={1} />
+          </div>
+        </Parallax>
+        <Parallax amount={-26}>
+          <div className="mt-6 grid gap-6 lg:ml-[9%] lg:-mr-[3%] lg:grid-cols-2">
+            <FeaturedCard p={featured[2]} i={2} />
+            <FeaturedCard p={featured[3]} i={3} />
+          </div>
+        </Parallax>
       </div>
     </section>
   );
 }
 
 /* ---------------- Showreel ---------------- */
+// yt = placeholder films verified embeddable — swap for the studio's own links in /admin
 const reel = [
-  { img: "atelier-house", t: "Atelier House", k: "Residential" },
-  { img: "interior", t: "Studio Vale", k: "Interior" },
-  { img: "meridian-sports", t: "Meridian", k: "Civic" },
-  { img: "urban-oasis", t: "Urban Oasis", k: "Residential" },
-  { img: "harbour-masterplan", t: "Harbour Quarter", k: "Masterplan" },
+  { img: "atelier-house", t: "Atelier House", k: "Residential", yt: "zwagmtVuZoI" },
+  { img: "interior", t: "Studio Vale", k: "Interior", yt: "daL7TkzyW7k" },
+  { img: "meridian-sports", t: "Meridian", k: "Civic", yt: "FnrPZuN0m-0" },
+  { img: "urban-oasis", t: "Urban Oasis", k: "Residential", yt: "gToL_3ouPcI" },
+  { img: "harbour-masterplan", t: "Harbour Quarter", k: "Masterplan", yt: "lOJO1osi9po" },
 ];
 function Showreel() {
   const wrap = useRef<HTMLDivElement>(null);
@@ -366,7 +363,6 @@ function Showreel() {
   return (
     <section ref={wrap} className="relative bg-[var(--ink)]" style={{ height: `${reel.length * 40}vh` }}>
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
-        <GeometricBackground />
         <div className="shell relative z-10 w-full">
           <div className="flex items-end justify-between">
             <span className="eyebrow">Showreel</span>
@@ -380,7 +376,13 @@ function Showreel() {
                 <div key={r.img}
                   className={`group relative overflow-hidden rounded-2xl ${reduced ? "" : "transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
                   style={{ flex: isActive ? "1 1 58%" : "1 1 11%", opacity: isActive ? 1 : 0.55, filter: isActive ? "none" : "grayscale(0.9)" }}>
-                  <Image src={R(r.img)} alt={r.t} fill sizes="60vw" className={`object-cover ${reduced ? "" : "transition-transform duration-[1200ms] group-hover:scale-105"}`} />
+                  {isActive && r.yt && !playing ? (
+                    <div className="absolute inset-0">
+                      <VideoPlayer youtubeId={r.yt} poster={R(r.img)} title={r.t} mode="ambient" rounded="" className="h-full w-full" />
+                    </div>
+                  ) : (
+                    <Image src={R(r.img)} alt={r.t} fill sizes="60vw" className={`object-cover ${reduced ? "" : "transition-transform duration-[1200ms] group-hover:scale-105"}`} />
+                  )}
                   {!isActive && (
                     <button onClick={() => setActive(i)} aria-label={`View ${r.t}`} className="absolute inset-0 z-10" />
                   )}
@@ -401,7 +403,7 @@ function Showreel() {
           <AnimatePresence>
             {playing && (
               <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: reduced ? 0 : 0.4 }} className="absolute inset-0 z-20 overflow-hidden rounded-2xl bg-black">
-                <VideoPlayer poster={R(reel[active].img)} className="h-full w-full" rounded="" title={reel[active].t} />
+                <VideoPlayer youtubeId={reel[active].yt} poster={R(reel[active].img)} className="h-full w-full" rounded="" title={reel[active].t} mode="cinema" />
                 <button onClick={() => setPlaying(false)} aria-label="Close" className="absolute right-5 top-5 z-10 grid h-11 w-11 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-lg backdrop-blur transition-transform duration-300 hover:scale-110" style={{ color: "var(--on-media)" }}>✕</button>
               </motion.div>
             )}
@@ -753,54 +755,65 @@ function Journals() {
   );
 }
 
-/* ---------------- Get in touch ---------------- */
+/* ---------------- Get in touch (immersive full-bleed) ---------------- */
+const ctaLabel = "font-mono text-[0.62rem] uppercase tracking-[0.22em]";
+const ctaField =
+  "mt-1.5 w-full border-b border-[rgba(246,245,242,0.28)] bg-transparent py-2.5 outline-none transition-colors duration-300 placeholder:text-[rgba(246,245,242,0.35)] focus:border-[var(--gold-media)]";
+
 function FinalCTA() {
   const [sent, setSent] = useState(false);
   return (
-    <section className="section">
-      <div className="shell">
-        <div className="relative grid overflow-hidden rounded-3xl border border-[var(--line)] md:grid-cols-2" style={{ background: "radial-gradient(85% 130% at 100% 0%, rgba(176,137,78,0.12), transparent 55%), var(--surface)" }}>
-          <div className="relative min-h-[280px]">
-            <Image src={R("meridian-sports")} alt="" fill sizes="(max-width:768px) 100vw, 50vw" className="object-cover" />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(120deg, rgba(17,19,21,0.15), rgba(17,19,21,0.5))" }} />
-            <div className="absolute bottom-8 left-8 max-w-[16ch]" style={{ color: "var(--on-media)" }}>
-              <div className="font-mono text-sm uppercase tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>Let&rsquo;s build</div>
-              <div className="mt-2 text-3xl font-extrabold leading-tight">Dream big, <span style={{ color: "var(--gold-media)" }}>build bigger.</span></div>
+    <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem]">
+      <div className="absolute inset-0">
+        <ParallaxImage src={R("harbour-masterplan")} alt="" sizes="100vw" range={7} className="h-full w-full" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(112deg, rgba(9,10,12,0.93) 10%, rgba(9,10,12,0.6) 52%, rgba(9,10,12,0.84) 100%)" }} aria-hidden="true" />
+      </div>
+      <div className="shell relative z-10 grid items-center gap-14 py-[clamp(6rem,14vw,11rem)] lg:grid-cols-[1.05fr_0.95fr] lg:gap-20" style={{ color: "var(--on-media)" }}>
+        <div>
+          <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>Get in touch</span></Reveal>
+          <Reveal delay={70}><h2 className="display-l mt-6 max-w-[13ch]">Let&rsquo;s build something lasting.</h2></Reveal>
+          <Reveal delay={130}>
+            <p className="mt-6 max-w-[44ch]" style={{ color: "var(--on-media-dim)" }}>
+              Tell us about your site, your brief, or the idea you can&rsquo;t stop thinking about. We reply within one business day.
+            </p>
+          </Reveal>
+          <Reveal delay={190}>
+            <div className="mt-10 space-y-2 text-lg">
+              <a href="mailto:studio@studiodota.net" className="link-underline block w-max font-semibold">studio@studiodota.net</a>
+              <a href="tel:+442000000000" className="link-underline block w-max" style={{ color: "var(--on-media-dim)" }}>+44 20 0000 0000</a>
             </div>
-          </div>
-          <div className="p-10 md:p-14">
-            <Reveal><span className="eyebrow">Get in touch</span></Reveal>
-            <Reveal delay={70}><h2 className="display-m mt-4 max-w-[18ch]">Your architectural odyssey starts here.</h2></Reveal>
+          </Reveal>
+        </div>
+        <Reveal delay={150}>
+          <div className="rounded-3xl border border-[rgba(246,245,242,0.16)] p-8 backdrop-blur-xl md:p-10" style={{ background: "rgba(14,16,19,0.55)" }}>
             {sent ? (
-              <p className="mt-8 text-[var(--bone-dim)]">Thank you — we&rsquo;ll be in touch within one business day.</p>
+              <div className="py-10 text-center">
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full text-xl" style={{ background: "var(--gold-media)", color: "#17191c" }} aria-hidden="true">✓</span>
+                <h3 className="display-m mt-6">Thank you.</h3>
+                <p className="mt-3" style={{ color: "var(--on-media-dim)" }}>We&rsquo;ll be in touch within one business day.</p>
+              </div>
             ) : (
-              <form className="mt-8 space-y-4" onSubmit={(e) => { e.preventDefault(); setSent(true); }}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <input required placeholder="Your name" className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--ink-2)] px-4 py-3 outline-none transition-colors duration-300 placeholder:text-[var(--muted)] focus:border-[var(--gold)]" />
-                  <input required type="email" placeholder="Email address" className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--ink-2)] px-4 py-3 outline-none transition-colors duration-300 placeholder:text-[var(--muted)] focus:border-[var(--gold)]" />
+              <form className="space-y-7" onSubmit={(e) => { e.preventDefault(); setSent(true); }}>
+                <div className="grid gap-7 sm:grid-cols-2">
+                  <label className="block">
+                    <span className={ctaLabel} style={{ color: "var(--on-media-dim)" }}>Your name</span>
+                    <input required name="name" autoComplete="name" placeholder="Jane Smith" className={ctaField} />
+                  </label>
+                  <label className="block">
+                    <span className={ctaLabel} style={{ color: "var(--on-media-dim)" }}>Email</span>
+                    <input required name="email" type="email" autoComplete="email" placeholder="jane@studio.com" className={ctaField} />
+                  </label>
                 </div>
-                <textarea required rows={3} placeholder="Tell us about your project" className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--ink-2)] px-4 py-3 outline-none transition-colors duration-300 placeholder:text-[var(--muted)] focus:border-[var(--gold)]" />
-                <button type="submit" className="btn btn-primary">Get in touch <span className="btn-icon" aria-hidden="true">→</span></button>
+                <label className="block">
+                  <span className={ctaLabel} style={{ color: "var(--on-media-dim)" }}>Your project</span>
+                  <textarea required name="message" rows={4} placeholder="Site, scale, ambitions — anything helps." className={`${ctaField} resize-none`} />
+                </label>
+                <button type="submit" className="btn btn-grad w-full justify-center">
+                  Start the conversation <span className="btn-icon" aria-hidden="true">→</span>
+                </button>
               </form>
             )}
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Promo banner (made in Canva) ---------------- */
-function PromoBanner() {
-  return (
-    <section className="section pt-0">
-      <div className="shell">
-        <Reveal>
-          <Link href="/contact" className="group block overflow-hidden rounded-3xl border border-[var(--line)]">
-            <div className="relative aspect-[1600/592] w-full">
-              <Image src="/media/cta-banner.png" alt="Start your project — architecture built to endure" fill sizes="(max-width:1440px) 100vw, 1440px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02]" />
-            </div>
-          </Link>
         </Reveal>
       </div>
     </section>
@@ -822,7 +835,6 @@ export default function Sections() {
       <StatementBand />
       <FAQ />
       <Journals />
-      <PromoBanner />
       <FinalCTA />
     </>
   );
