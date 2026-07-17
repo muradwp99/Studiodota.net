@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 const slides = [
   "/media/renders/hero.jpg",
@@ -13,18 +16,42 @@ const slides = [
 export default function Hero() {
   const [active, setActive] = useState(0);
   const next = () => setActive((a) => (a + 1) % slides.length);
+  const sectionRef = useRef<HTMLElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    if (reduced || !bgRef.current) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const tween = gsap.fromTo(
+      bgRef.current,
+      { yPercent: -6, scale: 1.2 },
+      {
+        yPercent: 6,
+        scale: 1.2,
+        ease: "none",
+        scrollTrigger: { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true },
+      },
+    );
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
+  }, [reduced]);
 
   return (
-    <section className="relative h-[100dvh] w-full overflow-hidden">
-      {slides.map((src, i) => (
-        <div
-          key={src}
-          className="absolute inset-0 transition-opacity duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-          style={{ opacity: i === active ? 1 : 0 }}
-        >
-          <Image src={src} alt="" fill priority={i === 0} sizes="100vw" className="object-cover" />
-        </div>
-      ))}
+    <section ref={sectionRef} data-nav-tone="dark" className="relative h-[100dvh] w-full overflow-hidden">
+      <div ref={bgRef} className="absolute inset-0">
+        {slides.map((src, i) => (
+          <div
+            key={src}
+            className="absolute inset-0 transition-opacity duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ opacity: i === active ? 1 : 0 }}
+          >
+            <Image src={src} alt="" fill priority={i === 0} sizes="100vw" className="object-cover" />
+          </div>
+        ))}
+      </div>
 
       {/* scrims */}
       <div
@@ -67,6 +94,15 @@ export default function Hero() {
             <span aria-hidden="true">→</span>
           </Link>
         </div>
+      </div>
+
+      {/* scroll cue */}
+      <div
+        className="pointer-events-none absolute bottom-28 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 sm:flex"
+        style={{ color: "var(--on-media-dim)" }}
+      >
+        <span className="font-mono text-[0.6rem] uppercase tracking-[0.3em]">Scroll</span>
+        <span className="scroll-cue" aria-hidden="true" />
       </div>
 
       {/* slider controls */}

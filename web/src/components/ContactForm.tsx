@@ -9,7 +9,7 @@ type Errors = Partial<Record<"name" | "email" | "service" | "message" | "consent
 const field =
   "w-full rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-3 text-[var(--bone)] outline-none transition-colors duration-300 placeholder:text-[var(--muted)] focus:border-[var(--gold)]";
 const labelCls = "mb-2 block text-sm text-[var(--bone-dim)]";
-const errCls = "mt-2 flex items-center gap-2 text-sm text-[var(--gold)]";
+const errCls = "mt-2 flex items-center gap-2 text-sm text-[var(--gold-ink)]";
 
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");

@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 type Dir = "up" | "right" | "left" | "none";
 
@@ -23,6 +24,11 @@ export default function Reveal({
   delay?: number;
   from?: Dir;
 }) {
+  const reduced = useReducedMotion();
+  if (reduced) {
+    return <div className={className}>{children}</div>;
+  }
+
   const o = offset[from];
   const variants: Variants = {
     hidden: { opacity: 0, x: o.x, y: o.y },

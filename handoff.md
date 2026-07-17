@@ -4,6 +4,33 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
+## Session update — 2026-07-17 (cinematic redesign + P1 a11y)
+Large homepage motion/design pass. **`npm run build` CLEAN (20 routes).** Verified in-browser, light + dark.
+
+**P1 accessibility — all fixed:**
+- Mega-menu opens on click + keyboard (ArrowDown moves focus into panel), `aria-expanded`/`aria-controls`, Esc closes + returns focus, outside pointer/focus closes; hover still works. (`Navbar.tsx`)
+- Showreel: removed `<span onClick>` inside `<button>` — card is a `<div>`, inactive slides get one full-cover select `<button>`, active slide has one real play `<button>`. (`Sections.tsx`)
+- Reduced motion: new `src/lib/useReducedMotion.ts` gates Framer `Reveal`, scroll-driven Showreel/Timeline, and all new GSAP motion. Timeline renders a static stacked fallback under reduced motion.
+
+**New / changed sections:**
+- **Section-adaptive glass nav** — keeps glassmorphism; tint follows the section behind it. Dark sections tagged `data-nav-tone="dark"`; `src/lib/useSectionTone.ts` probes at y=44; `.nav-shell[data-tone]` in globals.css drives `--nav-fg/-dim/-accent/-hover-bg/-active-bg`. Dark theme forces dark nav. Sliding active-pill highlight (also fixes P2 small-gold contrast).
+- **Services** rebuilt to `Homepage_ref/services section.jpg` — "OUR SERVICE" eyebrow; rows (title+blurb / pill tags) alternating with layered-image feature cards (main + offset, parallax) + "VIEW DETAIL →".
+- **Featured** — kept "Inside, Outside" grid (reduced-motion-safe) AND added **`ProjectSlider`** (Urban Oasis / `New_featured_section.jpg`): full-bleed cards, "Project n/N", Learn more, circular prev/next, click-right smoothly slides with next card peeking. Uses `content/site.ts` projects.
+- **Cinematic layer:** hero parallax + "scroll" cue; `ScrollHighlightText` (About statement, word-fill on scroll); `ImageMaskText` "STUDIODOTA" band (image through letters); Showreel + StatementBand are dark bands with rounded-top "curtain" transitions; crop-mark corners on slider.
+
+**New files:** `src/lib/useReducedMotion.ts`, `src/lib/useSectionTone.ts`, `src/components/Parallax.tsx` (`Parallax` + `ParallaxImage`), `src/components/ScrollHighlightText.tsx`, `src/components/ImageMaskText.tsx`.
+
+**Notes:** reduced-motion is code-gated (matchMedia) but not runtime-emulated this session. `.grad-text`/`.grad-text-media` trip the impeccable gradient-text hook — left intentionally (brand hero wordmark + stat numbers). Parallax applied to hero + services feature images; other images kept hover-zoom. Reference sites studied: vaulk.com + findrealestate.com. Not committed to git yet.
+
+### Gallery + inner-page redesigns (same session)
+- **New `/gallery`** — mixed photo/video with category filter (All / Architecture / Residential / Commercial), animated grid (Framer, reduced-motion safe), numbered pagination, accessible lightbox (Esc / focus-restore / scroll-lock). Video items use a VIDEO badge + Ken-Burns motion (no real `.mp4` yet — drop `web/public/media/hero-loop.mp4` and swap the lightbox to `<video>` to activate real playback). Nav "Gallery" now points to `/gallery`. Files: `app/gallery/page.tsx`, `components/gallery/GalleryClient.tsx`.
+- **Shared `PageHero`** (`components/PageHero.tsx`) — cinematic full-bleed parallax media hero (dark scrim, eyebrow/title/lede, dark nav tone). Used by gallery/services/projects/contact.
+- **Services** (`app/services/page.tsx`) — media hero + `ScrollHighlightText` statement + alternating parallax service blocks with capability tags (no numbered scaffolding).
+- **Projects** (`app/projects/page.tsx` + `components/projects/ProjectsClient.tsx`) — media hero + client-side animated category filter (keeps `?category=` deep-link via server prop), editorial grid with a featured full-width first project + overlaid titles + hover motion.
+- **Contact** (`app/contact/page.tsx`) — media hero + form in a `card-grad` panel + sticky info aside with a studio image. Fixed stale "3D rendering" metadata; `ContactForm` error text → `--gold-ink` for contrast.
+- **New components:** `PageHero`, `ScrollHighlightText`, `ImageMaskText`, `gallery/GalleryClient`, `projects/ProjectsClient`.
+- **Impeccable:** wrote root `PRODUCT.md` + `DESIGN.md` (register = **brand**); design hook active. `npm run build` CLEAN — **21 routes** (`/gallery` new; `/projects` is now dynamic ƒ due to searchParams).
+
 ## What this is
 Marketing/portfolio website for **Studiodota — a real architecture & design practice**
 (NOT a 3D-rendering studio; that was an earlier concept, repositioned to real architecture

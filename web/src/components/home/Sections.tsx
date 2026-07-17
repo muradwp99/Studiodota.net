@@ -5,6 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
+import { Parallax, ParallaxImage } from "@/components/Parallax";
+import ScrollHighlightText from "@/components/ScrollHighlightText";
+import ImageMaskText from "@/components/ImageMaskText";
+import { useReducedMotion } from "@/lib/useReducedMotion";
+import { projects } from "@/content/site";
 
 const R = (n: string) => `/media/renders/${n}.jpg`;
 const easeOut = (p: number) => 1 - Math.pow(1 - p, 3);
@@ -60,7 +65,7 @@ function About() {
         <div className="grid gap-12 lg:grid-cols-2">
           <div>
             <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">(SD 02) — ABOUT</span></Reveal>
-            <Reveal delay={70}><h2 className="display-l mt-10 max-w-[16ch]">Architecture that stands for clarity and purpose.</h2></Reveal>
+            <h2 className="display-l mt-10 max-w-[16ch]"><ScrollHighlightText text="Architecture that stands for clarity and purpose." /></h2>
             <Reveal delay={130}><CTA href="/about" label="Explore the studio" variant="ghost" /></Reveal>
           </div>
           <Reveal delay={120}>
@@ -86,59 +91,101 @@ function About() {
   );
 }
 
-/* ---------------- Services (stacked cards, slide from right) ---------------- */
+/* ---------------- Services (Our Service — rows + layered feature cards) ---------------- */
 const servicesData = [
-  { n: "01", title: "Architectural Design", sub: "Full-service design from first concept to completed building.", tags: ["Concept", "Space planning", "Detailing"], img: "atelier-house" },
-  { n: "02", title: "Interior Architecture", sub: "Interiors resolved through light, material, and how people move.", tags: ["Materials", "Lighting", "Layout"], img: "interior" },
-  { n: "03", title: "Urban & Masterplanning", sub: "Precincts and public realm planned for the way communities live.", tags: ["Zoning", "Public realm", "Phasing"], img: "harbour-masterplan" },
-  { n: "04", title: "Renovation & Restoration", sub: "New life for existing and heritage structures, handled with care.", tags: ["Assessment", "Heritage", "Delivery"], img: "riverside-warehouse" },
+  { title: "Architectural Design", sub: "Crafting functional, aesthetic, and purposeful building concepts — from first sketch through to a completed building.", tags: ["Concepting", "Space planning", "Building design"], img: "atelier-house", img2: "urban-oasis" },
+  { title: "Interior Architecture", sub: "Shaping interiors that feel comfortable, refined, and balanced through light, material, and considered detail.", tags: ["Moodboarding", "Styling", "Layouting"], img: "interior", img2: "leafy-precinct" },
+  { title: "Urban & Masterplanning", sub: "Precincts and public realm planned around the way real communities live, gather, and move.", tags: ["Zoning", "Public realm", "Phasing"], img: "harbour-masterplan", img2: "meridian-sports" },
+  { title: "Renovation & Restoration", sub: "New life for existing and heritage structures, handled with precision, restraint, and care.", tags: ["Assessment", "Heritage", "Delivery"], img: "riverside-warehouse", img2: "interior" },
 ];
+type ServiceItem = (typeof servicesData)[number];
+
+function ServiceTag({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-2 text-xs uppercase tracking-[0.08em] text-[var(--bone-dim)] transition-colors duration-300 hover:border-[var(--gold)] hover:text-[var(--gold-ink)]">
+      {label}
+    </span>
+  );
+}
+
+function ServiceRow({ s }: { s: ServiceItem }) {
+  return (
+    <Reveal>
+      <div className="grid items-start gap-6 border-b border-[var(--line)] pb-9 md:grid-cols-[1.05fr_auto] md:gap-12">
+        <div>
+          <h3 className="display-m">{s.title}</h3>
+          <p className="mt-3 max-w-[46ch] text-[var(--bone-dim)]">{s.sub}</p>
+        </div>
+        <div className="flex flex-wrap gap-3 md:justify-end md:pt-3">
+          {s.tags.map((t) => (
+            <ServiceTag key={t} label={t} />
+          ))}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function ServiceFeature({ s, imgLeft }: { s: ServiceItem; imgLeft: boolean }) {
+  return (
+    <Reveal from={imgLeft ? "left" : "right"}>
+      <div className="overflow-hidden rounded-3xl bg-[var(--surface-2)] p-6 md:p-10">
+        <div className="grid items-center gap-10 md:grid-cols-2">
+          <div className={imgLeft ? "md:order-1" : "md:order-2"}>
+            <div className="relative pb-[16%] pr-[12%]">
+              <ParallaxImage
+                src={R(s.img)}
+                alt={s.title}
+                sizes="(max-width:768px) 82vw, 40vw"
+                range={7}
+                className="aspect-[4/5] w-[82%] rounded-2xl"
+              />
+              <Parallax amount={40} className="absolute bottom-0 right-0 w-[48%]">
+                <div className="overflow-hidden rounded-2xl ring-[6px] ring-[var(--surface-2)]">
+                  <div className="relative aspect-[4/3] w-full">
+                    <Image src={R(s.img2)} alt="" fill sizes="24vw" className="object-cover" />
+                  </div>
+                </div>
+              </Parallax>
+            </div>
+          </div>
+          <div className={imgLeft ? "md:order-2" : "md:order-1"}>
+            <h3 className="display-m">{s.title}</h3>
+            <p className="mt-4 max-w-[42ch] text-[var(--bone-dim)]">{s.sub}</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {s.tags.map((t) => (
+                <ServiceTag key={t} label={t} />
+              ))}
+            </div>
+            <Link href="/services" className="group mt-9 inline-flex items-center gap-3 text-sm font-bold uppercase tracking-[0.12em]">
+              View detail
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--bone)] text-[var(--ink)] transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
 function Services() {
   return (
     <section className="section grad-warm" id="services">
       <div className="shell">
         <Reveal>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-[var(--gold)]">✦</span>
-            <span className="font-bold uppercase tracking-[0.2em]">Our Service</span>
+            <span className="text-[var(--gold-ink)]" aria-hidden="true">✦</span>
+            <span className="text-sm font-bold uppercase tracking-[0.2em]">Our Service</span>
           </div>
         </Reveal>
-        <div className="mt-14 space-y-8">
-          {servicesData.map((s, i) => {
-            const imgLeft = i % 2 === 0;
-            return (
-              <Reveal key={s.n} from={imgLeft ? "right" : "left"}>
-                <div className="card-grad group relative overflow-hidden p-6 md:p-10">
-                  <div className="pointer-events-none absolute inset-0 pattern-dots opacity-70" aria-hidden="true" />
-                  <div
-                    className="pointer-events-none absolute inset-0"
-                    aria-hidden="true"
-                    style={{ background: imgLeft ? "radial-gradient(55% 120% at 100% 0%, rgba(176,137,78,0.12), transparent 55%)" : "radial-gradient(55% 120% at 0% 0%, rgba(176,137,78,0.12), transparent 55%)" }}
-                  />
-                  <div className="relative grid items-center gap-8 md:grid-cols-2">
-                    <div className={imgLeft ? "md:order-1" : "md:order-2"}>
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
-                        <Image src={R(s.img)} alt={s.title} fill sizes="(max-width:768px) 100vw, 45vw" className="img-zoom object-cover" />
-                      </div>
-                    </div>
-                    <div className={imgLeft ? "md:order-2" : "md:order-1"}>
-                      <span className="font-mono text-sm text-[var(--gold-ink)]">{s.n}</span>
-                      <h3 className="display-m mt-3">{s.title}</h3>
-                      <p className="mt-3 max-w-[40ch] text-[var(--bone-dim)]">{s.sub}</p>
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        {s.tags.map((t) => (
-                          <span key={t} className="rounded-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-2 text-xs uppercase tracking-[0.08em] text-[var(--bone-dim)] transition-colors duration-300 hover:border-[var(--gold)] hover:text-[var(--gold-ink)]">{t}</span>
-                        ))}
-                      </div>
-                      <Link href="/services" className="group/btn mt-7 inline-flex items-center gap-3 font-semibold uppercase tracking-[0.1em]">
-                        View detail <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--gold)] text-[var(--ink)] transition-transform duration-500 group-hover/btn:translate-x-1">→</span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            );
-          })}
+        <div className="mt-16 space-y-6">
+          {servicesData.map((s, i) =>
+            i % 2 === 1 ? (
+              <ServiceFeature key={s.title} s={s} imgLeft={i % 4 === 1} />
+            ) : (
+              <ServiceRow key={s.title} s={s} />
+            ),
+          )}
         </div>
         <CTA href="/services" label="View all services" center />
       </div>
@@ -216,6 +263,7 @@ const tabs = ["All", "Living", "Playing", "Working"] as const;
 function Featured() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("All");
   const items = gallery.filter((g) => tab === "All" || g.cat === tab);
+  const reduced = useReducedMotion();
   return (
     <section className="section bg-[var(--ink-2)] pattern-grid">
       <div className="shell">
@@ -228,12 +276,12 @@ function Featured() {
         </div>
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_auto]">
-          <motion.div layout className="grid auto-rows-[minmax(0,1fr)] gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div layout={!reduced} className="grid auto-rows-[minmax(0,1fr)] gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout">
               {items.map((g, i) => {
                 const tall = tab === "All" && i === 0;
                 return (
-                  <motion.div key={g.id} layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className={tall ? "lg:row-span-2" : ""}>
+                  <motion.div key={g.id} layout={!reduced} initial={reduced ? false : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96 }} transition={{ duration: reduced ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }} className={tall ? "lg:row-span-2" : ""}>
                     <Link href="/projects" className="group block h-full">
                       <div className={`relative w-full overflow-hidden rounded-xl ${tall ? "h-full min-h-[320px]" : "aspect-[4/3]"}`}>
                         <Image src={R(g.img)} alt={g.name} fill sizes="(max-width:1024px) 100vw, 33vw" className="img-zoom object-cover" />
@@ -277,6 +325,95 @@ function Featured() {
   );
 }
 
+/* ---------------- Featured project slider (Urban Oasis style) ---------------- */
+function ProjectSlider() {
+  const [active, setActive] = useState(0);
+  const [x, setX] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const n = projects.length;
+
+  useEffect(() => {
+    const compute = () => {
+      const track = trackRef.current;
+      const first = track?.children[0] as HTMLElement | undefined;
+      if (!track || !first) return;
+      const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+      setX(active * (first.getBoundingClientRect().width + gap));
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [active, n]);
+
+  const go = (dir: number) => setActive((a) => Math.min(n - 1, Math.max(0, a + dir)));
+
+  return (
+    <section aria-roledescription="carousel" aria-label="Featured projects" className="section overflow-hidden bg-[var(--ink)]">
+      <div className="shell">
+        <Reveal>
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <span className="eyebrow">Featured projects</span>
+              <h2 className="display-l mt-3">Selected work</h2>
+            </div>
+            <div className="hidden font-mono text-sm text-[var(--muted)] sm:block" aria-hidden="true">
+              {String(active + 1).padStart(2, "0")}<span className="mx-1 opacity-50">/</span>{String(n).padStart(2, "0")}
+            </div>
+          </div>
+        </Reveal>
+      </div>
+
+      <div data-nav-tone="dark" className="mt-10 overflow-hidden px-[var(--edge)]">
+        <div
+          ref={trackRef}
+          className={`flex gap-5 ${reduced ? "" : "transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
+          style={{ transform: `translateX(-${x}px)`, willChange: "transform" }}
+        >
+          {projects.map((p, i) => {
+            const isActive = i === active;
+            return (
+              <article
+                key={p.slug}
+                aria-roledescription="slide"
+                aria-label={`${i + 1} of ${n}: ${p.title}`}
+                aria-hidden={!isActive}
+                className={`relative shrink-0 overflow-hidden rounded-3xl ${reduced ? "" : "transition-opacity duration-[900ms]"}`}
+                style={{ width: "min(84vw, 1180px)", height: "clamp(420px, 68vh, 760px)", opacity: isActive ? 1 : 0.5 }}
+              >
+                <Image src={R(p.slug)} alt={p.title} fill sizes="84vw" className="object-cover" />
+                <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.9), rgba(11,11,12,0.12) 55%, rgba(11,11,12,0.28))" }} />
+                {isActive && (
+                  <div className="absolute inset-0 flex items-end justify-between gap-6 p-6 md:p-12" style={{ color: "var(--on-media)" }}>
+                    <span className="pointer-events-none absolute left-5 top-5 h-6 w-6 border-l border-t md:left-8 md:top-8" style={{ borderColor: "rgba(246,245,242,0.45)" }} aria-hidden="true" />
+                    <span className="pointer-events-none absolute right-5 top-5 h-6 w-6 border-r border-t md:right-8 md:top-8" style={{ borderColor: "rgba(246,245,242,0.45)" }} aria-hidden="true" />
+                    <div className="max-w-[52ch]">
+                      <span className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: "var(--gold-media)" }}>{p.sector} — {p.year}</span>
+                      <h3 className="mt-3 font-extrabold leading-[0.9] tracking-[-0.03em]" style={{ fontSize: "clamp(2.4rem, 5.6vw, 5.25rem)" }}>{p.title}</h3>
+                      <div className="mt-4 flex items-center gap-3 font-mono text-sm" style={{ color: "var(--on-media-dim)" }}>
+                        <span className="h-2 w-2 rounded-full" style={{ background: "var(--gold-media)" }} />
+                        Project {active + 1} / {n}
+                      </div>
+                      <p className="mt-4 hidden max-w-[46ch] sm:block" style={{ color: "var(--on-media-dim)" }}>{p.summary}</p>
+                      <Link href={`/projects/${p.slug}`} className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "var(--on-media)", color: "var(--ink)" }}>
+                        Learn more <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                    <div className="flex shrink-0 gap-3">
+                      <button onClick={() => go(-1)} disabled={active === 0} aria-label="Previous project" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>←</button>
+                      <button onClick={() => go(1)} disabled={active === n - 1} aria-label="Next project" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>→</button>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- Showreel ---------------- */
 const reel = [
   { img: "atelier-house", t: "Atelier House", k: "Residential" },
@@ -289,7 +426,9 @@ function Showreel() {
   const wrap = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) return;
     const onScroll = () => {
       if (playing) return;
       const el = wrap.current;
@@ -302,36 +441,38 @@ function Showreel() {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [playing]);
+  }, [playing, reduced]);
   return (
-    <section ref={wrap} className="relative" style={{ height: `${reel.length * 40}vh` }}>
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+    <section ref={wrap} data-nav-tone="dark" className="relative rounded-t-[2.5rem] bg-[#111315]" style={{ height: `${reel.length * 40}vh`, color: "var(--on-media)" }}>
+      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden rounded-t-[2.5rem]">
         <div className="shell w-full">
           <div className="flex items-end justify-between">
-            <span className="eyebrow">Showreel</span>
-            <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">Explore the gallery →</Link>
+            <span className="eyebrow" style={{ color: "var(--gold-media)" }}>Showreel</span>
+            <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-media)] sm:inline-block">Explore the gallery →</Link>
           </div>
           <div className="relative mt-8">
             <div className="flex h-[64vh] min-h-[380px] items-stretch gap-3">
             {reel.map((r, i) => {
               const isActive = i === active;
               return (
-                <button key={r.img} onClick={() => setActive(i)}
-                  className="group relative overflow-hidden rounded-2xl transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-                  style={{ flex: isActive ? "1 1 58%" : "1 1 11%", opacity: isActive ? 1 : 0.55, filter: isActive ? "none" : "grayscale(0.9)" }}
-                  aria-label={r.t}>
-                  <Image src={R(r.img)} alt={r.t} fill sizes="60vw" className="object-cover transition-transform duration-[1200ms] group-hover:scale-105" />
+                <div key={r.img}
+                  className={`group relative overflow-hidden rounded-2xl ${reduced ? "" : "transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
+                  style={{ flex: isActive ? "1 1 58%" : "1 1 11%", opacity: isActive ? 1 : 0.55, filter: isActive ? "none" : "grayscale(0.9)" }}>
+                  <Image src={R(r.img)} alt={r.t} fill sizes="60vw" className={`object-cover ${reduced ? "" : "transition-transform duration-[1200ms] group-hover:scale-105"}`} />
+                  {!isActive && (
+                    <button onClick={() => setActive(i)} aria-label={`View ${r.t}`} className="absolute inset-0 z-10" />
+                  )}
                   {isActive && (
                     <>
-                      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(17,19,21,0.8), transparent 55%)" }} />
-                      <span onClick={(e) => { e.stopPropagation(); setPlaying(true); }} className="absolute left-1/2 top-1/2 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur transition-transform duration-500 hover:scale-110" style={{ color: "var(--on-media)" }}>▶</span>
-                      <div className="absolute inset-x-0 bottom-0 p-6" style={{ color: "var(--on-media)" }}>
+                      <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(17,19,21,0.8), transparent 55%)" }} />
+                      <button onClick={() => setPlaying(true)} aria-label={`Play ${r.t} showreel`} className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`} style={{ color: "var(--on-media)" }}>▶</button>
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6" style={{ color: "var(--on-media)" }}>
                         <div className="font-mono text-sm tracking-[0.25em]">{r.t.toUpperCase()}</div>
                         <div className="mt-1 font-mono text-xs tracking-[0.25em]" style={{ color: "var(--on-media-dim)" }}>{r.k.toUpperCase()} — 2026</div>
                       </div>
                     </>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -406,7 +547,9 @@ const timeline = [
 function Timeline() {
   const wrap = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) return;
     const onScroll = () => {
       const el = wrap.current;
       if (!el) return;
@@ -418,9 +561,37 @@ function Timeline() {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [reduced]);
   const cur = timeline[idx];
   const fill = (idx / (timeline.length - 1)) * 100;
+
+  if (reduced) {
+    return (
+      <section className="section">
+        <div className="shell">
+          <div className="flex items-center gap-6">
+            <h2 className="text-2xl font-extrabold uppercase tracking-[0.06em] md:text-4xl">Projects timeline</h2>
+            <span className="hidden h-px flex-1 bg-[var(--line)] sm:block" />
+          </div>
+          <div className="mt-12 space-y-12 border-t border-[var(--line)] pt-12">
+            {timeline.map((t) => (
+              <div key={t.year} className="grid items-center gap-8 md:grid-cols-[1fr_1.1fr]">
+                <div>
+                  <div className="font-mono text-sm text-[var(--gold-ink)]">{t.year}</div>
+                  <div className="display-m mt-3">{t.pre} <span className="text-[var(--gold-ink)]">{t.accent}</span> {t.post}</div>
+                  <p className="mt-3 text-[var(--bone-dim)]">Delivered {t.year} — one of the projects that shaped our practice.</p>
+                </div>
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
+                  <Image src={R(t.img)} alt={t.post} fill sizes="(max-width:768px) 100vw, 45vw" className="object-cover" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section ref={wrap} className="relative" style={{ height: `${timeline.length * 42}vh` }}>
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
@@ -542,6 +713,24 @@ function Clients() {
       <div className="mt-14 flex flex-col gap-8">
         <MarqueeRow items={clientsA} />
         <MarqueeRow items={clientsB} rev />
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Statement band (image-masked wordmark) ---------------- */
+function StatementBand() {
+  return (
+    <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,15vw,11rem)]" style={{ color: "var(--on-media)" }}>
+      <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(rgba(246,245,242,0.6) 1px, transparent 1px)", backgroundSize: "26px 26px" }} aria-hidden="true" />
+      <div className="shell relative text-center">
+        <span className="eyebrow" style={{ color: "var(--gold-media)" }}>The practice</span>
+        <h2 className="mt-6 font-extrabold leading-[0.84] tracking-[-0.04em]" style={{ fontSize: "clamp(3.2rem, 15vw, 13rem)" }}>
+          <ImageMaskText text="STUDIODOTA" image="/media/renders/harbour-masterplan.jpg" />
+        </h2>
+        <p className="mx-auto mt-8 max-w-[52ch]" style={{ color: "var(--on-media-dim)" }}>
+          Buildings shaped with clarity, restraint, and lasting value — guided from the first sketch to the final resolved detail.
+        </p>
       </div>
     </section>
   );
@@ -686,11 +875,13 @@ export default function Sections() {
       <Services />
       <WhyChoose />
       <Featured />
+      <ProjectSlider />
       <Showreel />
       <Process />
       <Timeline />
       <Testimonials />
       <Clients />
+      <StatementBand />
       <FAQ />
       <Journals />
       <FinalCTA />
