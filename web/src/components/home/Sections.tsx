@@ -5,11 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
-import { Parallax, ParallaxImage } from "@/components/Parallax";
 import ScrollHighlightText from "@/components/ScrollHighlightText";
 import ImageMaskText from "@/components/ImageMaskText";
+import VideoPlayer from "@/components/VideoPlayer";
+import GeometricBackground from "@/components/GeometricBackground";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import { projects } from "@/content/site";
 
 const R = (n: string) => `/media/renders/${n}.jpg`;
 const easeOut = (p: number) => 1 - Math.pow(1 - p, 3);
@@ -98,96 +98,91 @@ const servicesData = [
   { title: "Urban & Masterplanning", sub: "Precincts and public realm planned around the way real communities live, gather, and move.", tags: ["Zoning", "Public realm", "Phasing"], img: "harbour-masterplan", img2: "meridian-sports" },
   { title: "Renovation & Restoration", sub: "New life for existing and heritage structures, handled with precision, restraint, and care.", tags: ["Assessment", "Heritage", "Delivery"], img: "riverside-warehouse", img2: "interior" },
 ];
-type ServiceItem = (typeof servicesData)[number];
+function ServicesSlider() {
+  const [active, setActive] = useState(0);
+  const [x, setX] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const n = servicesData.length;
 
-function ServiceTag({ label }: { label: string }) {
-  return (
-    <span className="rounded-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-2 text-xs uppercase tracking-[0.08em] text-[var(--bone-dim)] transition-colors duration-300 hover:border-[var(--gold)] hover:text-[var(--gold-ink)]">
-      {label}
-    </span>
-  );
-}
+  useEffect(() => {
+    const compute = () => {
+      const track = trackRef.current;
+      const first = track?.children[0] as HTMLElement | undefined;
+      if (!track || !first) return;
+      const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+      setX(active * (first.getBoundingClientRect().width + gap));
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [active, n]);
 
-function ServiceRow({ s }: { s: ServiceItem }) {
-  return (
-    <Reveal>
-      <div className="grid items-start gap-6 border-b border-[var(--line)] pb-9 md:grid-cols-[1.05fr_auto] md:gap-12">
-        <div>
-          <h3 className="display-m">{s.title}</h3>
-          <p className="mt-3 max-w-[46ch] text-[var(--bone-dim)]">{s.sub}</p>
-        </div>
-        <div className="flex flex-wrap gap-3 md:justify-end md:pt-3">
-          {s.tags.map((t) => (
-            <ServiceTag key={t} label={t} />
-          ))}
-        </div>
-      </div>
-    </Reveal>
-  );
-}
+  const go = (dir: number) => setActive((a) => Math.min(n - 1, Math.max(0, a + dir)));
 
-function ServiceFeature({ s, imgLeft }: { s: ServiceItem; imgLeft: boolean }) {
   return (
-    <Reveal from={imgLeft ? "left" : "right"}>
-      <div className="overflow-hidden rounded-3xl bg-[var(--surface-2)] p-6 md:p-10">
-        <div className="grid items-center gap-10 md:grid-cols-2">
-          <div className={imgLeft ? "md:order-1" : "md:order-2"}>
-            <div className="relative pb-[16%] pr-[12%]">
-              <ParallaxImage
-                src={R(s.img)}
-                alt={s.title}
-                sizes="(max-width:768px) 82vw, 40vw"
-                range={7}
-                className="aspect-[4/5] w-[82%] rounded-2xl"
-              />
-              <Parallax amount={40} className="absolute bottom-0 right-0 w-[48%]">
-                <div className="overflow-hidden rounded-2xl ring-[6px] ring-[var(--surface-2)]">
-                  <div className="relative aspect-[4/3] w-full">
-                    <Image src={R(s.img2)} alt="" fill sizes="24vw" className="object-cover" />
-                  </div>
-                </div>
-              </Parallax>
-            </div>
-          </div>
-          <div className={imgLeft ? "md:order-2" : "md:order-1"}>
-            <h3 className="display-m">{s.title}</h3>
-            <p className="mt-4 max-w-[42ch] text-[var(--bone-dim)]">{s.sub}</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {s.tags.map((t) => (
-                <ServiceTag key={t} label={t} />
-              ))}
-            </div>
-            <Link href="/services" className="group mt-9 inline-flex items-center gap-3 text-sm font-bold uppercase tracking-[0.12em]">
-              View detail
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--bone)] text-[var(--ink)] transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true">→</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Services() {
-  return (
-    <section className="section grad-warm" id="services">
+    <section id="services" aria-roledescription="carousel" aria-label="Our services" className="section overflow-hidden grad-warm">
       <div className="shell">
         <Reveal>
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-[var(--gold-ink)]" aria-hidden="true">✦</span>
-            <span className="text-sm font-bold uppercase tracking-[0.2em]">Our Service</span>
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-[var(--gold-ink)]" aria-hidden="true">✦</span>
+                <span className="text-sm font-bold uppercase tracking-[0.2em]">Our Service</span>
+              </div>
+              <h2 className="display-l mt-4">What we do.</h2>
+            </div>
+            <div className="hidden font-mono text-sm text-[var(--muted)] sm:block" aria-hidden="true">
+              {String(active + 1).padStart(2, "0")}<span className="mx-1 opacity-50">/</span>{String(n).padStart(2, "0")}
+            </div>
           </div>
         </Reveal>
-        <div className="mt-16 space-y-6">
-          {servicesData.map((s, i) =>
-            i % 2 === 1 ? (
-              <ServiceFeature key={s.title} s={s} imgLeft={i % 4 === 1} />
-            ) : (
-              <ServiceRow key={s.title} s={s} />
-            ),
-          )}
+      </div>
+
+      <div data-nav-tone="dark" className="mt-10 overflow-hidden px-[var(--edge)]">
+        <div
+          ref={trackRef}
+          className={`flex gap-5 ${reduced ? "" : "transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
+          style={{ transform: `translateX(-${x}px)`, willChange: "transform" }}
+        >
+          {servicesData.map((s, i) => {
+            const isActive = i === active;
+            return (
+              <article
+                key={s.title}
+                aria-roledescription="slide"
+                aria-label={`${i + 1} of ${n}: ${s.title}`}
+                aria-hidden={!isActive}
+                className={`relative shrink-0 overflow-hidden rounded-3xl ${reduced ? "" : "transition-opacity duration-[900ms]"}`}
+                style={{ width: "min(84vw, 1180px)", height: "clamp(420px, 66vh, 720px)", opacity: isActive ? 1 : 0.5 }}
+              >
+                <Image src={R(s.img)} alt={s.title} fill sizes="84vw" className="object-cover" />
+                <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.9), rgba(11,11,12,0.12) 55%, rgba(11,11,12,0.28))" }} />
+                {isActive && (
+                  <div className="absolute inset-0 flex items-end justify-between gap-6 p-6 md:p-12" style={{ color: "var(--on-media)" }}>
+                    <div className="max-w-[52ch]">
+                      <span className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: "var(--gold-media)" }}>Service {String(i + 1).padStart(2, "0")}</span>
+                      <h3 className="mt-3 font-extrabold leading-[0.95] tracking-[-0.03em]" style={{ fontSize: "clamp(2.2rem, 4.8vw, 4.25rem)" }}>{s.title}</h3>
+                      <p className="mt-4 hidden max-w-[46ch] sm:block" style={{ color: "var(--on-media-dim)" }}>{s.sub}</p>
+                      <div className="mt-5 hidden flex-wrap gap-2.5 sm:flex">
+                        {s.tags.map((t) => (
+                          <span key={t} className="rounded-full border border-[rgba(246,245,242,0.28)] px-3.5 py-1.5 text-[0.7rem] uppercase tracking-[0.08em]" style={{ color: "var(--on-media-dim)" }}>{t}</span>
+                        ))}
+                      </div>
+                      <Link href="/services" className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "var(--on-media)", color: "var(--ink)" }}>
+                        Learn more <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                    <div className="flex shrink-0 gap-3">
+                      <button onClick={() => go(-1)} disabled={active === 0} aria-label="Previous service" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>←</button>
+                      <button onClick={() => go(1)} disabled={active === n - 1} aria-label="Next service" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>→</button>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
-        <CTA href="/services" label="View all services" center />
       </div>
     </section>
   );
@@ -275,7 +270,23 @@ function Featured() {
           ))}
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_auto]">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[3rem_1fr_3rem] lg:gap-8">
+          {/* left rail — All */}
+          <button
+            onClick={() => setTab("All")}
+            aria-pressed={tab === "All"}
+            className="hidden items-center justify-center rounded-full transition-colors duration-300 lg:flex"
+            style={{
+              writingMode: "vertical-rl",
+              letterSpacing: "0.2em",
+              background: tab === "All" ? "var(--bone)" : "var(--surface-2)",
+              color: tab === "All" ? "var(--ink)" : "var(--bone-dim)",
+              fontWeight: tab === "All" ? 700 : 500,
+            }}
+          >
+            All
+          </button>
+
           <motion.div layout={!reduced} className="grid auto-rows-[minmax(0,1fr)] gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout">
               {items.map((g, i) => {
@@ -287,7 +298,7 @@ function Featured() {
                         <Image src={R(g.img)} alt={g.name} fill sizes="(max-width:1024px) 100vw, 33vw" className="img-zoom object-cover" />
                       </div>
                       <div className="mt-3 text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{g.label}</div>
-                      <div className="text-xl font-medium transition-colors duration-300 group-hover:text-[var(--gold)]">{g.name}</div>
+                      <div className="text-xl font-medium transition-colors duration-300 group-hover:text-[var(--gold-ink)]">{g.name}</div>
                     </Link>
                   </motion.div>
                 );
@@ -295,21 +306,20 @@ function Featured() {
             </AnimatePresence>
           </motion.div>
 
-          <div className="hidden flex-col gap-3 lg:flex">
-            {tabs.map((t) => {
+          {/* right rail — Living / Playing / Working */}
+          <div className="hidden flex-col items-center justify-between py-2 lg:flex">
+            {tabs.slice(1).map((t) => {
               const on = tab === t;
               return (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
-                  className="flex w-16 flex-1 items-center justify-center rounded-full border text-sm transition-all duration-300 hover:scale-[1.04]"
+                  aria-pressed={on}
+                  className="transition-colors duration-300 hover:text-[var(--bone)]"
                   style={{
                     writingMode: "vertical-rl",
                     letterSpacing: "0.16em",
-                    minHeight: "104px",
-                    background: on ? "linear-gradient(180deg,#d0aa72,#8f6c39)" : "transparent",
-                    color: on ? "#17191c" : "var(--bone-dim)",
-                    borderColor: on ? "transparent" : "var(--line-strong)",
+                    color: on ? "var(--gold-ink)" : "var(--bone-dim)",
                     fontWeight: on ? 700 : 500,
                   }}
                 >
@@ -320,95 +330,6 @@ function Featured() {
           </div>
         </div>
         <CTA href="/projects" label="View all projects" center />
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Featured project slider (Urban Oasis style) ---------------- */
-function ProjectSlider() {
-  const [active, setActive] = useState(0);
-  const [x, setX] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
-  const n = projects.length;
-
-  useEffect(() => {
-    const compute = () => {
-      const track = trackRef.current;
-      const first = track?.children[0] as HTMLElement | undefined;
-      if (!track || !first) return;
-      const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
-      setX(active * (first.getBoundingClientRect().width + gap));
-    };
-    compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, [active, n]);
-
-  const go = (dir: number) => setActive((a) => Math.min(n - 1, Math.max(0, a + dir)));
-
-  return (
-    <section aria-roledescription="carousel" aria-label="Featured projects" className="section overflow-hidden bg-[var(--ink)]">
-      <div className="shell">
-        <Reveal>
-          <div className="flex items-end justify-between gap-6">
-            <div>
-              <span className="eyebrow">Featured projects</span>
-              <h2 className="display-l mt-3">Selected work</h2>
-            </div>
-            <div className="hidden font-mono text-sm text-[var(--muted)] sm:block" aria-hidden="true">
-              {String(active + 1).padStart(2, "0")}<span className="mx-1 opacity-50">/</span>{String(n).padStart(2, "0")}
-            </div>
-          </div>
-        </Reveal>
-      </div>
-
-      <div data-nav-tone="dark" className="mt-10 overflow-hidden px-[var(--edge)]">
-        <div
-          ref={trackRef}
-          className={`flex gap-5 ${reduced ? "" : "transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
-          style={{ transform: `translateX(-${x}px)`, willChange: "transform" }}
-        >
-          {projects.map((p, i) => {
-            const isActive = i === active;
-            return (
-              <article
-                key={p.slug}
-                aria-roledescription="slide"
-                aria-label={`${i + 1} of ${n}: ${p.title}`}
-                aria-hidden={!isActive}
-                className={`relative shrink-0 overflow-hidden rounded-3xl ${reduced ? "" : "transition-opacity duration-[900ms]"}`}
-                style={{ width: "min(84vw, 1180px)", height: "clamp(420px, 68vh, 760px)", opacity: isActive ? 1 : 0.5 }}
-              >
-                <Image src={R(p.slug)} alt={p.title} fill sizes="84vw" className="object-cover" />
-                <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.9), rgba(11,11,12,0.12) 55%, rgba(11,11,12,0.28))" }} />
-                {isActive && (
-                  <div className="absolute inset-0 flex items-end justify-between gap-6 p-6 md:p-12" style={{ color: "var(--on-media)" }}>
-                    <span className="pointer-events-none absolute left-5 top-5 h-6 w-6 border-l border-t md:left-8 md:top-8" style={{ borderColor: "rgba(246,245,242,0.45)" }} aria-hidden="true" />
-                    <span className="pointer-events-none absolute right-5 top-5 h-6 w-6 border-r border-t md:right-8 md:top-8" style={{ borderColor: "rgba(246,245,242,0.45)" }} aria-hidden="true" />
-                    <div className="max-w-[52ch]">
-                      <span className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: "var(--gold-media)" }}>{p.sector} — {p.year}</span>
-                      <h3 className="mt-3 font-extrabold leading-[0.9] tracking-[-0.03em]" style={{ fontSize: "clamp(2.4rem, 5.6vw, 5.25rem)" }}>{p.title}</h3>
-                      <div className="mt-4 flex items-center gap-3 font-mono text-sm" style={{ color: "var(--on-media-dim)" }}>
-                        <span className="h-2 w-2 rounded-full" style={{ background: "var(--gold-media)" }} />
-                        Project {active + 1} / {n}
-                      </div>
-                      <p className="mt-4 hidden max-w-[46ch] sm:block" style={{ color: "var(--on-media-dim)" }}>{p.summary}</p>
-                      <Link href={`/projects/${p.slug}`} className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "var(--on-media)", color: "var(--ink)" }}>
-                        Learn more <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                    <div className="flex shrink-0 gap-3">
-                      <button onClick={() => go(-1)} disabled={active === 0} aria-label="Previous project" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>←</button>
-                      <button onClick={() => go(1)} disabled={active === n - 1} aria-label="Next project" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>→</button>
-                    </div>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
@@ -443,12 +364,13 @@ function Showreel() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [playing, reduced]);
   return (
-    <section ref={wrap} data-nav-tone="dark" className="relative rounded-t-[2.5rem] bg-[#111315]" style={{ height: `${reel.length * 40}vh`, color: "var(--on-media)" }}>
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden rounded-t-[2.5rem]">
-        <div className="shell w-full">
+    <section ref={wrap} className="relative bg-[var(--ink)]" style={{ height: `${reel.length * 40}vh` }}>
+      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+        <GeometricBackground />
+        <div className="shell relative z-10 w-full">
           <div className="flex items-end justify-between">
-            <span className="eyebrow" style={{ color: "var(--gold-media)" }}>Showreel</span>
-            <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-media)] sm:inline-block">Explore the gallery →</Link>
+            <span className="eyebrow">Showreel</span>
+            <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">Explore the gallery →</Link>
           </div>
           <div className="relative mt-8">
             <div className="flex h-[64vh] min-h-[380px] items-stretch gap-3">
@@ -478,9 +400,9 @@ function Showreel() {
           </div>
           <AnimatePresence>
             {playing && (
-              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.4 }} className="absolute inset-0 z-20 overflow-hidden rounded-2xl bg-black">
-                <video className="h-full w-full object-cover" autoPlay muted loop playsInline poster={R(reel[active].img)}><source src="/media/hero-loop.mp4" type="video/mp4" /></video>
-                <button onClick={() => setPlaying(false)} aria-label="Close" className="absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-lg backdrop-blur transition-transform duration-300 hover:scale-110" style={{ color: "var(--on-media)" }}>✕</button>
+              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: reduced ? 0 : 0.4 }} className="absolute inset-0 z-20 overflow-hidden rounded-2xl bg-black">
+                <VideoPlayer poster={R(reel[active].img)} className="h-full w-full" rounded="" title={reel[active].t} />
+                <button onClick={() => setPlaying(false)} aria-label="Close" className="absolute right-5 top-5 z-10 grid h-11 w-11 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-lg backdrop-blur transition-transform duration-300 hover:scale-110" style={{ color: "var(--on-media)" }}>✕</button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -872,10 +794,9 @@ export default function Sections() {
   return (
     <>
       <About />
-      <Services />
+      <ServicesSlider />
       <WhyChoose />
       <Featured />
-      <ProjectSlider />
       <Showreel />
       <Process />
       <Timeline />

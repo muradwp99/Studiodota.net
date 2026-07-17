@@ -377,6 +377,39 @@ a {
   100% { transform: translateY(260%); opacity: 0; }
 }
 
+/* ---------- Geometric interactive background (showreel) ---------- */
+.geo-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 54px 54px;
+  opacity: 0.7;
+  animation: geoDrift 26s linear infinite;
+}
+.geo-spot {
+  background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 30%), rgba(176, 137, 78, 0.16), transparent 70%);
+  transition: background 0.25s ease-out;
+}
+.geo-shape {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.geo-shape-1 { animation: geoFloat 16s var(--ease-in-out) infinite alternate; }
+.geo-shape-2 { animation: geoSpin 44s linear infinite; }
+.geo-shape-3 { animation: geoFloat 12s var(--ease-in-out) infinite alternate-reverse; }
+@keyframes geoDrift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 54px 54px, 54px 54px; }
+}
+@keyframes geoFloat {
+  from { transform: translateY(-14px); }
+  to { transform: translateY(14px); }
+}
+@keyframes geoSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ---------- Ken Burns (gallery video items) ---------- */
 .ken-burns {
   animation: kenBurns 16s var(--ease-in-out) infinite alternate;
@@ -550,7 +583,12 @@ a {
   .marquee-track,
   .hero-cine-glow,
   .hero-cine-skyline,
-  .scroll-cue::after {
+  .scroll-cue::after,
+  .ken-burns,
+  .geo-grid,
+  .geo-shape-1,
+  .geo-shape-2,
+  .geo-shape-3 {
     animation: none;
   }
 }

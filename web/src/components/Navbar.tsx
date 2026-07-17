@@ -92,7 +92,11 @@ export default function Navbar() {
   const openMega = (k: string) => { if (closeTimer.current) clearTimeout(closeTimer.current); setActive(k); };
   const scheduleClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setActive(null), 150); };
 
-  const megaItems = ["Services", "Gallery", "Projects"];
+  const megaItems = [
+    { label: "Services", href: "/services" },
+    { label: "Gallery", href: "/gallery" },
+    { label: "Projects", href: "/projects" },
+  ];
 
   // Adaptive glass: tint follows the section behind the pill. In dark theme
   // every surface is dark, so the nav stays dark there regardless of section.
@@ -109,28 +113,40 @@ export default function Navbar() {
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
-            {megaItems.map((label) => (
-              <li key={label} onMouseEnter={() => openMega(label)}>
-                <button
-                  ref={(el) => { triggerRefs.current[label] = el; }}
-                  aria-haspopup="true"
-                  aria-expanded={active === label}
-                  aria-controls="nav-mega-panel"
-                  onClick={() => (active === label ? setActive(null) : openMega(label))}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      openMega(label);
-                      requestAnimationFrame(focusFirstInPanel);
-                    }
-                  }}
-                  className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-300 ${active === label ? "bg-[var(--nav-active-bg)] text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]"}`}
-                >
-                  {label}
-                  <span className="ml-1 text-[0.6rem] opacity-50" aria-hidden="true">▾</span>
-                </button>
-              </li>
-            ))}
+            {megaItems.map(({ label, href }) => {
+              const on = active === label;
+              return (
+                <li key={label} className="flex items-center" onMouseEnter={() => openMega(label)}>
+                  <Link
+                    href={href}
+                    onClick={() => setActive(null)}
+                    className={`rounded-full py-2 pl-3.5 pr-1.5 text-sm font-medium transition-colors duration-300 ${on ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
+                  >
+                    {label}
+                  </Link>
+                  <button
+                    ref={(el) => { triggerRefs.current[label] = el; }}
+                    aria-label={`${label} menu`}
+                    aria-haspopup="true"
+                    aria-expanded={on}
+                    aria-controls="nav-mega-panel"
+                    onClick={() => (on ? setActive(null) : openMega(label))}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        openMega(label);
+                        requestAnimationFrame(focusFirstInPanel);
+                      }
+                    }}
+                    className={`mr-1 grid h-7 w-6 place-items-center rounded-full transition-colors duration-300 ${on ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ transform: on ? "rotate(180deg)" : "none", transition: "transform 0.3s var(--ease-lux)" }}>
+                      <path d="M2.2 3.6 5 6.4 7.8 3.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </li>
+              );
+            })}
             <li onMouseEnter={scheduleClose}><Link href="/journal" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">Blog</Link></li>
             <li onMouseEnter={scheduleClose}><Link href="/contact" className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">Contact</Link></li>
           </ul>

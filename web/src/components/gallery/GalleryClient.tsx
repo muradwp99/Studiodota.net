@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import VideoPlayer from "@/components/VideoPlayer";
 
 const R = (n: string) => `/media/renders/${n}.jpg`;
 
@@ -103,7 +104,7 @@ export default function GalleryClient() {
         </div>
 
         {/* Grid */}
-        <motion.div layout={!reduced} className="mt-8 grid auto-rows-[46vw] grid-cols-2 gap-4 sm:auto-rows-[220px] md:grid-cols-3 lg:grid-cols-4">
+        <motion.div layout={!reduced} className="mt-8 grid auto-rows-[64vw] grid-cols-1 gap-5 sm:auto-rows-[320px] sm:grid-cols-2 lg:auto-rows-[380px]">
           <AnimatePresence mode="popLayout">
             {shown.map((it) => (
               <motion.div
@@ -115,26 +116,33 @@ export default function GalleryClient() {
                 transition={{ duration: reduced ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className={it.tall ? "row-span-2" : ""}
               >
-                <button onClick={() => setActive(it)} className="group relative block h-full w-full overflow-hidden rounded-2xl text-left">
-                  <Image
-                    src={R(it.img)}
-                    alt={`${it.title} — ${it.sector}`}
-                    fill
-                    sizes="(max-width:768px) 50vw, 25vw"
-                    className={`object-cover ${it.type === "video" && !reduced ? "ken-burns" : reduced ? "" : "transition-transform duration-700 group-hover:scale-105"}`}
-                  />
+                <div className="group relative h-full w-full overflow-hidden rounded-2xl">
+                  {it.type === "video" ? (
+                    <div className="absolute inset-0">
+                      <VideoPlayer poster={R(it.img)} className="h-full w-full" rounded="" title={`${it.title} — ${it.sector}`} />
+                    </div>
+                  ) : (
+                    <Image
+                      src={R(it.img)}
+                      alt={`${it.title} — ${it.sector}`}
+                      fill
+                      sizes="(max-width:768px) 100vw, 50vw"
+                      className={`object-cover ${reduced ? "" : "transition-transform duration-700 group-hover:scale-105"}`}
+                    />
+                  )}
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.82), transparent 60%)" }} />
                   {it.type === "video" && (
-                    <span className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-[rgba(11,11,12,0.5)] px-2.5 py-1 font-mono text-[0.58rem] uppercase tracking-[0.15em] text-[var(--on-media)] backdrop-blur">
+                    <span className="pointer-events-none absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-[rgba(11,11,12,0.5)] px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-[0.15em] text-[var(--on-media)] backdrop-blur">
                       <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[var(--gold-media)] text-[7px] leading-none text-[var(--ink)]">▶</span>
                       Video
                     </span>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 translate-y-2 p-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100" style={{ color: "var(--on-media)" }}>
-                    <div className="font-mono text-[0.58rem] uppercase tracking-[0.18em]" style={{ color: "var(--on-media-dim)" }}>{it.sector}</div>
-                    <div className="text-base font-medium">{it.title}</div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 opacity-0 transition-all duration-500 group-hover:opacity-100" style={{ color: "var(--on-media)" }}>
+                    <div className="font-mono text-[0.6rem] uppercase tracking-[0.18em]" style={{ color: "var(--on-media-dim)" }}>{it.sector}</div>
+                    <div className="text-lg font-medium">{it.title}</div>
                   </div>
-                </button>
+                  <button onClick={() => setActive(it)} aria-label={`Open ${it.title}`} className="absolute inset-0 z-20" />
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -187,7 +195,11 @@ export default function GalleryClient() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative aspect-video w-full overflow-hidden bg-black">
-                <Image src={R(active.img)} alt={`${active.title} — ${active.sector}`} fill sizes="90vw" className={`object-cover ${active.type === "video" && !reduced ? "ken-burns" : ""}`} />
+                {active.type === "video" ? (
+                  <VideoPlayer poster={R(active.img)} className="h-full w-full" rounded="" title={`${active.title} — ${active.sector}`} />
+                ) : (
+                  <Image src={R(active.img)} alt={`${active.title} — ${active.sector}`} fill sizes="90vw" className="object-cover" />
+                )}
               </div>
               <div className="flex items-center justify-between gap-4 p-5">
                 <div>
