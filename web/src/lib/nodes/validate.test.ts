@@ -34,13 +34,41 @@ describe("validateTree", () => {
     expect(() => validateTree([node])).toThrow(/nested too deep/);
   });
 
+  it("passes when nested exactly at the depth limit (6)", () => {
+    let node: RawNode = heading();
+    for (let i = 0; i < 5; i += 1) node = heading({ children: [node] }); // depth 6
+    let result: RawNode[] = [];
+    expect(() => {
+      result = validateTree([node]);
+    }).not.toThrow();
+    expect(result).toHaveLength(1);
+  });
+
   it("throws when there are too many nodes (> 300)", () => {
     const many = Array.from({ length: 301 }, (_, i) => heading({ id: `h${i}` }));
     expect(() => validateTree(many)).toThrow(/Too many blocks/);
   });
 
+  it("passes when there are exactly 300 nodes (at the limit)", () => {
+    const many = Array.from({ length: 300 }, (_, i) => heading({ id: `h${i}` }));
+    let result: RawNode[] = [];
+    expect(() => {
+      result = validateTree(many);
+    }).not.toThrow();
+    expect(result).toHaveLength(300);
+  });
+
   it("throws when style/advanced is too large", () => {
     const big = { blob: "x".repeat(20_001) };
     expect(() => validateTree([heading({ style: big })])).toThrow(/too large/);
+  });
+
+  it("passes when style/advanced is just under the size cap", () => {
+    const blob = "x".repeat(19_000);
+    let result: RawNode[] = [];
+    expect(() => {
+      result = validateTree([heading({ style: { blob } })]);
+    }).not.toThrow();
+    expect(result[0].style?.blob).toBe(blob);
   });
 });

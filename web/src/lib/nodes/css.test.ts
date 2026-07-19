@@ -14,6 +14,9 @@ describe("resolveResponsive", () => {
     expect(resolveResponsive(v, "tablet")).toBeUndefined();
     expect(resolveResponsive(v, "mobile")).toBe(4);
   });
+  it("reads the tablet value from an object form", () => {
+    expect(resolveResponsive({ base: 1, tablet: 2, mobile: 3 }, "tablet")).toBe(2);
+  });
 });
 
 describe("styleToCss", () => {
@@ -43,6 +46,11 @@ describe("nodeCss", () => {
     expect(css).toContain(".n-abc{max-width:1200px;}");
     expect(css).toContain("@media (max-width:767px){.n-abc{max-width:320px;}}");
   });
+  it("wraps tablet overrides in a max-width:1024px media query", () => {
+    const css = nodeCss(base({ style: { maxWidth: { base: 1200, tablet: 900 } } }));
+    expect(css).toContain(".n-abc{max-width:1200px;}");
+    expect(css).toContain("@media (max-width:1024px){.n-abc{max-width:900px;}}");
+  });
   it("emits a :hover rule and a transition on the base rule", () => {
     const css = nodeCss(base({ style: { color: "#111", hover: { color: "#a87f3f" } } }));
     expect(css).toContain(".n-abc:hover{color:#a87f3f;}");
@@ -51,6 +59,14 @@ describe("nodeCss", () => {
   it("emits responsive-hide rules", () => {
     const css = nodeCss(base({ advanced: { hideMobile: true } }));
     expect(css).toContain("@media (max-width:767px){.n-abc{display:none!important;}}");
+  });
+  it("emits a hide-desktop rule", () => {
+    const css = nodeCss(base({ advanced: { hideDesktop: true } }));
+    expect(css).toContain("@media (min-width:1025px){.n-abc{display:none!important;}}");
+  });
+  it("emits a hide-tablet rule", () => {
+    const css = nodeCss(base({ advanced: { hideTablet: true } }));
+    expect(css).toContain("@media (min-width:768px) and (max-width:1024px){.n-abc{display:none!important;}}");
   });
   it("substitutes `selector` in custom CSS", () => {
     const css = nodeCss(base({ advanced: { customCss: "selector { opacity: 0.5; }" } }));
