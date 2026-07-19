@@ -3,17 +3,34 @@ import ScrollProgress from "@/components/ScrollProgress";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PluginSlot from "@/components/PluginSlot";
+import SiteScripts from "@/components/SiteScripts";
 import { getBlock, getGalleryItems, getProjects } from "@/lib/content";
 
+const SITE_URL = "https://studiodota.net";
+
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [site, nav, menus, servicesPage, galleryItems, projects] = await Promise.all([
+  const [site, nav, menus, servicesPage, galleryItems, projects, integrations] = await Promise.all([
     getBlock("site"),
     getBlock("nav"),
     getBlock("menus"),
     getBlock("page.services"),
     getGalleryItems(),
     getProjects(),
+    getBlock("integrations"),
   ]);
+
+  const orgLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: site.name,
+    url: SITE_URL,
+    email: site.email,
+    telephone: site.phone,
+    description: site.metaDescription,
+    ...(site.ogImage ? { logo: `${SITE_URL}${site.ogImage}`, image: `${SITE_URL}${site.ogImage}` } : {}),
+    address: { "@type": "PostalAddress", streetAddress: site.address1, addressLocality: site.address2 },
+    sameAs: site.socials.map((s) => s.href).filter((h) => h && h !== "#"),
+  };
 
   const megaServices = servicesPage.items.map((s) => ({
     t: s.title,
@@ -32,6 +49,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <>
+      <SiteScripts d={integrations} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }} />
       <div className="grain" aria-hidden="true" />
       <SmoothScroll />
       <ScrollProgress />

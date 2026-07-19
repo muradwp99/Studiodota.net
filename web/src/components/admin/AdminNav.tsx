@@ -75,7 +75,10 @@ function buildItems(unread: number): Item[] {
     },
     {
       label: "Settings", href: "/admin/settings/general", icon: icons.settings,
-      children: [{ label: "General", href: "/admin/settings/general" }],
+      children: [
+        { label: "General", href: "/admin/settings/general" },
+        { label: "Integrations", href: "/admin/settings/integrations" },
+      ],
     },
   ];
 }

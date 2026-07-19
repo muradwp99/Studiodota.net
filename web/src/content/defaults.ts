@@ -20,6 +20,8 @@ export const BLOCK_DEFAULTS = {
     metaTitle: "Studiodota — Architecture & Design Studio",
     metaDescription:
       "Studiodota is an architecture and design practice creating buildings and spaces defined by clarity, craft, and lasting value — from concept to completion.",
+    ogImage: R("hero"),
+    twitterHandle: "",
     footerHeadline: "An architecture & design studio shaping spaces built to endure.",
     footerServices: [
       "Architectural Design",
@@ -35,6 +37,20 @@ export const BLOCK_DEFAULTS = {
       { label: "YT", href: "#" },
       { label: "X", href: "#" },
     ],
+  },
+
+  integrations: {
+    // Paste an ID and the script is injected automatically — no code needed.
+    gaId: "",
+    gtmId: "",
+    metaPixelId: "",
+    tiktokPixelId: "",
+    // Raw code injected site-wide (own risk — admin only). Head = tracking,
+    // verification meta, fonts. Footer = chat widgets, extra scripts.
+    headCode: "",
+    footerCode: "",
+    // Where new enquiry notifications are emailed (blank = the site contact email).
+    notifyEmail: "",
   },
 
   nav: {

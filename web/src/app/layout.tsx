@@ -18,6 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
       description: site.metaDescription,
       type: "website",
       url: "https://studiodota.net",
+      siteName: site.name,
+      ...(site.ogImage ? { images: [{ url: site.ogImage }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: site.metaTitle,
+      description: site.metaDescription,
+      ...(site.twitterHandle ? { creator: site.twitterHandle } : {}),
+      ...(site.ogImage ? { images: [site.ogImage] } : {}),
     },
   };
 }
