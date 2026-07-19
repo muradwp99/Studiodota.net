@@ -54,7 +54,7 @@ export async function saveProject(id: string | null, data: unknown): Promise<Act
 
 export async function deleteProject(id: string): Promise<void> {
   await requireAdmin();
-  await db.project.delete({ where: { id } });
+  await db.project.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/", "layout");
   redirect("/admin/projects");
 }
@@ -108,7 +108,7 @@ export async function savePost(id: string | null, data: unknown): Promise<Action
 
 export async function deletePost(id: string): Promise<void> {
   await requireAdmin();
-  await db.post.delete({ where: { id } });
+  await db.post.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/", "layout");
   redirect("/admin/posts");
 }
@@ -148,11 +148,11 @@ export async function saveGalleryItem(id: string | null, data: unknown): Promise
 export async function deleteGalleryItem(id: string): Promise<ActionState> {
   await requireAdmin();
   try {
-    await db.galleryItem.delete({ where: { id } });
+    await db.galleryItem.update({ where: { id }, data: { deletedAt: new Date() } });
     revalidatePath("/", "layout");
     return { ok: true };
   } catch {
-    return { error: "Could not delete the item." };
+    return { error: "Could not move the item to Trash." };
   }
 }
 
@@ -172,10 +172,10 @@ export async function setMessageRead(id: string, read: boolean): Promise<ActionS
 export async function deleteMessage(id: string): Promise<ActionState> {
   await requireAdmin();
   try {
-    await db.contactMessage.delete({ where: { id } });
+    await db.contactMessage.update({ where: { id }, data: { deletedAt: new Date() } });
     revalidatePath("/admin/messages");
     return { ok: true };
   } catch {
-    return { error: "Could not delete the message." };
+    return { error: "Could not move the message to Trash." };
   }
 }

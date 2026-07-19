@@ -84,7 +84,7 @@ export async function savePage(id: string | null, data: unknown): Promise<PageAc
 
 export async function deletePage(id: string): Promise<void> {
   await requireAdmin();
-  await db.page.delete({ where: { id } });
+  await db.page.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/", "layout");
   redirect("/admin/pages");
 }

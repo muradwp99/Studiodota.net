@@ -7,7 +7,7 @@ import type { PageBlock } from "@/lib/pageBlocks";
 
 export async function generateStaticParams() {
   try {
-    const pages = await db.page.findMany({ where: { status: "published" }, select: { slug: true } });
+    const pages = await db.page.findMany({ where: { status: "published", deletedAt: null }, select: { slug: true } });
     return pages.map((p) => ({ slug: p.slug }));
   } catch {
     return [];
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CustomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [page, contact] = await Promise.all([
-    db.page.findFirst({ where: { slug, status: "published" } }).catch(() => null),
+    db.page.findFirst({ where: { slug, status: "published", deletedAt: null } }).catch(() => null),
     getBlock("page.contact"),
   ]);
   if (!page) notFound();

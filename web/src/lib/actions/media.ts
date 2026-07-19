@@ -1,6 +1,6 @@
 "use server";
 
-import { mkdir, writeFile, unlink } from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
@@ -58,7 +58,7 @@ export async function uploadMedia(formData: FormData): Promise<MediaState> {
 
 export async function listMedia() {
   await requireAdmin();
-  return db.media.findMany({ orderBy: { createdAt: "desc" }, take: 300 });
+  return db.media.findMany({ where: { deletedAt: null }, orderBy: { createdAt: "desc" }, take: 300 });
 }
 
 export async function deleteMedia(id: string): Promise<MediaState> {
@@ -66,15 +66,12 @@ export async function deleteMedia(id: string): Promise<MediaState> {
   try {
     const row = await db.media.findUnique({ where: { id } });
     if (!row) return { error: "Already gone." };
-    await db.media.delete({ where: { id } });
-    // Only ever unlink files we uploaded — never the original renders.
-    if (row.path.startsWith("/uploads/")) {
-      const abs = path.join(process.cwd(), "public", row.path.replace(/^\//, ""));
-      await unlink(abs).catch(() => {});
-    }
+    // Move to Trash only — the file stays on disk until it's permanently
+    // deleted from Trash, so a page still using it never breaks on a trash.
+    await db.media.update({ where: { id }, data: { deletedAt: new Date() } });
     revalidatePath("/admin/media");
     return { ok: true };
   } catch {
-    return { error: "Could not delete the file." };
+    return { error: "Could not move the file to Trash." };
   }
 }
