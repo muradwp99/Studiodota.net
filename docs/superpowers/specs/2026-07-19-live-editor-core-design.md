@@ -61,7 +61,7 @@ type PageTree = Node[];
 Every node renders inside a wrapper element carrying a stable class `.n-{id}` (mirrors Elementor's `.elementor-element-{id}`). A **pure function** turns a node's `style` + `advanced` into real CSS:
 
 - `nodeCss(node): string` → rules for `.n-{id}`, `.n-{id}:hover`, `@media (max-width:1024px)` and `@media (max-width:767px)` variants, and custom CSS (author writes `selector { … }`, `selector` is substituted with `.n-{id}`).
-- `collectCss(tree): string` → walks the tree, concatenates all node CSS → a **single `<style>` block** emitted once. SSR on the public route; recomputed via `useMemo` in the editor.
+- **Implemented (A1) as per-node `<style>`, not a single collected sheet.** Each node emits its own `.n-{id}`-scoped `<style>` inside its wrapper, only when it has styling. Because every rule is id-scoped, N per-node sheets are cascade-equivalent to one concatenated sheet, and add/remove/edit of a node carries its CSS automatically through React reconciliation (no separate sheet to drift out of sync with the tree). At `MAX_NODES` (300) the DOM cost is negligible and React 19 renders these in place. `collectCss` was therefore not built — do not reintroduce a single collected sheet without a concrete reason.
 
 **Rationale:** inline styles cannot express media queries, `:hover`, or `::before` overlays — all required for parity. A generated, id-scoped stylesheet is the only approach that reaches full parity and works identically server-side and in-editor.
 
