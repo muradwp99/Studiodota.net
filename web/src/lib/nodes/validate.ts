@@ -1,14 +1,9 @@
 import { blockTypeFor } from "@/lib/pageBlocks";
 import { validateFields, ValidationError } from "@/lib/validateFields";
+import type { Node } from "./types";
 
-export type RawNode = {
-  id: string;
-  type: string;
-  props: Record<string, unknown>;
-  style?: Record<string, unknown>;
-  advanced?: Record<string, unknown>;
-  children?: RawNode[];
-};
+/** @deprecated Use `Node` from "./types" directly; kept as an alias for existing imports. */
+export type RawNode = Node;
 
 const MAX_DEPTH = 6;
 const MAX_NODES = 300;
@@ -24,9 +19,9 @@ function sanitizeBag(bag: Record<string, unknown> | undefined): Record<string, u
 }
 
 /** Validate + sanitize a node tree for persistence. Throws ValidationError on any problem. */
-export function validateTree(nodes: RawNode[]): RawNode[] {
+export function validateTree(nodes: Node[]): Node[] {
   let count = 0;
-  const visit = (list: RawNode[], depth: number): RawNode[] => {
+  const visit = (list: Node[], depth: number): Node[] => {
     if (depth > MAX_DEPTH) {
       throw new ValidationError(`Blocks are nested too deep (max ${MAX_DEPTH} levels).`);
     }
@@ -38,7 +33,7 @@ export function validateTree(nodes: RawNode[]): RawNode[] {
       const type = blockTypeFor(b.type);
       if (!type) throw new ValidationError(`Unknown block type "${b.type}".`);
 
-      const out: RawNode = {
+      const out: Node = {
         id: b.id,
         type: b.type,
         props: validateFields(type.fields, b.props, type.defaults),

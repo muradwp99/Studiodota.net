@@ -9,19 +9,11 @@ import { requireAdmin } from "@/lib/auth";
 import { RESERVED_SLUGS } from "@/lib/pageBlocks";
 import { ValidationError } from "@/lib/validateFields";
 import { validateTree } from "@/lib/nodes/validate";
+import type { Node } from "@/lib/nodes/types";
 
 export type PageActionState = { ok?: boolean; error?: string; savedAt?: number; id?: string };
 
-type RawNodeShape = {
-  id: string;
-  type: string;
-  props: Record<string, unknown>;
-  style?: Record<string, unknown>;
-  advanced?: Record<string, unknown>;
-  children?: RawNodeShape[];
-};
-
-const nodeSchema: z.ZodType<RawNodeShape> = z.lazy(() =>
+const nodeSchema: z.ZodType<Node> = z.lazy(() =>
   z.object({
     id: z.string().min(1).max(40),
     type: z.string().min(1).max(40),
