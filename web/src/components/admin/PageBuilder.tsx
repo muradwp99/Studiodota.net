@@ -128,6 +128,15 @@ export default function PageBuilder({
     );
   };
 
+  // Inline (on-canvas) text edits commit here, keyed by the block's own id.
+  const updateBlockProp = (blockId: string, path: (string | number)[], value: string) => {
+    set(
+      "blocks",
+      page.blocks.map((b) => (b.id === blockId ? { ...b, props: setAt(b.props, path, value) as Json } : b)),
+    );
+    setState(null);
+  };
+
   const save = () =>
     startTransition(async () => {
       const res = await savePage(pageId, page);
@@ -204,14 +213,16 @@ export default function PageBuilder({
                   role="button"
                   tabIndex={0}
                   aria-label={`Select ${blockTypeFor(b.type)?.label ?? b.type} block`}
-                  onClick={() => setSelected(on ? null : b.id)}
+                  onClick={() => setSelected(b.id)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+                    // Only act when the wrapper itself is focused — never while
+                    // typing inside an inline-editable text node.
+                    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
                       e.preventDefault();
-                      setSelected(on ? null : b.id);
+                      setSelected(b.id);
                     }
                   }}
-                  className={`relative cursor-pointer transition-shadow ${on ? "ring-2 ring-inset ring-[var(--gold)]" : "hover:ring-1 hover:ring-inset hover:ring-[var(--line-strong)]"}`}
+                  className={`relative transition-shadow ${on ? "ring-2 ring-inset ring-[var(--gold)]" : "hover:ring-1 hover:ring-inset hover:ring-[var(--line-strong)]"}`}
                 >
                   {on && (
                     <div className="absolute right-3 top-3 z-30 flex items-center gap-1 rounded-lg bg-[#17191c] p-1 shadow-lg" onClick={(e) => e.stopPropagation()}>
@@ -222,9 +233,9 @@ export default function PageBuilder({
                       <button type="button" aria-label="Remove" className={`${toolbarBtn} hover:bg-[#a33] hover:text-white`} onClick={() => remove(i)}>✕</button>
                     </div>
                   )}
-                  {/* block preview — non-interactive so clicks select instead of navigate */}
-                  <div className="pointer-events-none">
-                    <BlockRenderer blocks={[b]} ctx={{ serviceOptions }} />
+                  {/* Live canvas — text is click-to-edit; links never navigate here. */}
+                  <div onClickCapture={(e) => { const a = (e.target as HTMLElement).closest("a"); if (a) e.preventDefault(); }}>
+                    <BlockRenderer blocks={[b]} ctx={{ serviceOptions }} edit={updateBlockProp} />
                   </div>
                 </div>
               </div>
