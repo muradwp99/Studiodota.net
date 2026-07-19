@@ -10,25 +10,26 @@ import type { BlockData } from "@/content/defaults";
 /**
  * Scroll-scrub hero. A tall track holds a sticky, full-viewport canvas; as the
  * page scrolls through the track, ScrollTrigger maps progress → frame index and
- * the frame is drawn to the canvas (cover-fit, DPR-aware). Frames are preloaded
- * progressively so the first paint is fast. Reduced-motion users get a single
- * static frame with no scrubbing. Headline/lede/CTA stay CMS-editable via `d`.
+ * the frame is drawn to the canvas (cover-fit, DPR-aware). Frames preload
+ * progressively so first paint is fast. Reduced-motion users get one static
+ * frame. Mobile viewports load a lighter, lower-res sequence. Headline/lede/CTA
+ * stay CMS-editable via `d`.
  *
- * Frames are produced by scripts/build-hero-frames.mjs — keep FRAME_COUNT in sync.
+ * Frames are produced by scripts/build-hero-frames.mjs — keep the counts in sync.
  */
 
-const FRAME_COUNT = 300; // must match scripts/build-hero-frames.mjs TARGET
+const SEQ_DESKTOP = { base: "/media/hero-seq", count: 300 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile", count: 150 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
-const frameSrc = (i: number) => `/media/hero-seq/frame-${String(i).padStart(3, "0")}.webp`;
 
 export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const reduced = useReducedMotion();
   const trackRef = useRef<HTMLElement>(null);
-  const stickyRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const loadedRef = useRef<boolean[]>([]);
   const drawnRef = useRef<number>(-1);
+  const seqRef = useRef(SEQ_DESKTOP);
   const [progress, setProgress] = useState(0); // preload progress 0..1
 
   // Draw frame `i` (cover-fit). If it isn't loaded yet, draw the nearest loaded
@@ -37,13 +38,14 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
+    const count = seqRef.current.count;
 
     let idx = i;
     if (!loadedRef.current[idx]) {
       let found = -1;
-      for (let lo = i, hi = i; lo >= 0 || hi < FRAME_COUNT; lo--, hi++) {
+      for (let lo = i, hi = i; lo >= 0 || hi < count; lo--, hi++) {
         if (lo >= 0 && loadedRef.current[lo]) { found = lo; break; }
-        if (hi < FRAME_COUNT && loadedRef.current[hi]) { found = hi; break; }
+        if (hi < count && loadedRef.current[hi]) { found = hi; break; }
       }
       if (found === -1) return;
       idx = found;
@@ -70,29 +72,30 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     draw(drawnRef.current < 0 ? 0 : drawnRef.current);
   };
 
-  // Preload frames (frame 0 kicks off first paint as soon as it arrives).
+  // Preload frames — picks the mobile or desktop sequence by viewport (once, at mount).
   useEffect(() => {
     let cancelled = false;
-    let count = 0;
-    loadedRef.current = new Array(FRAME_COUNT).fill(false);
-    imagesRef.current = new Array(FRAME_COUNT);
+    seqRef.current = window.matchMedia("(max-width: 767px)").matches ? SEQ_MOBILE : SEQ_DESKTOP;
+    const { base, count } = seqRef.current;
+    let loaded = 0;
+    loadedRef.current = new Array(count).fill(false);
+    imagesRef.current = new Array(count);
 
     const onDone = (i: number) => {
       if (cancelled) return;
       loadedRef.current[i] = true;
-      count += 1;
-      setProgress(count / FRAME_COUNT);
-      // Draw if this is the frame we currently want (or the very first frame).
+      loaded += 1;
+      setProgress(loaded / count);
       if (i === 0 && drawnRef.current < 0) { resizeCanvas(); draw(0); }
       else if (i === drawnRef.current) draw(i);
     };
 
-    for (let i = 0; i < FRAME_COUNT; i++) {
+    for (let i = 0; i < count; i++) {
       const img = new Image();
       img.decoding = "async";
       img.onload = () => onDone(i);
       img.onerror = () => onDone(i); // still count, so progress can complete
-      img.src = frameSrc(i);
+      img.src = `${base}/frame-${String(i).padStart(3, "0")}.webp`;
       imagesRef.current[i] = img;
     }
     return () => { cancelled = true; };
@@ -116,7 +119,8 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
       scrub: 0.5,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
-        const i = Math.min(FRAME_COUNT - 1, Math.round(self.progress * (FRAME_COUNT - 1)));
+        const count = seqRef.current.count;
+        const i = Math.min(count - 1, Math.round(self.progress * (count - 1)));
         if (i !== drawnRef.current) draw(i);
       },
     });
@@ -133,7 +137,6 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
       style={{ height: reduced ? "100dvh" : `${(1 + PIN_SCREENS) * 100}dvh` }}
     >
       <div
-        ref={stickyRef}
         data-nav-tone="dark"
         className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-[#0b0b0c]"
       >
