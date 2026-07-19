@@ -10,6 +10,9 @@ node_modules/
 out/
 dist/
 
+# Raw hero-frame source (6.9 GB) — optimized frames live in web/public/media/hero-seq/
+Homepage_ref/
+
 # Logs & OS
 *.log
 .DS_Store

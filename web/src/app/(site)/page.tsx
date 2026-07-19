@@ -1,4 +1,4 @@
-import Hero from "@/components/home/Hero";
+import HeroScrub from "@/components/home/HeroScrub";
 import Sections, { type HomeData, type JournalCard } from "@/components/home/Sections";
 import { getBlock, getPosts } from "@/lib/content";
 
@@ -42,7 +42,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero d={hero} />
+      <HeroScrub d={hero} />
       <Sections data={data} posts={posts} contact={{ email: site.email, phone: site.phone }} />
     </>
   );
