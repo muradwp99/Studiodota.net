@@ -137,6 +137,8 @@ export const BLOCK_DEFAULTS = {
       { slug: "atelier-house", title: "Atelier House", location: "Copenhagen, Denmark", year: "2025", image: R("atelier-house") },
       { slug: "meridian-sports", title: "Meridian Sports Centre", location: "Manchester, UK", year: "2024", image: R("meridian-sports") },
       { slug: "harbour-masterplan", title: "Harbour Quarter Masterplan", location: "Oslo, Norway", year: "2025", image: R("harbour-masterplan") },
+      { slug: "leafy-precinct", title: "Leafy Apartment Precinct", location: "Copenhagen, Denmark", year: "2025", image: R("leafy-precinct") },
+      { slug: "riverside-warehouse", title: "Riverside Warehouse Development", location: "Rotterdam, Netherlands", year: "2024", image: R("riverside-warehouse") },
     ],
   },
 

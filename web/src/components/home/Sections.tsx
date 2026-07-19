@@ -8,7 +8,7 @@ import Reveal from "@/components/Reveal";
 import ScrollHighlightText from "@/components/ScrollHighlightText";
 import ImageMaskText from "@/components/ImageMaskText";
 import VideoPlayer from "@/components/VideoPlayer";
-import { Parallax, ParallaxImage } from "@/components/Parallax";
+import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
 import type { BlockData } from "@/content/defaults";
@@ -118,29 +118,8 @@ function About({ d }: { d: HomeData["about"] }) {
 
 /* ---------------- Services (What we do — full-bleed slider) ---------------- */
 function ServicesSlider({ d }: { d: HomeData["services"] }) {
-  const [active, setActive] = useState(0);
-  const [x, setX] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
-  const n = d.items.length;
-
-  useEffect(() => {
-    const compute = () => {
-      const track = trackRef.current;
-      const first = track?.children[0] as HTMLElement | undefined;
-      if (!track || !first) return;
-      const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
-      setX(active * (first.getBoundingClientRect().width + gap));
-    };
-    compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, [active, n]);
-
-  const go = (dir: number) => setActive((a) => Math.min(n - 1, Math.max(0, a + dir)));
-
   return (
-    <section id="services" aria-roledescription="carousel" aria-label="Our services" className="section overflow-hidden grad-warm">
+    <section id="services" aria-label="Our services" className="section overflow-hidden grad-warm">
       <div className="shell">
         <Reveal>
           <div className="flex items-end justify-between gap-6">
@@ -151,57 +130,47 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
               </div>
               <h2 className="display-l mt-4">{d.title}</h2>
             </div>
-            <div className="hidden font-mono text-sm text-[var(--muted)] sm:block" aria-hidden="true">
-              {String(active + 1).padStart(2, "0")}<span className="mx-1 opacity-50">/</span>{String(n).padStart(2, "0")}
-            </div>
+            <Link href="/services" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">
+              All services →
+            </Link>
           </div>
         </Reveal>
       </div>
 
-      <div data-nav-tone="dark" className="mt-10 overflow-hidden px-[var(--edge)]">
-        <div
-          ref={trackRef}
-          className={`flex gap-5 ${reduced ? "" : "transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
-          style={{ transform: `translateX(-${x}px)`, willChange: "transform" }}
-        >
-          {d.items.map((s, i) => {
-            const isActive = i === active;
-            return (
-              <article
-                key={s.title}
-                aria-roledescription="slide"
-                aria-label={`${i + 1} of ${n}: ${s.title}`}
-                aria-hidden={!isActive}
-                className={`relative shrink-0 overflow-hidden rounded-3xl ${reduced ? "" : "transition-opacity duration-[900ms]"}`}
-                style={{ width: "min(84vw, 1180px)", height: "clamp(420px, 66vh, 720px)", opacity: isActive ? 1 : 0.5 }}
-              >
-                <Image src={s.image} alt={s.title} fill sizes="84vw" className="object-cover" />
-                <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.9), rgba(11,11,12,0.12) 55%, rgba(11,11,12,0.28))" }} />
-                {isActive && (
-                  <div className="absolute inset-0 flex items-end justify-between gap-6 p-6 md:p-12" style={{ color: "var(--on-media)" }}>
-                    <div className="max-w-[52ch]">
-                      <span className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: "var(--gold-media)" }}>Service {String(i + 1).padStart(2, "0")}</span>
-                      <h3 className="mt-3 font-extrabold leading-[0.95] tracking-[-0.03em]" style={{ fontSize: "clamp(2.2rem, 4.8vw, 4.25rem)" }}>{s.title}</h3>
-                      <p className="mt-4 hidden max-w-[46ch] sm:block" style={{ color: "var(--on-media-dim)" }}>{s.sub}</p>
-                      <div className="mt-5 hidden flex-wrap gap-2.5 sm:flex">
-                        {s.tags.map((t) => (
-                          <span key={t} className="rounded-full border border-[rgba(246,245,242,0.28)] px-3.5 py-1.5 text-[0.7rem] uppercase tracking-[0.08em]" style={{ color: "var(--on-media-dim)" }}>{t}</span>
-                        ))}
-                      </div>
-                      <Link href="/services" className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "#f7f6f3", color: "#17191c" }}>
-                        Learn more <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                    <div className="flex shrink-0 gap-3">
-                      <button onClick={() => go(-1)} disabled={active === 0} aria-label="Previous service" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>←</button>
-                      <button onClick={() => go(1)} disabled={active === n - 1} aria-label="Next service" className="grid h-12 w-12 place-items-center rounded-full text-lg backdrop-blur transition-all duration-300 disabled:opacity-30 enabled:hover:scale-105" style={{ background: "rgba(246,245,242,0.16)", color: "var(--on-media)" }}>→</button>
-                    </div>
+      {/* Big cards drift left as the section scrolls through the viewport. */}
+      <div data-nav-tone="dark" className="mt-10">
+        <ParallaxX direction="left" className="px-[var(--edge)]" trackClassName="gap-5">
+          {d.items.map((s, i) => (
+            <article
+              key={s.title}
+              aria-label={s.title}
+              className="relative shrink-0 overflow-hidden rounded-3xl"
+              style={{ width: "min(84vw, 1180px)", height: "clamp(440px, 70vh, 760px)" }}
+            >
+              <Image src={s.image} alt={s.title} fill sizes="84vw" className="object-cover" />
+              <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.9), rgba(11,11,12,0.12) 55%, rgba(11,11,12,0.28))" }} />
+              <div className="absolute inset-0 flex items-end p-6 md:p-12" style={{ color: "var(--on-media)" }}>
+                <div className="max-w-[52ch]">
+                  <span className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: "var(--gold-media)" }}>
+                    Service {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="mt-3 font-extrabold leading-[0.95] tracking-[-0.03em]" style={{ fontSize: "clamp(2.2rem, 4.8vw, 4.25rem)" }}>
+                    {s.title}
+                  </h3>
+                  <p className="mt-4 hidden max-w-[46ch] sm:block" style={{ color: "var(--on-media-dim)" }}>{s.sub}</p>
+                  <div className="mt-5 hidden flex-wrap gap-2.5 sm:flex">
+                    {s.tags.map((t) => (
+                      <span key={t} className="rounded-full border border-[rgba(246,245,242,0.28)] px-3.5 py-1.5 text-[0.7rem] uppercase tracking-[0.08em]" style={{ color: "var(--on-media-dim)" }}>{t}</span>
+                    ))}
                   </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
+                  <Link href="/services" className="mt-7 inline-flex w-max items-center gap-3 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] transition-transform duration-300 hover:scale-[1.03]" style={{ background: "#f7f6f3", color: "#17191c" }}>
+                    Learn more <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))}
+        </ParallaxX>
       </div>
     </section>
   );
@@ -275,21 +244,16 @@ function QuoteMark({ className = "" }: { className?: string }) {
   );
 }
 
-function FeaturedCard({ p, i }: { p: HomeData["featured"]["items"][number]; i: number }) {
-  const reduced = useReducedMotion();
+function FeaturedCard({ p }: { p: HomeData["featured"]["items"][number] }) {
   return (
-    <motion.article
-      initial={reduced ? false : { opacity: 0, y: 64 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: reduced ? 0 : 0.9, delay: reduced ? 0 : (i % 2) * 0.14, ease: [0.22, 1, 0.36, 1] }}
-      className="group grid overflow-hidden rounded-lg md:grid-cols-2"
-      style={{ background: "#f7f6f3", color: "#17191c" }}
+    <article
+      className="group grid shrink-0 grid-cols-2 overflow-hidden rounded-lg"
+      style={{ width: "min(88vw, 660px)", background: "#f7f6f3", color: "#17191c" }}
     >
-      <div className="flex min-h-[300px] flex-col justify-between gap-10 p-8 md:min-h-[430px] md:p-10">
+      <div className="flex min-h-[320px] flex-col justify-between gap-10 p-7 md:min-h-[420px] md:p-9">
         <QuoteMark className="h-8 w-auto self-start" />
         <div>
-          <h3 className="max-w-[14ch] text-[1.65rem] font-medium leading-[1.12] tracking-[-0.015em] md:text-[2rem]">{p.title}</h3>
+          <h3 className="max-w-[14ch] text-[1.5rem] font-medium leading-[1.12] tracking-[-0.015em] md:text-[1.9rem]">{p.title}</h3>
           <div className="mt-3 text-sm" style={{ color: "#6b7178" }}>{p.location} / {p.year}</div>
           <Link
             href={`/projects/${p.slug}`}
@@ -300,21 +264,24 @@ function FeaturedCard({ p, i }: { p: HomeData["featured"]["items"][number]; i: n
           </Link>
         </div>
       </div>
-      <div className="relative min-h-[280px] overflow-hidden md:min-h-full">
+      <div className="relative min-h-full overflow-hidden">
         <Image
           src={p.image}
           alt={p.title}
           fill
-          sizes="(max-width:768px) 100vw, 44vw"
-          className={`object-cover ${reduced ? "" : "transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07]"}`}
+          sizes="(max-width:768px) 44vw, 330px"
+          className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07]"
         />
       </div>
-    </motion.article>
+    </article>
   );
 }
 
 function Featured({ d }: { d: HomeData["featured"] }) {
   const items = d.items;
+  const half = Math.ceil(items.length / 2);
+  const rowA = items.slice(0, half);
+  const rowB = items.slice(half);
   return (
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,11vw,9rem)]" style={{ color: "var(--on-media)" }}>
       <div className="shell">
@@ -327,17 +294,16 @@ function Featured({ d }: { d: HomeData["featured"] }) {
             <Link href="/projects" className="link-underline hidden text-sm font-semibold sm:inline-block" style={{ color: "var(--gold-media)" }}>{d.linkLabel}</Link>
           </Reveal>
         </div>
-        <Parallax amount={26}>
-          <div className="mt-14 grid gap-6 lg:grid-cols-2">
-            {items.slice(0, 2).map((p, i) => <FeaturedCard key={p.slug + i} p={p} i={i} />)}
-          </div>
-        </Parallax>
-        {items.length > 2 && (
-          <Parallax amount={-26}>
-            <div className="mt-6 grid gap-6 lg:ml-[9%] lg:-mr-[3%] lg:grid-cols-2">
-              {items.slice(2, 4).map((p, i) => <FeaturedCard key={p.slug + i} p={p} i={i + 2} />)}
-            </div>
-          </Parallax>
+      </div>
+      {/* Two rows drift in opposite directions as the section scrolls through. */}
+      <div className="mt-14 space-y-6">
+        <ParallaxX direction="left" className="px-[var(--edge)]" trackClassName="gap-6">
+          {rowA.map((p, i) => <FeaturedCard key={p.slug + i} p={p} />)}
+        </ParallaxX>
+        {rowB.length > 0 && (
+          <ParallaxX direction="right" className="px-[var(--edge)]" trackClassName="gap-6">
+            {rowB.map((p, i) => <FeaturedCard key={p.slug + i} p={p} />)}
+          </ParallaxX>
         )}
       </div>
     </section>

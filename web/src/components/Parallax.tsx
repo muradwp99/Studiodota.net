@@ -115,3 +115,78 @@ export function Parallax({
     </div>
   );
 }
+
+/**
+ * Scroll-linked horizontal drift. The wrapper clips; an over-wide inner track
+ * (all children in a flex row) glides horizontally as the section passes
+ * through the viewport — `direction="left"` reveals first→last, `direction="right"`
+ * reveals last→first (the mirror image). Travel equals the track's overflow, so
+ * the row always covers the wrapper (no empty gaps). Static under reduced motion,
+ * where the row is horizontally scrollable instead so every card stays reachable.
+ */
+export function ParallaxX({
+  children,
+  className = "",
+  trackClassName = "",
+  direction = "left",
+}: {
+  children: ReactNode;
+  className?: string;
+  trackClassName?: string;
+  direction?: "left" | "right";
+}) {
+  const wrap = useRef<HTMLDivElement>(null);
+  const track = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    if (reduced || !wrap.current || !track.current) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const wrapEl = wrap.current;
+    const trackEl = track.current;
+    let tween: gsap.core.Tween | null = null;
+
+    const build = () => {
+      tween?.scrollTrigger?.kill();
+      tween?.kill();
+      const overflow = Math.max(0, trackEl.scrollWidth - wrapEl.clientWidth);
+      const from = direction === "left" ? 0 : -overflow;
+      const to = direction === "left" ? -overflow : 0;
+      gsap.set(trackEl, { x: from });
+      tween = gsap.fromTo(
+        trackEl,
+        { x: from },
+        {
+          x: to,
+          ease: "none",
+          scrollTrigger: {
+            trigger: wrapEl,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 0.6,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    };
+
+    build();
+    window.addEventListener("resize", build);
+    return () => {
+      window.removeEventListener("resize", build);
+      tween?.scrollTrigger?.kill();
+      tween?.kill();
+    };
+  }, [reduced, direction]);
+
+  return (
+    <div
+      ref={wrap}
+      className={`${reduced ? "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "overflow-hidden"} ${className}`}
+    >
+      <div ref={track} className={`flex w-max will-change-transform ${trackClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
