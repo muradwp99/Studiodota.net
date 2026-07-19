@@ -319,6 +319,48 @@ function ContactFormBlock({ p, ctx, edit }: { p: Record<string, unknown>; ctx: B
   );
 }
 
+function Columns({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
+  const items = Array.isArray(p.items) ? (p.items as Record<string, unknown>[]) : [];
+  if (items.length === 0) return null;
+  const cols = Math.min(4, Math.max(1, items.length));
+  return (
+    <div className="section pb-0">
+      <div className={`shell grid gap-8 sm:grid-cols-2 ${cols >= 3 ? "lg:grid-cols-3" : ""} ${cols >= 4 ? "xl:grid-cols-4" : ""}`}>
+        {items.map((c, i) => (
+          <div key={i}>
+            <T edit={edit} path={["items", i, "heading"]} value={S(c.heading)} tag="h3" className="text-lg font-semibold" hideEmpty placeholder="Heading" />
+            <div className="mt-2 text-[var(--bone-dim)]">
+              {edit ? (
+                <InlineText tag="div" value={S(c.body)} multiline placeholder="Text…" onCommit={(v) => edit(["items", i, "body"], v)} />
+              ) : (
+                paragraphs(c.body).map((para, j) => <p key={j} className="mt-2 first:mt-0">{para}</p>)
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Embed({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
+  const html = S(p.html);
+  return (
+    <div className="section pb-0 pt-10">
+      <div className="shell">
+        {html ? (
+          <div className={`[&_iframe]:w-full [&_iframe]:rounded-2xl ${edit ? "pointer-events-none" : ""}`} dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <div className="grid min-h-[120px] place-items-center rounded-2xl border border-dashed border-[var(--line-strong)] text-sm text-[var(--muted)]">
+            {edit ? "Paste an embed or HTML in the panel →" : null}
+          </div>
+        )}
+        <T edit={edit} path={["caption"]} value={S(p.caption)} tag="p" className="mt-3 text-sm text-[var(--muted)]" hideEmpty placeholder="Caption" />
+      </div>
+    </div>
+  );
+}
+
 function Clients({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   const names = Array.isArray(p.names) ? (p.names as unknown[]).map(String) : [];
   return (
@@ -351,6 +393,8 @@ function Block({ block, ctx, edit }: { block: PageBlock; ctx: BlockCtx; edit: Ed
     case "features": return <Features p={p} edit={edit} />;
     case "faq": return <Faq p={p} edit={edit} />;
     case "cta": return <Cta p={p} edit={edit} />;
+    case "columns": return <Columns p={p} edit={edit} />;
+    case "embed": return <Embed p={p} edit={edit} />;
     case "divider": return <div className="shell pt-14"><hr className="border-[var(--line)]" /></div>;
     case "spacer": return <div style={{ height: `${Math.min(24, Math.max(0, Number(p.size) || 0))}rem` }} aria-hidden="true" />;
     case "contactForm": return <ContactFormBlock p={p} ctx={ctx} edit={edit} />;

@@ -134,6 +134,22 @@ export const BLOCK_TYPES: BlockType[] = [
     defaults: { title: "Let's talk about your project.", body: "", buttonLabel: "Get in touch", buttonHref: "/contact", image: "/media/renders/harbour-masterplan.jpg" },
   },
   {
+    type: "columns",
+    label: "Columns",
+    description: "Two to four text columns side by side.",
+    icon: "▥",
+    fields: [{ kind: "list", key: "items", label: "Columns", addable: true, item: [t("heading", "Heading"), ta("body", "Text", 4)] }],
+    defaults: { items: [{ heading: "First", body: "Describe the first thing." }, { heading: "Second", body: "Describe the second thing." }, { heading: "Third", body: "Describe the third thing." }] },
+  },
+  {
+    type: "embed",
+    label: "Embed / HTML",
+    description: "Paste a map, form, or any embed / custom HTML.",
+    icon: "◇",
+    fields: [ta("html", "Embed code / HTML", 5), t("caption", "Caption")],
+    defaults: { html: "", caption: "" },
+  },
+  {
     type: "divider",
     label: "Divider",
     description: "A thin horizontal rule.",

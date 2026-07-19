@@ -74,6 +74,9 @@ export default function PageBuilder({
   const [page, setPage] = useState<PageInput>(initial);
   const [pageId, setPageId] = useState<string | null>(id);
   const [selected, setSelected] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [overPos, setOverPos] = useState<"before" | "after">("before");
   const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const [state, setState] = useState<PageActionState | null>(null);
   const [pending, startTransition] = useTransition();
@@ -135,6 +138,24 @@ export default function PageBuilder({
       page.blocks.map((b) => (b.id === blockId ? { ...b, props: setAt(b.props, path, value) as Json } : b)),
     );
     setState(null);
+  };
+
+  const handleDrop = () => {
+    if (dragIndex === null || overIndex === null) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    let to = overPos === "before" ? overIndex : overIndex + 1;
+    if (dragIndex < to) to -= 1;
+    if (dragIndex !== to) {
+      const blocks = [...page.blocks];
+      const [moved] = blocks.splice(dragIndex, 1);
+      blocks.splice(to, 0, moved);
+      set("blocks", blocks);
+    }
+    setDragIndex(null);
+    setOverIndex(null);
   };
 
   const save = () =>
@@ -222,8 +243,29 @@ export default function PageBuilder({
                       setSelected(b.id);
                     }
                   }}
-                  className={`relative transition-shadow ${on ? "ring-2 ring-inset ring-[var(--gold)]" : "hover:ring-1 hover:ring-inset hover:ring-[var(--line-strong)]"}`}
+                  onDragOver={(e) => {
+                    if (dragIndex === null) return;
+                    e.preventDefault();
+                    const r = e.currentTarget.getBoundingClientRect();
+                    setOverIndex(i);
+                    setOverPos(e.clientY < r.top + r.height / 2 ? "before" : "after");
+                  }}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(); }}
+                  className={`group relative transition-shadow ${on ? "ring-2 ring-inset ring-[var(--gold)]" : "hover:ring-1 hover:ring-inset hover:ring-[var(--line-strong)]"} ${dragIndex === i ? "opacity-40" : ""}`}
                 >
+                  {dragIndex !== null && overIndex === i && (
+                    <div className={`pointer-events-none absolute inset-x-0 z-40 h-0.5 bg-[var(--gold)] ${overPos === "before" ? "top-0" : "bottom-0"}`} aria-hidden="true" />
+                  )}
+                  {/* Drag grip — appears on hover, reorders by drag. */}
+                  <span
+                    draggable
+                    onDragStart={() => { setSelected(b.id); setDragIndex(i); }}
+                    onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
+                    aria-label="Drag to reorder"
+                    className="absolute left-1 top-1/2 z-30 grid h-7 w-6 -translate-y-1/2 cursor-grab place-items-center rounded bg-[#17191c] text-[rgba(246,245,242,0.85)] opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                  >
+                    ⠿
+                  </span>
                   {on && (
                     <div className="absolute right-3 top-3 z-30 flex items-center gap-1 rounded-lg bg-[#17191c] p-1 shadow-lg" onClick={(e) => e.stopPropagation()}>
                       <span className="px-2 font-mono text-[0.62rem] uppercase tracking-wide text-[var(--gold-media)]">{blockTypeFor(b.type)?.label ?? b.type}</span>
