@@ -6,7 +6,7 @@ import type { FieldSpec } from "@/lib/pageRegistry";
  * validation) plus sensible defaults so a freshly-inserted block looks real.
  */
 
-export type PageBlock = { id: string; type: string; props: Record<string, unknown> };
+export type { Node as PageBlock, PageTree } from "@/lib/nodes/types";
 
 export type BlockType = {
   type: string;
