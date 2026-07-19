@@ -4,6 +4,44 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
+## Session update — 2026-07-19 (Live Editor A1 foundation + scroll-scrub hero + homepage drift/drag)
+
+**Branch `feature/admin-v1-client-ready` (NOT pushed to origin). `npx tsc --noEmit` clean; 35 Vitest tests pass; homepage verified live in-browser.** Two threads: (1) started the Elementor/Gutenberg-class **Live Editor** (sub-project A of the A→G roadmap) — **A1 foundation complete**; (2) built the **scroll-scrub hero** + **homepage horizontal-drift sections with manual drag**.
+
+### Live Editor — roadmap A→G (client wants Gutenberg + Elementor-class editing)
+Decomposed into sub-projects: **A** editor core → B widget catalog → C autosave/revisions → D saved patterns → E media upgrade → F onboarding → G settings polish. Full ambition (client picked max on every axis): true nested containers, full style parity, WP-matching catalog, left elements panel + right **Content/Style/Advanced** inspector. Followed superpowers brainstorm→spec→plan→subagent-build.
+- **Spec:** `docs/superpowers/specs/2026-07-19-live-editor-core-design.md`
+- **A1 plan:** `docs/superpowers/plans/2026-07-19-live-editor-core-a1-foundation.md`
+- **Progress ledger (git-ignored):** `.superpowers/sdd/progress.md`
+
+**A1 FOUNDATION — DONE** (commits `b91cbb8..c8cec9b` + doc `77bd2e6`); every task had a per-task review + a final whole-branch review ("ready to merge: YES"). Added:
+- **Vitest** (`web/vitest.config.ts`, `npm test`, node env, `@` alias) — 35 tests.
+- **`web/src/lib/nodes/`** (pure logic): `types.ts` (canonical `Node = {id,type,props,style?,advanced?,children?}`, `Responsive<T>`, `Breakpoint`), `walk.ts`, `normalize.ts` (read-path migration of old flat blocks), `css.ts` (style/advanced → `.n-{id}` scoped CSS: responsive tablet≤1024 / mobile≤767, hover, hide, custom-CSS), `validate.ts` (recursive server validation; caps depth 6 / 300 nodes / 20KB bag).
+- `BlockRenderer.tsx` is now **recursive** (per-node `<style>`, NOT a single collectCss sheet — deliberate, spec §5). Backward-compat: a node with no style/advanced/children renders **byte-identical** (no wrapper). Verified `/our-studio-story` unchanged.
+- `PageBlock` is now an alias of `Node`; `savePage` (`lib/actions/pages.ts`) uses a recursive zod schema + `validateTree`; both read paths run `normalizeTree`. `Page.blocks` is JSON — **no DB migration**.
+
+**A2 IS NEXT — the Content/Style/Advanced tabbed inspector + control library. A2 PRE-WORK TRAPS (recorded here since the ledger is git-ignored):**
+1. **BIGGEST:** the universal wrapper `<div class="n-{id}">` will SHIFT layout of existing shell-centered / full-bleed blocks the moment styling is applied → default the wrapper to `display:contents` until a box-model prop (padding/bg/border) needs a real box; audit full-bleed blocks. (Byte-identical today only because nothing sets style yet.)
+2. `PageBuilder.updateBlockProp` only matches TOP-LEVEL blocks by id → make it recurse into `children` for nested inline edits.
+3. `PageBuilder.duplicate()` drops style/advanced and needs child-id regeneration for cloned subtrees.
+4. `nodeSchema` style/advanced/children are `.optional()` (reject explicit `null`) → omit them or use `.nullish()` when the style panel initializes a node.
+5. Custom-CSS `selector` substitution is a naive `/selector/g` → needs token-aware replace + `</style>` escaping + user docs when the Custom CSS control ships (zero exposure now — no UI).
+6. Add a render-level byte-identical test once a React component-test harness exists.
+
+### Scroll-scrub hero (replaces the slider hero on `/`)
+- **`web/src/components/home/HeroScrub.tsx`** — Apple-style `<canvas>` scrub via GSAP ScrollTrigger over a **sticky 3.5-screen track (NO gsap pin → Lenis-safe)**, progressive frame preload (nearest-loaded fallback, no blank flashes), reduced-motion = single static frame, restrained bottom-anchored text lockup (client feedback: footage must lead, not big text). Picks mobile vs desktop frame set at mount via `matchMedia`.
+- **Frames** built by **`web/scripts/build-hero-frames.mjs`** (uses **sharp**): raw 340×4K 16-bit PNGs (**6.9GB, git-ignored `Homepage_ref/`**) → desktop **300 @1920px WebP q92 = 57MB** (`public/media/hero-seq/`) + mobile **150 @1080px = 9.7MB** (`public/media/hero-seq-mobile/`) — **both committed**. Re-run: `node scripts/build-hero-frames.mjs [desktop|mobile]`. NOTE: lossless WebP measured **424MB** (rejected); q92 lossy is visually identical — never use lossless for photographic/CGI frames. Commits `15621ea` (desktop) + `9cadcc8` (mobile).
+- Old slider `home/Hero.tsx` was **DELETED** (orphaned). `home-2` still uses `VideoHero`; `hero/Hero3D.tsx` + `HomeHero.tsx` remain unused.
+
+### Homepage horizontal-drift sections + manual drag (commits `bedf680` + `6439586`)
+- **`web/src/components/Parallax.tsx` → new `ParallaxX`**: scroll-linked horizontal drift (full-overflow reveal, opposite directions) **+ manual pointer drag** (applied position = scroll `baseX` + drag `dragX`, clamped to overflow, rAF-smoothed). Grab cursor, click-suppression after a real drag (card links don't fire on drag), `touch-action: pan-y` (vertical page-scroll preserved), reduced-motion → native horizontal scroll.
+- **Services** (`Sections.tsx` `ServicesSlider`): kept the **BIG cards**, now scroll-driven **drift LEFT** + drag (replaced the button carousel).
+- **Inside/Outside** (`Featured`): **two rows drift OPPOSITE** each other (rowA left / rowB right) + drag; **added 2 project cards** (leafy-precinct, riverside-warehouse → 6 total, 3/row). NOTE: `home.featured` is **DB-backed** — items were updated in BOTH `content/defaults.ts` AND the live DB block (fresh seed uses defaults; the running DB was patched directly via a one-off script).
+
+### Run / verify this session's work
+- `cd web && npm run db:start` (project MySQL on 3307) → `npm run dev` (http://localhost:3000). `npm test` (Vitest, 35). `npx tsc --noEmit` clean.
+- The dev MySQL + dev server die with the session — restart with `db:start` then `dev`.
+
 ## Session update — 2026-07-17 (LATEST 2: WordPress-style admin + block editor + plugins)
 **`npm run build` CLEAN. All flows verified live in-browser.** The admin now mirrors WordPress so a non-technical client feels at home — same anatomy, Studiodota's colors/fonts (charcoal + bronze, Archivo).
 
@@ -93,7 +131,7 @@ Marketing/portfolio website for **Studiodota — a real architecture & design pr
 ## Repo / Git
 - Root: `D:\Studiodota.net` (git). App: `web/`.
 - Remote `origin` → `https://github.com/muradwp99/Studiodota.net` , branch `master`.
-- Last push: commit `e82f7b1` "Build Studiodota architecture & design studio site" — everything is pushed.
+- Last push to `origin/master`: `e82f7b1`. Since then there is **extensive UNPUSHED work** on branch **`feature/admin-v1-client-ready`** (custom CMS/admin + Live Editor A1 + scroll-scrub hero + homepage drift/drag). Latest local commit `6439586`. Nothing has been pushed — say the word to push.
 - Root `.gitignore` excludes `.claude/`, `.agents/`, `node_modules/`, `.next/`.
 
 ## Run / build
