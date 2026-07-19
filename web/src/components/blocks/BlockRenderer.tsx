@@ -1,12 +1,13 @@
 "use client";
 
-import { createElement, useState } from "react";
+import { createElement, useState, Fragment, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import VideoPlayer from "@/components/VideoPlayer";
 import ContactForm from "@/components/ContactForm";
 import InlineText from "@/components/blocks/InlineText";
 import type { PageBlock } from "@/lib/pageBlocks";
+import { nodeCss, wrapperAttrs } from "@/lib/nodes/css";
 
 /**
  * Renderer for block-editor pages. Used by BOTH the public route (no `edit`)
@@ -403,6 +404,29 @@ function Block({ block, ctx, edit }: { block: PageBlock; ctx: BlockCtx; edit: Ed
   }
 }
 
+function renderNode(
+  node: PageBlock,
+  ctx: BlockCtx,
+  edit: ((blockId: string, path: (string | number)[], value: string) => void) | undefined,
+): ReactNode {
+  const editForNode: Edit = edit ? (path, value) => edit(node.id, path, value) : undefined;
+  const inner = <Block block={node} ctx={ctx} edit={editForNode} />;
+  const kids = node.children?.length ? node.children.map((c) => renderNode(c, ctx, edit)) : null;
+  const css = nodeCss(node);
+  const hasWrap = Boolean(css || kids || node.style || node.advanced);
+
+  if (!hasWrap) return <Fragment key={node.id}>{inner}</Fragment>;
+
+  const { className, id } = wrapperAttrs(node);
+  return (
+    <div key={node.id} className={className} id={id} data-node={node.id}>
+      {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
+      {inner}
+      {kids}
+    </div>
+  );
+}
+
 export default function BlockRenderer({
   blocks,
   ctx,
@@ -415,9 +439,7 @@ export default function BlockRenderer({
 }) {
   return (
     <>
-      {blocks.map((b) => (
-        <Block key={b.id} block={b} ctx={ctx} edit={edit ? (path, value) => edit(b.id, path, value) : undefined} />
-      ))}
+      {blocks.map((b) => renderNode(b, ctx, edit))}
       {/* bottom rhythm so the last block breathes before the footer */}
       <div className="pb-[clamp(4rem,9vw,8rem)]" aria-hidden="true" />
     </>
