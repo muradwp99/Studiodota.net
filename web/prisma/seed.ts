@@ -1,7 +1,7 @@
 /* Seeds the CMS with the site's current content. Idempotent: existing rows
  * (i.e. content already edited in the admin) are left untouched.
  * Run: npx prisma db seed   (env: ADMIN_EMAIL / ADMIN_PASSWORD for the login) */
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { BLOCK_DEFAULTS, SEED_PROJECTS, SEED_GALLERY, SEED_MEDIA } from "../src/content/defaults";
 import { posts } from "../src/content/site";
@@ -26,7 +26,7 @@ async function main() {
   // 2) Blocks (create only when missing — never clobber edits)
   for (const [key, data] of Object.entries(BLOCK_DEFAULTS)) {
     const found = await db.block.findUnique({ where: { key } });
-    if (!found) await db.block.create({ data: { key, data: structuredClone(data) } });
+    if (!found) await db.block.create({ data: { key, data: structuredClone(data) as unknown as Prisma.InputJsonValue } });
   }
   console.log(`Blocks ensured: ${Object.keys(BLOCK_DEFAULTS).length}`);
 

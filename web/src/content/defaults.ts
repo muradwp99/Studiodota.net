@@ -366,7 +366,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   taxonomies: {
-    postCategories: ["Craft", "Philosophy", "Urbanism", "Sustainability", "Interiors", "Process", "Lifestyle"],
+    postCategories: ["Craft", "Philosophy", "Urbanism", "Sustainability", "Interiors", "Process", "Lifestyle"] as string[],
   },
 
   plugins: {

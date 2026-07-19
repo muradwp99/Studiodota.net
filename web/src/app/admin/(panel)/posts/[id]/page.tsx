@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getBlock } from "@/lib/content";
 import PostForm, { type PostInput, type PostSectionInput } from "@/components/admin/PostForm";
 
 export const metadata = { title: "Edit article" };
@@ -24,7 +25,10 @@ const EMPTY: PostInput = {
 export default async function AdminPostEdit({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const isNew = id === "new";
-  const post = isNew ? null : await db.post.findUnique({ where: { id } });
+  const [post, { postCategories }] = await Promise.all([
+    isNew ? Promise.resolve(null) : db.post.findUnique({ where: { id } }),
+    getBlock("taxonomies"),
+  ]);
   if (!isNew && !post) notFound();
 
   const initial: PostInput = post
@@ -56,7 +60,7 @@ export default async function AdminPostEdit({ params }: { params: Promise<{ id: 
           </Link>
         )}
       </div>
-      <PostForm id={isNew ? null : id} initial={initial} />
+      <PostForm id={isNew ? null : id} initial={initial} categories={postCategories} />
     </div>
   );
 }

@@ -26,11 +26,12 @@ export type PostInput = {
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
-export default function PostForm({ id, initial }: { id: string | null; initial: PostInput }) {
+export default function PostForm({ id, initial, categories = [] }: { id: string | null; initial: PostInput; categories?: string[] }) {
   const [data, setData] = useState(initial);
   const [state, setState] = useState<ActionState | null>(null);
   const [pending, startTransition] = useTransition();
   const [picker, setPicker] = useState<"image" | "inlineImage" | null>(null);
+  const [newCategory, setNewCategory] = useState(!categories.includes(initial.category) && initial.category !== "");
   const router = useRouter();
 
   const set = <K extends keyof PostInput>(k: K, v: PostInput[K]) => {
@@ -106,8 +107,24 @@ export default function PostForm({ id, initial }: { id: string | null; initial: 
       </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label htmlFor="category" className={labelCls}>Category</label>
-          <input id="category" className={inputCls} value={data.category} onChange={(e) => set("category", e.target.value)} />
+          <label htmlFor="category" className={labelCls}>
+            Category{" "}
+            <button
+              type="button"
+              className="normal-case text-[var(--gold-ink)] underline"
+              onClick={() => setNewCategory((v) => !v)}
+            >
+              {newCategory ? "pick existing" : "new"}
+            </button>
+          </label>
+          {newCategory || categories.length === 0 ? (
+            <input id="category" className={inputCls} value={data.category} placeholder="New category name" onChange={(e) => set("category", e.target.value)} />
+          ) : (
+            <select id="category" className={inputCls} value={data.category} onChange={(e) => set("category", e.target.value)}>
+              {!categories.includes(data.category) && <option value={data.category}>{data.category}</option>}
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
         </div>
         <div>
           <label htmlFor="date" className={labelCls}>Date</label>

@@ -4,7 +4,21 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
-## Session update — 2026-07-17 (LATEST: custom CMS + homepage polish + real video)
+## Session update — 2026-07-17 (LATEST 2: WordPress-style admin + block editor + plugins)
+**`npm run build` CLEAN. All flows verified live in-browser.** The admin now mirrors WordPress so a non-technical client feels at home — same anatomy, Studiodota's colors/fonts (charcoal + bronze, Archivo).
+
+- **WP shell:** dark left sidebar (Dashboard / Posts / Media / Pages / Projects / Gallery / Messages / Appearance / Plugins / Users / Settings, with submenus + unread badge; `AdminNav.tsx`) + top admin bar (site name ↗, "+ New" dropdown, "Howdy, {name}" menu with profile/sign-out; `AdminBar.tsx`).
+- **Dashboard:** At a Glance, Activity, Quick Draft (creates draft posts; `actions/dashboard.ts`), Edit-the-site shortcuts.
+- **Block editor (Gutenberg-style):** `Page` table + `/admin/pages/new` and `/admin/pages/block/[id]` (`PageBuilder.tsx`): WYSIWYG canvas rendering real site components, "+" inserter with 17 elements (`src/lib/pageBlocks.ts`: hero, heading, text, image, image&text, gallery, video, buttons, quote, stats, features, FAQ, CTA, divider, spacer, contact form, clients), per-block settings sidebar (same FieldSpec engine), reorder/duplicate/delete, draft/publish, slug + SEO. Public render at `/{slug}` via `app/(site)/[slug]/page.tsx` + `BlockRenderer.tsx` (SSG, reserved-slug protection). VERIFIED: created "Our Studio Story" (published, unlinked demo — delete from Pages if unwanted).
+- **Menus (Appearance → Menus):** header + footer-pages menus are editable (`menus` block → Navbar/Footer). /services, /gallery, /projects keep mega panels automatically; any new page can be added as a plain item. VERIFIED add + remove.
+- **Plugins:** real architecture — `src/plugins/<id>/` manifest (FieldSpec settings + slot components) + `registry.ts`; states in `plugins` block; `PluginSlot` renders active plugins into `site.floating` / `site.beforeFooter` / `home.end`. Admin Plugins screen: Activate/Deactivate + Settings. **WhatsApp Chat Button plugin installed** (phone/message/corner; currently DEACTIVATED — activate + set the real number in /admin/plugins). To add a plugin with Claude Code: create the folder, export a manifest, add one line to `registry.ts`.
+- **Posts:** WP list-table (search + category filter), Categories manager (`taxonomies` block; rename propagates to posts; `actions/taxonomy.ts`), PostForm category select + "new" toggle.
+- **Appearance:** Themes screen (Studiodota 1.0 active; themes = future token packs), Customize (site identity), Menus.
+- **Users → Profile:** display name/email + change password (bcrypt verify; `actions/users.ts`). Settings → General (old /admin/settings redirects).
+- **Structure notes:** shared form engine extracted to `FieldsRenderer.tsx` (+ `lib/validateFields.ts` used by blocks, plugins, and page-builder validation). Prisma migration `pages` added (note: MySQL forbids defaults on TEXT — seoDescription is VARCHAR).
+- **Not done / known:** themes are a single-entry architecture stub (no alternate packs by design — colors stay); no Trash/revisions on pages; screenshots in the in-app pane were flaky (all verification DOM-based); demo artifacts left: "Our Studio Story" page (published, unlinked) + one dashboard draft post.
+
+## Session update — 2026-07-17 (custom CMS + homepage polish + real video)
 **`npm run build` CLEAN.** Everything below verified live in-browser (admin round trip included).
 
 **Custom CMS (from scratch) — the site is now fully editable at `/admin`:**
