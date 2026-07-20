@@ -12,6 +12,7 @@ import StyleRenderer from "@/components/admin/StyleRenderer";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
 import { inputCls, labelCls, Notice } from "@/components/admin/ui";
 import { insertIndexFor, reorderIndexFor } from "@/lib/nodes/dnd";
+import { findNode, updateNode } from "@/lib/nodes/tree";
 
 export type PageInput = {
   title: string;
@@ -59,7 +60,7 @@ export default function PageBuilder({
     setState(null);
   };
 
-  const selectedBlock = page.blocks.find((b) => b.id === selected) ?? null;
+  const selectedBlock = selected ? findNode(page.blocks, selected) : null;
   const selectedType = selectedBlock ? blockTypeFor(selectedBlock.type) : null;
 
   // Select a block and reveal its settings.
@@ -111,20 +112,20 @@ export default function PageBuilder({
 
   const updateSelectedProps = (path: Path, value: unknown) => {
     if (!selectedBlock) return;
-    set("blocks", page.blocks.map((b) => (b.id === selectedBlock.id ? { ...b, props: setAt(b.props, path, value) as Json } : b)));
+    set("blocks", updateNode(page.blocks, selectedBlock.id, (b) => ({ ...b, props: setAt(b.props, path, value) as Json })));
   };
   const updateSelectedStyle = (path: Path, value: unknown) => {
     if (!selectedBlock) return;
-    set("blocks", page.blocks.map((b) => (b.id === selectedBlock.id ? { ...b, style: setAt(b.style ?? {}, path, value) as Json } : b)));
+    set("blocks", updateNode(page.blocks, selectedBlock.id, (b) => ({ ...b, style: setAt(b.style ?? {}, path, value) as Json })));
   };
   const updateSelectedAdvanced = (path: Path, value: unknown) => {
     if (!selectedBlock) return;
-    set("blocks", page.blocks.map((b) => (b.id === selectedBlock.id ? { ...b, advanced: setAt(b.advanced ?? {}, path, value) as Json } : b)));
+    set("blocks", updateNode(page.blocks, selectedBlock.id, (b) => ({ ...b, advanced: setAt(b.advanced ?? {}, path, value) as Json })));
   };
 
   // Inline (on-canvas) text edits commit here, keyed by the block's own id.
   const updateBlockProp = (blockId: string, path: (string | number)[], value: string) => {
-    set("blocks", page.blocks.map((b) => (b.id === blockId ? { ...b, props: setAt(b.props, path, value) as Json } : b)));
+    set("blocks", updateNode(page.blocks, blockId, (b) => ({ ...b, props: setAt(b.props, path, value) as Json })));
     setState(null);
   };
 
