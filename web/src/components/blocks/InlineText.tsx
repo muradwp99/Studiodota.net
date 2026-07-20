@@ -27,12 +27,15 @@ export default function InlineText({
 }) {
   const ref = useRef<HTMLElement | null>(null);
 
+  // Reconcile the DOM text with `value` on mount AND whenever `value` changes
+  // from outside (e.g. an edit in the settings sidebar). Skip while this field
+  // is focused so active inline typing never has its caret clobbered.
   useEffect(() => {
     const el = ref.current;
-    if (el && el.textContent !== value) el.textContent = value;
-    // Mount only — see component note.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (el && document.activeElement !== el && el.textContent !== value) {
+      el.textContent = value;
+    }
+  }, [value]);
 
   return createElement(tag ?? "span", {
     ref,
