@@ -28,13 +28,15 @@ export default function StyleRenderer({ controls, data, onChange }: { controls: 
         return <SliderControl key={key} label={c.label} min={c.min} max={c.max} step={c.step} unit={c.unit} value={typeof val === "number" ? val : undefined} onChange={(v) => onChange([c.key], v)} />;
       case "buttongroup":
         return <ButtonGroupControl key={key} label={c.label} options={c.options} value={String(val ?? "")} onChange={(v) => onChange([c.key], v)} />;
-      case "text":
+      case "text": {
+        const id = `sc-${c.key}`;
         return (
           <div key={key}>
-            <label className={labelCls}>{c.label}</label>
-            <input className={inputCls} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange([c.key], e.target.value)} />
+            <label htmlFor={id} className={labelCls}>{c.label}</label>
+            <input id={id} className={inputCls} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange([c.key], e.target.value)} />
           </div>
         );
+      }
     }
   };
   return <div className="space-y-4">{controls.map((c, i) => render(c, String(i)))}</div>;
