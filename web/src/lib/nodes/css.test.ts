@@ -116,4 +116,22 @@ describe("needsBox", () => {
   it("true when customCss is set", () => {
     expect(needsBox(n({ advanced: { customCss: "selector{width:300px}" } }))).toBe(true);
   });
+
+  describe("needsBox covers every box-generating engine key", () => {
+    // Keys styleToCss renders as box-generating. If you add a box render branch to
+    // css.ts, add its key here AND to needsBox's STYLE_BOX_KEYS/ADV_BOX_KEYS.
+    const styleBoxKeys = ["backgroundColor", "minHeight", "maxWidth", "borderRadius"];
+    const advBoxKeys = ["padding", "margin", "zIndex"];
+    for (const k of styleBoxKeys) {
+      it(`style.${k} forces a box`, () => {
+        expect(needsBox(n({ style: { [k]: k === "backgroundColor" ? "#000" : 10 } }))).toBe(true);
+      });
+    }
+    for (const k of advBoxKeys) {
+      it(`advanced.${k} forces a box`, () => {
+        const val = k === "padding" || k === "margin" ? { top: 10 } : 5;
+        expect(needsBox(n({ advanced: { [k]: val } }))).toBe(true);
+      });
+    }
+  });
 });
