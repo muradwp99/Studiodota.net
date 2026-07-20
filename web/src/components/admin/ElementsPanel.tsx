@@ -11,7 +11,7 @@ import { blockTypeFor, type BlockType } from "@/lib/pageBlocks";
  */
 
 const CATEGORIES: { name: string; types: string[] }[] = [
-  { name: "Layout", types: ["hero", "columns", "divider", "spacer"] },
+  { name: "Layout", types: ["container", "hero", "columns", "divider", "spacer"] },
   { name: "Text", types: ["heading", "text", "quote"] },
   { name: "Media", types: ["image", "imageText", "gallery", "video"] },
   { name: "Widgets", types: ["buttons", "stats", "features", "faq", "cta", "contactForm", "clients"] },

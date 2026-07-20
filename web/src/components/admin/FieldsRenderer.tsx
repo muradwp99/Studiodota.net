@@ -112,6 +112,15 @@ export default function FieldsRenderer({
             {f.label}
           </label>
         );
+      case "select":
+        return (
+          <div key={id}>
+            <label htmlFor={id} className={labelCls}>{f.label}</label>
+            <select id={id} className={inputCls} value={String(val ?? "")} onChange={(e) => onChange(path, e.target.value)}>
+              {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        );
       case "image": {
         const v = String(val ?? "");
         return (

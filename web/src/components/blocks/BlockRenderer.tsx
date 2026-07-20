@@ -421,6 +421,7 @@ export function Block({ block, ctx, edit }: { block: PageBlock; ctx: BlockCtx; e
     case "faq": return <Faq p={p} edit={edit} />;
     case "cta": return <Cta p={p} edit={edit} />;
     case "columns": return <Columns p={p} edit={edit} />;
+    case "container": return null;
     case "embed": return <Embed p={p} edit={edit} />;
     case "divider": return <div className="shell pt-14"><hr className="border-[var(--line)]" /></div>;
     case "spacer": return <div style={{ height: `${Math.min(24, Math.max(0, Number(p.size) || 0))}rem` }} aria-hidden="true" />;

@@ -10,6 +10,7 @@ export type FieldSpec =
   | { kind: "number"; key: string; label: string; help?: string }
   | { kind: "toggle"; key: string; label: string; help?: string }
   | { kind: "image"; key: string; label: string; help?: string }
+  | { kind: "select"; key: string; label: string; options: { value: string; label: string }[]; help?: string }
   | { kind: "stringList"; key: string; label: string; help?: string }
   | { kind: "group"; key: string; label: string; fields: FieldSpec[] }
   | { kind: "list"; key: string; label: string; item: FieldSpec[]; addable?: boolean; help?: string };

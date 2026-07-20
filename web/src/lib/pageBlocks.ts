@@ -22,6 +22,7 @@ const ta = (key: string, label: string, rows = 3): FieldSpec => ({ kind: "textar
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
 const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, label });
 const tog = (key: string, label: string): FieldSpec => ({ kind: "toggle", key, label });
+const sel = (key: string, label: string, options: { value: string; label: string }[]): FieldSpec => ({ kind: "select", key, label, options });
 
 export const RESERVED_SLUGS = [
   "", "about", "services", "projects", "journal", "gallery", "contact", "privacy",
@@ -29,6 +30,20 @@ export const RESERVED_SLUGS = [
 ];
 
 export const BLOCK_TYPES: BlockType[] = [
+  {
+    type: "container",
+    label: "Container",
+    description: "A flexible box that holds other blocks (row = columns, column = stack).",
+    icon: "▢",
+    fields: [
+      sel("direction", "Direction", [{ value: "column", label: "Stack (column)" }, { value: "row", label: "Row (columns)" }]),
+      num("gap", "Gap (px)"),
+      sel("align", "Align items", [{ value: "stretch", label: "Stretch" }, { value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }]),
+      sel("justify", "Justify", [{ value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }, { value: "between", label: "Space between" }]),
+      tog("wrap", "Wrap"),
+    ],
+    defaults: { direction: "column", gap: 24, align: "stretch", justify: "start", wrap: false },
+  },
   {
     type: "hero",
     label: "Hero",
