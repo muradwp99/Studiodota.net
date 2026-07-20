@@ -118,6 +118,10 @@ describe("nodeCss", () => {
     expect(css).not.toContain("</style>");
     expect(css).toContain(".n-abc { x: 1 }");
   });
+  it("neutralizes `</style>` in any emitted value, not just custom CSS", () => {
+    const css = nodeCss(base({ style: { color: "red}</style><script>x</script>" } }));
+    expect(css).not.toContain("</style>");
+  });
 });
 
 describe("wrapperAttrs", () => {
@@ -163,6 +167,9 @@ describe("needsBox", () => {
     expect(needsBox(n({ style: { width: 300 } }))).toBe(true);
     expect(needsBox(n({ style: { boxShadow: "soft" } }))).toBe(true);
   });
+  it("false for boxShadow 'none' (emits no CSS, must not force an empty box)", () => {
+    expect(needsBox(n({ style: { boxShadow: "none" } }))).toBe(false);
+  });
   it("ignores empty responsive/box shells", () => {
     expect(needsBox(n({ advanced: { padding: { unit: "px" } } }))).toBe(false);
     expect(needsBox(n({ style: { maxWidth: {} } }))).toBe(false);
@@ -174,7 +181,7 @@ describe("needsBox", () => {
   describe("needsBox covers every box-generating engine key", () => {
     // Keys styleToCss renders as box-generating. If you add a box render branch to
     // css.ts, add its key here AND to needsBox's STYLE_BOX_KEYS/ADV_BOX_KEYS.
-    const styleBoxKeys = ["backgroundColor", "minHeight", "maxWidth", "borderRadius", "width", "borderWidth", "borderStyle", "borderColor", "boxShadow"];
+    const styleBoxKeys = ["backgroundColor", "minHeight", "maxWidth", "borderRadius", "width", "borderWidth", "borderStyle", "borderColor"];
     const advBoxKeys = ["padding", "margin", "zIndex", "position"];
     for (const k of styleBoxKeys) {
       it(`style.${k} forces a box`, () => {

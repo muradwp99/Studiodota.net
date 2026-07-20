@@ -43,6 +43,14 @@ function shadowOf(v: unknown): string | undefined {
   return typeof v === "string" && SHADOW_PRESETS[v] ? SHADOW_PRESETS[v] : undefined;
 }
 
+/** True when boxShadow resolves to a real preset (scalar or any breakpoint); "none"/unset do not force a box. */
+function hasShadow(v: unknown): boolean {
+  if (v && typeof v === "object") {
+    return Object.values(v as Record<string, unknown>).some((x) => Boolean(shadowOf(x)));
+  }
+  return Boolean(shadowOf(v));
+}
+
 export function styleToCss(
   style: Record<string, unknown>,
   advanced: Record<string, unknown>,
@@ -108,11 +116,11 @@ function hideCss(sel: string, advanced: Record<string, unknown>): string[] {
 
 /**
  * Admin-authored custom CSS: replace the whole-word `selector` token with the
- * node's scoped class, and neutralize any `</style` so authored CSS cannot
- * break out of the <style> tag it is injected into.
+ * node's scoped class. (`</style` neutralization happens once for the whole
+ * assembled sheet in nodeCss, covering custom CSS and free-text style values alike.)
  */
 function sanitizeCustomCss(css: string, sel: string): string {
-  return css.replace(/\bselector\b/g, sel).replace(/<\/style/gi, "<\\/style");
+  return css.replace(/\bselector\b/g, sel);
 }
 
 /** Full stylesheet fragment for one node, scoped to `.n-{id}`. Empty if nothing to style. */
@@ -138,7 +146,9 @@ export function nodeCss(node: Node): string {
   const custom = typeof advanced.customCss === "string" ? advanced.customCss.trim() : "";
   if (custom) parts.push(sanitizeCustomCss(custom, sel));
 
-  return parts.join("");
+  // Neutralize any `</style` in the assembled sheet (custom CSS or free-text style
+  // values) so it can't break out of the injected <style> tag.
+  return parts.join("").replace(/<\/style/gi, "<\\/style");
 }
 
 export function wrapperAttrs(node: Node): { className: string; id?: string } {
@@ -149,7 +159,7 @@ export function wrapperAttrs(node: Node): { className: string; id?: string } {
   return { className: classes.join(" "), id };
 }
 
-const STYLE_BOX_KEYS = ["backgroundColor", "background", "backgroundImage", "minHeight", "maxWidth", "width", "borderRadius", "borderWidth", "borderStyle", "borderColor", "boxShadow"];
+const STYLE_BOX_KEYS = ["backgroundColor", "background", "backgroundImage", "minHeight", "maxWidth", "width", "borderRadius", "borderWidth", "borderStyle", "borderColor"];
 const ADV_BOX_KEYS = ["padding", "margin", "position", "zIndex"];
 
 /** A value counts as "set" if it (or any of its non-`unit` sub-values) is non-empty. */
@@ -174,6 +184,7 @@ export function needsBox(node: Node): boolean {
   const s = (node.style ?? {}) as Record<string, unknown>;
   const a = (node.advanced ?? {}) as Record<string, unknown>;
   if (STYLE_BOX_KEYS.some((k) => hasVal(s[k]))) return true;
+  if (hasShadow(s.boxShadow)) return true;
   if (ADV_BOX_KEYS.some((k) => hasVal(a[k]))) return true;
   if (s.hover && typeof s.hover === "object") return true;
   if (typeof a.customCss === "string" && a.customCss.trim()) return true;

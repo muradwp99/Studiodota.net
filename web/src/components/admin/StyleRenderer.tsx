@@ -50,6 +50,10 @@ export default function StyleRenderer({ controls, data, onChange }: { controls: 
       }
       case "toggle":
         return <ToggleControl key={key} label={c.label} value={val === true} onChange={(v) => onChange(path, v)} />;
+      default: {
+        const _exhaustive: never = c;
+        return _exhaustive;
+      }
     }
   };
   return <div className="space-y-4">{controls.map((c, i) => render(c, String(i)))}</div>;
