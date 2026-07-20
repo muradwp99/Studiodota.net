@@ -11,6 +11,7 @@ import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/
 import StyleRenderer from "@/components/admin/StyleRenderer";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
 import { inputCls, labelCls, Notice } from "@/components/admin/ui";
+import { reorderIndexFor } from "@/lib/nodes/dnd";
 
 export type PageInput = {
   title: string;
@@ -127,18 +128,14 @@ export default function PageBuilder({
   };
 
   const handleDrop = () => {
-    if (dragIndex === null || overIndex === null) {
-      setDragIndex(null);
-      setOverIndex(null);
-      return;
-    }
-    let to = overPos === "before" ? overIndex : overIndex + 1;
-    if (dragIndex < to) to -= 1;
-    if (dragIndex !== to) {
-      const blocks = [...page.blocks];
-      const [moved] = blocks.splice(dragIndex, 1);
-      blocks.splice(to, 0, moved);
-      set("blocks", blocks);
+    if (dragIndex !== null && overIndex !== null) {
+      const to = reorderIndexFor(dragIndex, overIndex, overPos);
+      if (dragIndex !== to) {
+        const blocks = [...page.blocks];
+        const [moved] = blocks.splice(dragIndex, 1);
+        blocks.splice(to, 0, moved);
+        set("blocks", blocks);
+      }
     }
     setDragIndex(null);
     setOverIndex(null);
@@ -298,7 +295,7 @@ export default function PageBuilder({
                     )}
                     <span
                       draggable
-                      onDragStart={() => { selectBlock(b.id); setDragIndex(i); }}
+                      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", b.id); selectBlock(b.id); setDragIndex(i); }}
                       onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
                       aria-label="Drag to reorder"
                       className="absolute left-1 top-1/2 z-30 grid h-7 w-6 -translate-y-1/2 cursor-grab place-items-center rounded bg-[#17191c] text-[rgba(246,245,242,0.85)] opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
