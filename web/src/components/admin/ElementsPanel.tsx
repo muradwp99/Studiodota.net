@@ -26,7 +26,7 @@ export default function ElementsPanel({ onInsert }: { onInsert: (type: string) =
     !query || bt.label.toLowerCase().includes(query) || bt.description.toLowerCase().includes(query);
 
   return (
-    <aside className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 lg:sticky lg:top-14 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+    <div className="p-3">
       <div className="mb-3">
         <input
           type="search"
@@ -67,6 +67,6 @@ export default function ElementsPanel({ onInsert }: { onInsert: (type: string) =
       {CATEGORIES.every((cat) => cat.types.every((t) => { const bt = blockTypeFor(t); return !bt || !match(bt); })) && (
         <p className="px-1 py-4 text-center text-xs text-[var(--muted)]">No blocks match “{q}”.</p>
       )}
-    </aside>
+    </div>
   );
 }

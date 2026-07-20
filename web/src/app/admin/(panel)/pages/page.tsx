@@ -31,23 +31,35 @@ export default async function AdminPagesIndex({ searchParams }: { searchParams: 
 
         <ul className="mt-3 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
           {pages.map((p) => (
-            <li key={p.id} className="flex items-center gap-4 px-5 py-3.5">
+            <li key={p.id} className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[var(--surface-2)]/50">
               <div className="min-w-0 flex-1">
                 {isTrash ? (
-                  <span className="font-medium">{p.title || "(untitled)"}</span>
+                  <>
+                    <span className="font-medium">{p.title || "(untitled)"}</span>
+                    <div className="font-mono text-[0.65rem] text-[var(--muted)]">/{p.slug}</div>
+                  </>
                 ) : (
-                  <Link href={`/admin/pages/block/${p.id}`} className="font-medium transition-colors hover:text-[var(--gold-ink)]">
-                    {p.title || "(untitled)"}{p.status !== "published" && <span className="ml-2 text-sm text-[var(--muted)]">— Draft</span>}
-                  </Link>
+                  <>
+                    <Link href={`/admin/pages/block/${p.id}`} className="font-medium transition-colors hover:text-[var(--gold-ink)]">
+                      {p.title || "(untitled)"}{p.status !== "published" && <span className="ml-2 text-sm text-[var(--muted)]">— Draft</span>}
+                    </Link>
+                    <div className="font-mono text-[0.65rem] text-[var(--muted)]">/{p.slug}</div>
+                    {/* Row actions — appear on hover (WordPress-style) */}
+                    <div className="mt-1 flex items-center gap-2.5 text-xs opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-within:opacity-100">
+                      <Link href={`/admin/pages/block/${p.id}`} className="font-semibold text-[var(--gold-ink)] hover:underline">Edit</Link>
+                      {p.status === "published" && (
+                        <>
+                          <span className="text-[var(--line-strong)]" aria-hidden="true">·</span>
+                          <Link href={`/${p.slug}`} target="_blank" className="text-[var(--bone-dim)] hover:underline">View</Link>
+                        </>
+                      )}
+                      <span className="text-[var(--line-strong)]" aria-hidden="true">·</span>
+                      <RowTrashButton model="page" id={p.id} title={p.title || p.slug} />
+                    </div>
+                  </>
                 )}
-                <div className="font-mono text-[0.65rem] text-[var(--muted)]">/{p.slug}</div>
               </div>
-              {!isTrash && p.status === "published" && (
-                <Link href={`/${p.slug}`} target="_blank" className="shrink-0 text-xs text-[var(--gold-ink)] hover:underline">View ↗</Link>
-              )}
-              {isTrash
-                ? <TrashRowActions model="page" id={p.id} title={p.title || p.slug} />
-                : <RowTrashButton model="page" id={p.id} title={p.title || p.slug} />}
+              {isTrash && <TrashRowActions model="page" id={p.id} title={p.title || p.slug} />}
             </li>
           ))}
           {pages.length === 0 && (
