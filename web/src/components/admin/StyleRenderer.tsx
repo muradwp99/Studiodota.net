@@ -7,6 +7,7 @@ import ColorControl from "@/components/admin/controls/ColorControl";
 import DimensionControl from "@/components/admin/controls/DimensionControl";
 import SliderControl from "@/components/admin/controls/SliderControl";
 import ButtonGroupControl from "@/components/admin/controls/ButtonGroupControl";
+import ToggleControl from "@/components/admin/controls/ToggleControl";
 
 export default function StyleRenderer({ controls, data, onChange }: { controls: StyleControl[]; data: Json; onChange: (path: Path, value: unknown) => void }) {
   const render = (c: StyleControl, key: string): React.ReactNode => {
@@ -18,25 +19,37 @@ export default function StyleRenderer({ controls, data, onChange }: { controls: 
         </fieldset>
       );
     }
-    const val = getAt(data, [c.key]);
+    const path: Path = c.key.split(".");
+    const val = getAt(data, path);
     switch (c.kind) {
       case "color":
-        return <ColorControl key={key} label={c.label} value={String(val ?? "")} onChange={(v) => onChange([c.key], v)} />;
+        return <ColorControl key={key} label={c.label} value={String(val ?? "")} onChange={(v) => onChange(path, v)} />;
       case "dimension":
-        return <DimensionControl key={key} label={c.label} value={(val as BoxValue) ?? undefined} onChange={(v) => onChange([c.key], v)} />;
+        return <DimensionControl key={key} label={c.label} value={(val as BoxValue) ?? undefined} onChange={(v) => onChange(path, v)} />;
       case "slider":
-        return <SliderControl key={key} label={c.label} min={c.min} max={c.max} step={c.step} unit={c.unit} value={typeof val === "number" ? val : undefined} onChange={(v) => onChange([c.key], v)} />;
+        return <SliderControl key={key} label={c.label} min={c.min} max={c.max} step={c.step} unit={c.unit} value={typeof val === "number" ? val : undefined} onChange={(v) => onChange(path, v)} />;
       case "buttongroup":
-        return <ButtonGroupControl key={key} label={c.label} options={c.options} value={String(val ?? "")} onChange={(v) => onChange([c.key], v)} />;
+        return <ButtonGroupControl key={key} label={c.label} options={c.options} value={String(val ?? "")} onChange={(v) => onChange(path, v)} />;
       case "text": {
         const id = `sc-${c.key}`;
         return (
           <div key={key}>
             <label htmlFor={id} className={labelCls}>{c.label}</label>
-            <input id={id} className={inputCls} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange([c.key], e.target.value)} />
+            <input id={id} className={inputCls} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange(path, e.target.value)} />
           </div>
         );
       }
+      case "textarea": {
+        const id = `sc-${c.key}`;
+        return (
+          <div key={key}>
+            <label htmlFor={id} className={labelCls}>{c.label}</label>
+            <textarea id={id} rows={5} className={`${inputCls} font-mono text-xs`} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange(path, e.target.value)} />
+          </div>
+        );
+      }
+      case "toggle":
+        return <ToggleControl key={key} label={c.label} value={val === true} onChange={(v) => onChange(path, v)} />;
     }
   };
   return <div className="space-y-4">{controls.map((c, i) => render(c, String(i)))}</div>;

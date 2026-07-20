@@ -6,6 +6,8 @@ export type StyleControl =
   | { kind: "slider"; key: string; label: string; min: number; max: number; step?: number; unit?: string }
   | { kind: "buttongroup"; key: string; label: string; options: { value: string; label: string }[] }
   | { kind: "text"; key: string; label: string; placeholder?: string }
+  | { kind: "textarea"; key: string; label: string; placeholder?: string }
+  | { kind: "toggle"; key: string; label: string }
   | { kind: "group"; label: string; controls: StyleControl[] };
 
 /** Style tab — writes to node.style. Every key here is mapped by lib/nodes/css.ts. */
