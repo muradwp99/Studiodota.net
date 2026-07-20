@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { savePage, deletePage, type PageActionState } from "@/lib/actions/pages";
 import { blockTypeFor, type PageBlock } from "@/lib/pageBlocks";
-import BlockRenderer from "@/components/blocks/BlockRenderer";
 import ElementsPanel from "@/components/admin/ElementsPanel";
 import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/FieldsRenderer";
 import StyleRenderer from "@/components/admin/StyleRenderer";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
 import { inputCls, labelCls, Notice } from "@/components/admin/ui";
-import { insertIndexFor, reorderIndexFor } from "@/lib/nodes/dnd";
-import { findNode, updateNode } from "@/lib/nodes/tree";
+import { findNode, findParent, updateNode, updateSiblings, removeNode, duplicateNode, insertNode } from "@/lib/nodes/tree";
+import EditableNode from "@/components/admin/EditableNode";
+import { EditorContext } from "@/components/admin/editorContext";
 
 export type PageInput = {
   title: string;
@@ -46,10 +46,6 @@ export default function PageBuilder({
   const [inserterOpen, setInserterOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const [settingsTab, setSettingsTab] = useState<"page" | "block">("page");
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
-  const [overPos, setOverPos] = useState<"before" | "after">("before");
-  const [dragType, setDragType] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const [state, setState] = useState<PageActionState | null>(null);
   const [pending, startTransition] = useTransition();
@@ -70,42 +66,46 @@ export default function PageBuilder({
     setSettingsOpen(true);
   };
 
-  const insertAt = (index: number, type: string) => {
+  // Where a palette insert lands: inside the selected container (append), else after the
+  // selected node in its parent, else at the top level end.
+  const insertTarget = (): { parentId: string | null; index: number } => {
+    if (!selected) return { parentId: null, index: page.blocks.length };
+    const node = findNode(page.blocks, selected);
+    if (node?.type === "container") return { parentId: node.id, index: node.children?.length ?? 0 };
+    const loc = findParent(page.blocks, selected);
+    if (!loc) return { parentId: null, index: page.blocks.length };
+    return { parentId: loc.parent?.id ?? null, index: loc.index + 1 };
+  };
+
+  const insertAt = (target: { parentId: string | null; index: number }, type: string) => {
     const bt = blockTypeFor(type);
     if (!bt) return;
     const block: PageBlock = { id: crypto.randomUUID(), type, props: structuredClone(bt.defaults) };
-    const blocks = [...page.blocks];
-    blocks.splice(index, 0, block);
-    set("blocks", blocks);
+    set("blocks", insertNode(page.blocks, target, block));
     selectBlock(block.id);
   };
 
-  const move = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= page.blocks.length) return;
-    const blocks = [...page.blocks];
-    [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
-    set("blocks", blocks);
+  const move = (id: string, dir: -1 | 1) => {
+    const loc = findParent(page.blocks, id);
+    if (!loc) return;
+    set("blocks", updateSiblings(page.blocks, loc.parent?.id ?? null, (sibs) => {
+      const i = sibs.findIndex((b) => b.id === id);
+      const j = i + dir;
+      if (j < 0 || j >= sibs.length) return sibs;
+      const next = [...sibs];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    }));
   };
 
-  const duplicate = (i: number) => {
-    const src = page.blocks[i];
-    const copy: PageBlock = {
-      id: crypto.randomUUID(),
-      type: src.type,
-      props: structuredClone(src.props),
-      ...(src.style ? { style: structuredClone(src.style) } : {}),
-      ...(src.advanced ? { advanced: structuredClone(src.advanced) } : {}),
-    };
-    const blocks = [...page.blocks];
-    blocks.splice(i + 1, 0, copy);
-    set("blocks", blocks);
-    selectBlock(copy.id);
+  const duplicate = (id: string) => {
+    const { tree, newId } = duplicateNode(page.blocks, id);
+    set("blocks", tree);
+    selectBlock(newId);
   };
 
-  const remove = (i: number) => {
-    const blocks = page.blocks.filter((_, j) => j !== i);
-    set("blocks", blocks);
+  const remove = (id: string) => {
+    set("blocks", removeNode(page.blocks, id));
     setSelected(null);
     setSettingsTab("page");
   };
@@ -129,24 +129,6 @@ export default function PageBuilder({
     setState(null);
   };
 
-  const handleDrop = () => {
-    if (dragType !== null) {
-      const at = overIndex === null ? page.blocks.length : insertIndexFor(overIndex, overPos);
-      insertAt(at, dragType);
-    } else if (dragIndex !== null && overIndex !== null) {
-      const to = reorderIndexFor(dragIndex, overIndex, overPos);
-      if (dragIndex !== to) {
-        const blocks = [...page.blocks];
-        const [moved] = blocks.splice(dragIndex, 1);
-        blocks.splice(to, 0, moved);
-        set("blocks", blocks);
-      }
-    }
-    setDragIndex(null);
-    setOverIndex(null);
-    setDragType(null);
-  };
-
   const save = () =>
     startTransition(async () => {
       const res = await savePage(pageId, page);
@@ -165,11 +147,6 @@ export default function PageBuilder({
       await deletePage(pageId);
     });
   };
-
-  const blockToolbarBtn =
-    "grid h-7 w-7 place-items-center rounded bg-[#17191c] text-xs text-[rgba(246,245,242,0.85)] transition-colors hover:bg-[var(--gold)] hover:text-[#17191c] disabled:opacity-30";
-
-  const insertIndex = () => (selected ? page.blocks.findIndex((b) => b.id === selected) + 1 : page.blocks.length);
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[var(--ink)] text-[var(--bone)]">
@@ -235,7 +212,7 @@ export default function PageBuilder({
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--bone-dim)]">Blocks</span>
               <button type="button" aria-label="Close inserter" onClick={() => setInserterOpen(false)} className="text-[var(--muted)] hover:text-[var(--bone)]">×</button>
             </div>
-            <ElementsPanel onInsert={(type) => insertAt(insertIndex(), type)} onDragType={setDragType} />
+            <ElementsPanel onInsert={(type) => insertAt(insertTarget(), type)} />
           </div>
         )}
 
@@ -258,87 +235,24 @@ export default function PageBuilder({
             </div>
 
             {/* Blocks */}
-            <div
-              className="mt-6 bg-[var(--ink)]"
-              onDragOver={(e) => {
-                if (dragIndex === null && dragType === null) return;
-                e.preventDefault();
-                setOverIndex(page.blocks.length ? page.blocks.length - 1 : null);
-                setOverPos("after");
-              }}
-              onDrop={(e) => { e.preventDefault(); handleDrop(); }}
-            >
+            <div className="mt-6 bg-[var(--ink)]">
               {page.blocks.length === 0 && (
-                <div className={`m-4 px-8 py-16 text-center ${dragType ? "rounded-lg border-2 border-dashed border-[var(--gold)] bg-[var(--surface-2)]" : ""}`}>
-                  {dragType ? (
-                    <p className="text-sm font-semibold text-[var(--gold-ink)]">Drop block here</p>
-                  ) : (
-                    <>
-                      <p className="text-sm text-[var(--muted)]">Empty page.</p>
-                      <button
-                        type="button"
-                        onClick={() => setInserterOpen(true)}
-                        className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#17191c] hover:bg-[var(--gold-hi)]"
-                      >
-                        + Add your first block
-                      </button>
-                    </>
-                  )}
+                <div className="m-4 px-8 py-16 text-center">
+                  <p className="text-sm text-[var(--muted)]">Empty page.</p>
+                  <button
+                    type="button"
+                    onClick={() => setInserterOpen(true)}
+                    className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#17191c] hover:bg-[var(--gold-hi)]"
+                  >
+                    + Add your first block
+                  </button>
                 </div>
               )}
-              {page.blocks.map((b, i) => {
-                const on = selected === b.id;
-                return (
-                  <div
-                    key={b.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Select ${blockTypeFor(b.type)?.label ?? b.type} block`}
-                    onClick={() => selectBlock(b.id)}
-                    onKeyDown={(e) => {
-                      if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
-                        e.preventDefault();
-                        selectBlock(b.id);
-                      }
-                    }}
-                    onDragOver={(e) => {
-                      if (dragIndex === null && dragType === null) return;
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const r = e.currentTarget.getBoundingClientRect();
-                      setOverIndex(i);
-                      setOverPos(e.clientY < r.top + r.height / 2 ? "before" : "after");
-                    }}
-                    onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleDrop(); }}
-                    className={`group relative transition-shadow ${on ? "ring-2 ring-inset ring-[var(--gold)]" : "hover:ring-1 hover:ring-inset hover:ring-[var(--line-strong)]"} ${dragIndex === i ? "opacity-40" : ""}`}
-                  >
-                    {(dragIndex !== null || dragType !== null) && overIndex === i && (
-                      <div className={`pointer-events-none absolute inset-x-0 z-40 h-0.5 bg-[var(--gold)] ${overPos === "before" ? "top-0" : "bottom-0"}`} aria-hidden="true" />
-                    )}
-                    <span
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", b.id); selectBlock(b.id); setDragIndex(i); }}
-                      onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
-                      aria-label="Drag to reorder"
-                      className="absolute left-1 top-1/2 z-30 grid h-7 w-6 -translate-y-1/2 cursor-grab place-items-center rounded bg-[#17191c] text-[rgba(246,245,242,0.85)] opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
-                    >
-                      ⠿
-                    </span>
-                    {/* Block toolbar (on select or hover) */}
-                    <div className={`absolute right-3 top-3 z-30 flex items-center gap-1 rounded-lg bg-[#17191c] p-1 shadow-lg transition-opacity ${on ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} onClick={(e) => e.stopPropagation()}>
-                      <span className="px-2 font-mono text-[0.62rem] uppercase tracking-wide text-[var(--gold-media)]">{blockTypeFor(b.type)?.label ?? b.type}</span>
-                      <button type="button" aria-label="Move up" disabled={i === 0} className={blockToolbarBtn} onClick={() => move(i, -1)}>↑</button>
-                      <button type="button" aria-label="Move down" disabled={i === page.blocks.length - 1} className={blockToolbarBtn} onClick={() => move(i, 1)}>↓</button>
-                      <button type="button" aria-label="Duplicate" className={blockToolbarBtn} onClick={() => duplicate(i)}>⧉</button>
-                      <button type="button" aria-label="Remove" className={`${blockToolbarBtn} hover:bg-[#a33] hover:text-white`} onClick={() => remove(i)}>✕</button>
-                    </div>
-                    {/* Live block — text is click-to-edit; links never navigate here. */}
-                    <div onClickCapture={(e) => { const a = (e.target as HTMLElement).closest("a"); if (a) e.preventDefault(); }}>
-                      <BlockRenderer blocks={[b]} ctx={{ serviceOptions }} edit={updateBlockProp} />
-                    </div>
-                  </div>
-                );
-              })}
+              <EditorContext.Provider value={{ serviceOptions, selectedId: selected, select: selectBlock, edit: updateBlockProp, move, duplicate, remove }}>
+                {page.blocks.map((b, i) => (
+                  <EditableNode key={b.id} node={b} siblingCount={page.blocks.length} index={i} />
+                ))}
+              </EditorContext.Provider>
             </div>
           </div>
         </div>
