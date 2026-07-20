@@ -7,6 +7,8 @@ import { savePage, deletePage, type PageActionState } from "@/lib/actions/pages"
 import { BLOCK_TYPES, blockTypeFor, type PageBlock } from "@/lib/pageBlocks";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/FieldsRenderer";
+import StyleRenderer from "@/components/admin/StyleRenderer";
+import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
 import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
 
 export type PageInput = {
@@ -74,6 +76,7 @@ export default function PageBuilder({
   const [page, setPage] = useState<PageInput>(initial);
   const [pageId, setPageId] = useState<string | null>(id);
   const [selected, setSelected] = useState<string | null>(null);
+  const [tab, setTab] = useState<"content" | "style" | "advanced">("content");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [overPos, setOverPos] = useState<"before" | "after">("before");
@@ -110,7 +113,13 @@ export default function PageBuilder({
 
   const duplicate = (i: number) => {
     const src = page.blocks[i];
-    const copy: PageBlock = { id: crypto.randomUUID(), type: src.type, props: structuredClone(src.props) };
+    const copy: PageBlock = {
+      id: crypto.randomUUID(),
+      type: src.type,
+      props: structuredClone(src.props),
+      ...(src.style ? { style: structuredClone(src.style) } : {}),
+      ...(src.advanced ? { advanced: structuredClone(src.advanced) } : {}),
+    };
     const blocks = [...page.blocks];
     blocks.splice(i + 1, 0, copy);
     set("blocks", blocks);
@@ -128,6 +137,22 @@ export default function PageBuilder({
     set(
       "blocks",
       page.blocks.map((b) => (b.id === selectedBlock.id ? { ...b, props: setAt(b.props, path, value) as Json } : b)),
+    );
+  };
+
+  const updateSelectedStyle = (path: Path, value: unknown) => {
+    if (!selectedBlock) return;
+    set(
+      "blocks",
+      page.blocks.map((b) => (b.id === selectedBlock.id ? { ...b, style: setAt(b.style ?? {}, path, value) as Json } : b)),
+    );
+  };
+
+  const updateSelectedAdvanced = (path: Path, value: unknown) => {
+    if (!selectedBlock) return;
+    set(
+      "blocks",
+      page.blocks.map((b) => (b.id === selectedBlock.id ? { ...b, advanced: setAt(b.advanced ?? {}, path, value) as Json } : b)),
     );
   };
 
@@ -296,15 +321,36 @@ export default function PageBuilder({
                   Page settings
                 </button>
               </div>
-              {selectedType.fields.length === 0 ? (
-                <p className="text-sm text-[var(--muted)]">This block has no settings.</p>
-              ) : (
-                <FieldsRenderer
-                  fields={selectedType.fields}
-                  data={selectedBlock.props as Json}
-                  onChange={updateSelectedProps}
-                  idPrefix={`blk.${selectedBlock.id}`}
-                />
+              <div className="mb-4 flex rounded-lg border border-[var(--line-strong)] p-0.5">
+                {(["content", "style", "advanced"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    aria-pressed={tab === t}
+                    onClick={() => setTab(t)}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${tab === t ? "bg-[var(--gold)] text-[#17191c]" : "text-[var(--bone-dim)] hover:bg-[var(--surface-2)]"}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              {tab === "content" && (
+                selectedType.fields.length === 0 ? (
+                  <p className="text-sm text-[var(--muted)]">This block has no content settings.</p>
+                ) : (
+                  <FieldsRenderer
+                    fields={selectedType.fields}
+                    data={selectedBlock.props as Json}
+                    onChange={updateSelectedProps}
+                    idPrefix={`blk.${selectedBlock.id}`}
+                  />
+                )
+              )}
+              {tab === "style" && (
+                <StyleRenderer controls={STYLE_CONTROLS} data={(selectedBlock.style ?? {}) as Json} onChange={updateSelectedStyle} />
+              )}
+              {tab === "advanced" && (
+                <StyleRenderer controls={ADVANCED_CONTROLS} data={(selectedBlock.advanced ?? {}) as Json} onChange={updateSelectedAdvanced} />
               )}
             </>
           ) : (
