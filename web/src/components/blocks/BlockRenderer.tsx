@@ -15,6 +15,32 @@ import { nodeCss, wrapperAttrs, needsBox } from "@/lib/nodes/css";
  * click-to-type fields). The no-edit output is byte-identical to before.
  */
 
+const ALIGN: Record<string, string> = { start: "flex-start", center: "center", end: "flex-end", stretch: "stretch" };
+const JUSTIFY: Record<string, string> = { start: "flex-start", center: "center", end: "flex-end", between: "space-between" };
+
+/** Flex layout for a container node, derived from its props. undefined for non-containers. */
+export function containerFlexStyle(node: PageBlock): React.CSSProperties | undefined {
+  if (node.type !== "container") return undefined;
+  const p = node.props ?? {};
+  return {
+    display: "flex",
+    flexDirection: p.direction === "row" ? "row" : "column",
+    gap: typeof p.gap === "number" ? `${p.gap}px` : undefined,
+    alignItems: ALIGN[String(p.align)] ?? "stretch",
+    justifyContent: JUSTIFY[String(p.justify)] ?? "flex-start",
+    flexWrap: p.wrap ? "wrap" : "nowrap",
+  };
+}
+
+/** The wrapper's inline style: container flex; else a real box when it needs one OR is a
+ *  flex item (a container's child MUST be a box so flex doesn't dissolve it); else
+ *  layout-transparent `display:contents`. */
+export function nodeWrapperStyle(node: PageBlock, flexItem = false): React.CSSProperties | undefined {
+  const flex = containerFlexStyle(node);
+  if (flex) return flex;
+  return needsBox(node) || flexItem ? undefined : { display: "contents" };
+}
+
 export type BlockCtx = { serviceOptions: string[] };
 type Edit = ((path: (string | number)[], value: string) => void) | undefined;
 
@@ -378,7 +404,7 @@ function Clients({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   );
 }
 
-function Block({ block, ctx, edit }: { block: PageBlock; ctx: BlockCtx; edit: Edit }) {
+export function Block({ block, ctx, edit }: { block: PageBlock; ctx: BlockCtx; edit: Edit }) {
   const p = block.props ?? {};
   switch (block.type) {
     case "hero": return <Hero p={p} edit={edit} />;
@@ -408,24 +434,24 @@ function renderNode(
   node: PageBlock,
   ctx: BlockCtx,
   edit: ((blockId: string, path: (string | number)[], value: string) => void) | undefined,
+  flexItem = false,
 ): ReactNode {
   const editForNode: Edit = edit ? (path, value) => edit(node.id, path, value) : undefined;
   const inner = <Block block={node} ctx={ctx} edit={editForNode} />;
-  const kids = node.children?.length ? node.children.map((c) => renderNode(c, ctx, edit)) : null;
+  const kids = node.children?.length ? node.children.map((c) => renderNode(c, ctx, edit, node.type === "container")) : null;
   const css = nodeCss(node);
   const hasWrap = Boolean(css || kids || node.style || node.advanced);
 
   if (!hasWrap) return <Fragment key={node.id}>{inner}</Fragment>;
 
   const { className, id } = wrapperAttrs(node);
-  const boxed = needsBox(node);
   return (
     <div
       key={node.id}
       className={className}
       id={id}
       data-node={node.id}
-      style={boxed ? undefined : { display: "contents" }}
+      style={nodeWrapperStyle(node, flexItem)}
     >
       {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
       {inner}
