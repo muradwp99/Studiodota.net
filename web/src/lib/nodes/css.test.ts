@@ -33,6 +33,42 @@ describe("styleToCss", () => {
     const css = styleToCss({ maxWidth: { base: 1200, mobile: 320 } }, {}, "mobile");
     expect(css).toBe("max-width:320px;");
   });
+  it("emits typography (inherited) declarations", () => {
+    const css = styleToCss(
+      { fontSize: 20, fontWeight: 600, lineHeight: 1.5, letterSpacing: 1, textTransform: "uppercase" },
+      {},
+      "base",
+    );
+    expect(css).toContain("font-size:20px;");
+    expect(css).toContain("font-weight:600;");
+    expect(css).toContain("line-height:1.5;");
+    expect(css).toContain("letter-spacing:1px;");
+    expect(css).toContain("text-transform:uppercase;");
+  });
+  it("resolves typography per breakpoint", () => {
+    expect(styleToCss({ fontSize: { base: 20, mobile: 14 } }, {}, "mobile")).toBe("font-size:14px;");
+  });
+  it("emits width", () => {
+    expect(styleToCss({ width: 300 }, {}, "base")).toContain("width:300px;");
+  });
+  it("emits a border, defaulting style to solid", () => {
+    const css = styleToCss({ borderWidth: 2, borderColor: "#a87f3f" }, {}, "base");
+    expect(css).toContain("border-width:2px;");
+    expect(css).toContain("border-style:solid;");
+    expect(css).toContain("border-color:#a87f3f;");
+  });
+  it("honors an explicit border style", () => {
+    expect(styleToCss({ borderWidth: 1, borderStyle: "dashed" }, {}, "base")).toContain("border-style:dashed;");
+  });
+  it("maps a box-shadow preset to a shadow string", () => {
+    expect(styleToCss({ boxShadow: "medium" }, {}, "base")).toContain("box-shadow:0 4px 12px");
+  });
+  it("emits no shadow for the 'none' preset", () => {
+    expect(styleToCss({ boxShadow: "none" }, {}, "base")).not.toContain("box-shadow");
+  });
+  it("emits position from advanced", () => {
+    expect(styleToCss({}, { position: "relative" }, "base")).toContain("position:relative;");
+  });
 });
 
 describe("nodeCss", () => {
@@ -109,6 +145,14 @@ describe("needsBox", () => {
   it("true when a hover state is set", () => {
     expect(needsBox(n({ style: { hover: { backgroundColor: "#111" } } }))).toBe(true);
   });
+  it("false for inheritable typography (font-size)", () => {
+    expect(needsBox(n({ style: { fontSize: 20 } }))).toBe(false);
+  });
+  it("true for border / width / shadow", () => {
+    expect(needsBox(n({ style: { borderWidth: 2 } }))).toBe(true);
+    expect(needsBox(n({ style: { width: 300 } }))).toBe(true);
+    expect(needsBox(n({ style: { boxShadow: "soft" } }))).toBe(true);
+  });
   it("ignores empty responsive/box shells", () => {
     expect(needsBox(n({ advanced: { padding: { unit: "px" } } }))).toBe(false);
     expect(needsBox(n({ style: { maxWidth: {} } }))).toBe(false);
@@ -120,8 +164,8 @@ describe("needsBox", () => {
   describe("needsBox covers every box-generating engine key", () => {
     // Keys styleToCss renders as box-generating. If you add a box render branch to
     // css.ts, add its key here AND to needsBox's STYLE_BOX_KEYS/ADV_BOX_KEYS.
-    const styleBoxKeys = ["backgroundColor", "minHeight", "maxWidth", "borderRadius"];
-    const advBoxKeys = ["padding", "margin", "zIndex"];
+    const styleBoxKeys = ["backgroundColor", "minHeight", "maxWidth", "borderRadius", "width", "borderWidth", "borderStyle", "borderColor", "boxShadow"];
+    const advBoxKeys = ["padding", "margin", "zIndex", "position"];
     for (const k of styleBoxKeys) {
       it(`style.${k} forces a box`, () => {
         expect(needsBox(n({ style: { [k]: k === "backgroundColor" ? "#000" : 10 } }))).toBe(true);

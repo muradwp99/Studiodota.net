@@ -33,6 +33,16 @@ function boxCss(prop: "padding" | "margin", box: unknown): string {
   return `${prop}:${side(b.top)} ${side(b.right)} ${side(b.bottom)} ${side(b.left)};`;
 }
 
+const SHADOW_PRESETS: Record<string, string> = {
+  soft: "0 1px 3px rgba(17,19,21,0.08), 0 1px 2px rgba(17,19,21,0.06)",
+  medium: "0 4px 12px rgba(17,19,21,0.10), 0 2px 4px rgba(17,19,21,0.06)",
+  strong: "0 10px 30px rgba(17,19,21,0.16), 0 4px 8px rgba(17,19,21,0.08)",
+};
+
+function shadowOf(v: unknown): string | undefined {
+  return typeof v === "string" && SHADOW_PRESETS[v] ? SHADOW_PRESETS[v] : undefined;
+}
+
 export function styleToCss(
   style: Record<string, unknown>,
   advanced: Record<string, unknown>,
@@ -45,9 +55,30 @@ export function styleToCss(
   css += decl("background-color", r<string>(style.backgroundColor));
   css += decl("color", r<string>(style.color));
   css += decl("text-align", r<string>(style.textAlign));
+  // Typography (inherited — passes through a display:contents wrapper)
+  css += decl("font-size", lenOf(r(style.fontSize)));
+  css += decl("font-weight", r<string | number>(style.fontWeight));
+  css += decl("line-height", r<string | number>(style.lineHeight));
+  css += decl("letter-spacing", lenOf(r(style.letterSpacing)));
+  css += decl("text-transform", r<string>(style.textTransform));
+  // Sizing
+  css += decl("width", lenOf(r(style.width)));
   css += decl("min-height", lenOf(r(style.minHeight)));
   css += decl("max-width", lenOf(r(style.maxWidth)));
   css += decl("border-radius", lenOf(r(style.borderRadius)));
+  // Border (default style to solid when a width/color is set but style isn't)
+  const bw = lenOf(r(style.borderWidth));
+  const bc = r<string>(style.borderColor);
+  const bs = r<string>(style.borderStyle);
+  if (bw || (typeof bc === "string" && bc) || (typeof bs === "string" && bs)) {
+    css += decl("border-width", bw);
+    css += decl("border-style", typeof bs === "string" && bs ? bs : "solid");
+    css += decl("border-color", typeof bc === "string" ? bc : undefined);
+  }
+  // Shadow
+  css += decl("box-shadow", shadowOf(r(style.boxShadow)));
+  // Position + z-index
+  css += decl("position", r<string>(advanced.position));
   const z = r<number>(advanced.zIndex);
   css += decl("z-index", typeof z === "number" ? z : undefined);
   return css;
@@ -109,7 +140,7 @@ export function wrapperAttrs(node: Node): { className: string; id?: string } {
   return { className: classes.join(" "), id };
 }
 
-const STYLE_BOX_KEYS = ["backgroundColor", "background", "backgroundImage", "minHeight", "maxWidth", "width", "borderRadius", "border", "boxShadow"];
+const STYLE_BOX_KEYS = ["backgroundColor", "background", "backgroundImage", "minHeight", "maxWidth", "width", "borderRadius", "borderWidth", "borderStyle", "borderColor", "boxShadow"];
 const ADV_BOX_KEYS = ["padding", "margin", "position", "zIndex"];
 
 /** A value counts as "set" if it (or any of its non-`unit` sub-values) is non-empty. */
