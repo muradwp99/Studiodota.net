@@ -11,7 +11,7 @@ import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/
 import StyleRenderer from "@/components/admin/StyleRenderer";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
 import { inputCls, labelCls, Notice } from "@/components/admin/ui";
-import { reorderIndexFor } from "@/lib/nodes/dnd";
+import { insertIndexFor, reorderIndexFor } from "@/lib/nodes/dnd";
 
 export type PageInput = {
   title: string;
@@ -48,6 +48,7 @@ export default function PageBuilder({
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [overPos, setOverPos] = useState<"before" | "after">("before");
+  const [dragType, setDragType] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const [state, setState] = useState<PageActionState | null>(null);
   const [pending, startTransition] = useTransition();
@@ -128,7 +129,10 @@ export default function PageBuilder({
   };
 
   const handleDrop = () => {
-    if (dragIndex !== null && overIndex !== null) {
+    if (dragType !== null) {
+      const at = overIndex === null ? page.blocks.length : insertIndexFor(overIndex, overPos);
+      insertAt(at, dragType);
+    } else if (dragIndex !== null && overIndex !== null) {
       const to = reorderIndexFor(dragIndex, overIndex, overPos);
       if (dragIndex !== to) {
         const blocks = [...page.blocks];
@@ -139,6 +143,7 @@ export default function PageBuilder({
     }
     setDragIndex(null);
     setOverIndex(null);
+    setDragType(null);
   };
 
   const save = () =>
@@ -229,7 +234,7 @@ export default function PageBuilder({
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--bone-dim)]">Blocks</span>
               <button type="button" aria-label="Close inserter" onClick={() => setInserterOpen(false)} className="text-[var(--muted)] hover:text-[var(--bone)]">×</button>
             </div>
-            <ElementsPanel onInsert={(type) => insertAt(insertIndex(), type)} />
+            <ElementsPanel onInsert={(type) => insertAt(insertIndex(), type)} onDragType={setDragType} />
           </div>
         )}
 
@@ -252,17 +257,32 @@ export default function PageBuilder({
             </div>
 
             {/* Blocks */}
-            <div className="mt-6 bg-[var(--ink)]">
+            <div
+              className="mt-6 bg-[var(--ink)]"
+              onDragOver={(e) => {
+                if (dragIndex === null && dragType === null) return;
+                e.preventDefault();
+                setOverIndex(page.blocks.length ? page.blocks.length - 1 : null);
+                setOverPos("after");
+              }}
+              onDrop={(e) => { e.preventDefault(); handleDrop(); }}
+            >
               {page.blocks.length === 0 && (
-                <div className="px-8 py-16 text-center">
-                  <p className="text-sm text-[var(--muted)]">Empty page.</p>
-                  <button
-                    type="button"
-                    onClick={() => setInserterOpen(true)}
-                    className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#17191c] hover:bg-[var(--gold-hi)]"
-                  >
-                    + Add your first block
-                  </button>
+                <div className={`m-4 px-8 py-16 text-center ${dragType ? "rounded-lg border-2 border-dashed border-[var(--gold)] bg-[var(--surface-2)]" : ""}`}>
+                  {dragType ? (
+                    <p className="text-sm font-semibold text-[var(--gold-ink)]">Drop block here</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-[var(--muted)]">Empty page.</p>
+                      <button
+                        type="button"
+                        onClick={() => setInserterOpen(true)}
+                        className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#17191c] hover:bg-[var(--gold-hi)]"
+                      >
+                        + Add your first block
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
               {page.blocks.map((b, i) => {
@@ -281,16 +301,17 @@ export default function PageBuilder({
                       }
                     }}
                     onDragOver={(e) => {
-                      if (dragIndex === null) return;
+                      if (dragIndex === null && dragType === null) return;
                       e.preventDefault();
+                      e.stopPropagation();
                       const r = e.currentTarget.getBoundingClientRect();
                       setOverIndex(i);
                       setOverPos(e.clientY < r.top + r.height / 2 ? "before" : "after");
                     }}
-                    onDrop={(e) => { e.preventDefault(); handleDrop(); }}
+                    onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleDrop(); }}
                     className={`group relative transition-shadow ${on ? "ring-2 ring-inset ring-[var(--gold)]" : "hover:ring-1 hover:ring-inset hover:ring-[var(--line-strong)]"} ${dragIndex === i ? "opacity-40" : ""}`}
                   >
-                    {dragIndex !== null && overIndex === i && (
+                    {(dragIndex !== null || dragType !== null) && overIndex === i && (
                       <div className={`pointer-events-none absolute inset-x-0 z-40 h-0.5 bg-[var(--gold)] ${overPos === "before" ? "top-0" : "bottom-0"}`} aria-hidden="true" />
                     )}
                     <span

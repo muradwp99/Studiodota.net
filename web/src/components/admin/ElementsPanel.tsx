@@ -6,7 +6,7 @@ import { blockTypeFor, type BlockType } from "@/lib/pageBlocks";
 /**
  * Persistent left elements panel — the block library. Groups every block type
  * into WordPress-style categories, filters by a search box, and inserts a block
- * on click (drag-to-insert comes in a later pass). Mirrors the reference editor's
+ * on click OR by dragging it onto the canvas. Mirrors the reference editor's
  * left panel.
  */
 
@@ -18,7 +18,7 @@ const CATEGORIES: { name: string; types: string[] }[] = [
   { name: "Embed", types: ["embed"] },
 ];
 
-export default function ElementsPanel({ onInsert }: { onInsert: (type: string) => void }) {
+export default function ElementsPanel({ onInsert, onDragType }: { onInsert: (type: string) => void; onDragType?: (type: string | null) => void }) {
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
 
@@ -51,9 +51,12 @@ export default function ElementsPanel({ onInsert }: { onInsert: (type: string) =
                 <button
                   key={bt.type}
                   type="button"
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.effectAllowed = "copy"; e.dataTransfer.setData("text/plain", bt.type); onDragType?.(bt.type); }}
+                  onDragEnd={() => onDragType?.(null)}
                   onClick={() => onInsert(bt.type)}
                   title={bt.description}
-                  className="flex flex-col items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2 py-3 text-center transition-colors hover:border-[var(--gold)] hover:bg-[var(--surface-2)]"
+                  className="flex cursor-grab flex-col items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2 py-3 text-center transition-colors hover:border-[var(--gold)] hover:bg-[var(--surface-2)] active:cursor-grabbing"
                 >
                   <span className="grid h-7 w-7 place-items-center rounded-md bg-[var(--surface-2)] text-sm text-[var(--gold-ink)]" aria-hidden="true">{bt.icon}</span>
                   <span className="text-[0.72rem] font-semibold leading-tight text-[var(--bone)]">{bt.label}</span>
