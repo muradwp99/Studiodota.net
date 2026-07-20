@@ -29,7 +29,7 @@ export default function EditableNode({
 
   return (
     <div
-      className={`${className} group/node relative outline-offset-[-2px] ${on ? "outline outline-2 outline-[var(--gold)]" : "hover:outline hover:outline-1 hover:outline-[var(--line-strong)]"}`}
+      className={`${className} relative outline-offset-[-2px] ${on ? "outline outline-2 outline-[var(--gold)]" : "hover:outline hover:outline-1 hover:outline-[var(--line-strong)]"}`}
       data-node={node.id}
       style={containerFlexStyle(node)}
       role="button"
@@ -50,13 +50,15 @@ export default function EditableNode({
       {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
 
       {/* drag handle — visible on hover; drags this node for reorder/move */}
-      <span
-        draggable
-        onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", node.id); ed.select(node.id); ed.startDrag(node.id); }}
-        onDragEnd={() => ed.endDrag()}
-        aria-label="Drag to reorder"
-        className="absolute left-1 top-2 z-30 grid h-7 w-6 cursor-grab place-items-center rounded bg-[#17191c] text-[rgba(246,245,242,0.85)] opacity-0 transition-opacity group-hover/node:opacity-100 active:cursor-grabbing"
-      >⠿</span>
+      {on && (
+        <span
+          draggable
+          onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", node.id); ed.select(node.id); ed.startDrag(node.id); }}
+          onDragEnd={() => ed.endDrag()}
+          aria-label="Drag to reorder"
+          className="absolute left-1 top-2 z-30 grid h-7 w-6 cursor-grab place-items-center rounded bg-[#17191c] text-[rgba(246,245,242,0.85)] active:cursor-grabbing"
+        >⠿</span>
+      )}
 
       {/* drop indicator — gold line at this node's slot boundary (before/after) */}
       {ed.dragActive && ed.dropTarget?.parentId === parentId && (ed.dropTarget.index === index || ed.dropTarget.index === index + 1) && (
