@@ -7,7 +7,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import ContactForm from "@/components/ContactForm";
 import InlineText from "@/components/blocks/InlineText";
 import type { PageBlock } from "@/lib/pageBlocks";
-import { nodeCss, wrapperAttrs } from "@/lib/nodes/css";
+import { nodeCss, wrapperAttrs, needsBox } from "@/lib/nodes/css";
 
 /**
  * Renderer for block-editor pages. Used by BOTH the public route (no `edit`)
@@ -418,8 +418,15 @@ function renderNode(
   if (!hasWrap) return <Fragment key={node.id}>{inner}</Fragment>;
 
   const { className, id } = wrapperAttrs(node);
+  const boxed = needsBox(node);
   return (
-    <div key={node.id} className={className} id={id} data-node={node.id}>
+    <div
+      key={node.id}
+      className={className}
+      id={id}
+      data-node={node.id}
+      style={boxed ? undefined : { display: "contents" }}
+    >
       {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
       {inner}
       {kids}

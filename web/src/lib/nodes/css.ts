@@ -108,3 +108,33 @@ export function wrapperAttrs(node: Node): { className: string; id?: string } {
   const id = typeof adv.cssId === "string" && adv.cssId.trim() ? adv.cssId.trim() : undefined;
   return { className: classes.join(" "), id };
 }
+
+const STYLE_BOX_KEYS = ["backgroundColor", "background", "backgroundImage", "minHeight", "maxWidth", "width", "borderRadius", "border", "boxShadow"];
+const ADV_BOX_KEYS = ["padding", "margin", "position", "zIndex"];
+
+/** A value counts as "set" if it (or any of its non-`unit` sub-values) is non-empty. */
+function hasVal(v: unknown): boolean {
+  if (v === undefined || v === null || v === "") return false;
+  if (typeof v === "object") {
+    return Object.entries(v as Record<string, unknown>).some(
+      ([k, x]) => k !== "unit" && x !== undefined && x !== null && x !== "",
+    );
+  }
+  return true;
+}
+
+/**
+ * Does this node need a real box, or can its wrapper be `display:contents`
+ * (layout-transparent)? True when it has children or any box-generating style/
+ * advanced property; false when only inheritable text styling (color/align) or
+ * bare attributes (cssClasses/cssId) are set.
+ */
+export function needsBox(node: Node): boolean {
+  if (node.children?.length) return true;
+  const s = (node.style ?? {}) as Record<string, unknown>;
+  const a = (node.advanced ?? {}) as Record<string, unknown>;
+  if (STYLE_BOX_KEYS.some((k) => hasVal(s[k]))) return true;
+  if (ADV_BOX_KEYS.some((k) => hasVal(a[k]))) return true;
+  if (s.hover && typeof s.hover === "object") return true;
+  return false;
+}
