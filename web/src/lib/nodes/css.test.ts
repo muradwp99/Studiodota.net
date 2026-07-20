@@ -108,6 +108,16 @@ describe("nodeCss", () => {
     const css = nodeCss(base({ advanced: { customCss: "selector { opacity: 0.5; }" } }));
     expect(css).toContain(".n-abc { opacity: 0.5; }");
   });
+  it("only substitutes the whole-word `selector` token", () => {
+    const css = nodeCss(base({ advanced: { customCss: ".selectorish { color: red; }" } }));
+    expect(css).toContain(".selectorish { color: red; }");
+    expect(css).not.toContain(".n-abcish");
+  });
+  it("neutralizes a `</style>` breakout in custom CSS", () => {
+    const css = nodeCss(base({ advanced: { customCss: "selector { x: 1 } </style><script>alert(1)</script>" } }));
+    expect(css).not.toContain("</style>");
+    expect(css).toContain(".n-abc { x: 1 }");
+  });
 });
 
 describe("wrapperAttrs", () => {

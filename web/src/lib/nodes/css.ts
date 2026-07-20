@@ -106,6 +106,15 @@ function hideCss(sel: string, advanced: Record<string, unknown>): string[] {
   return out;
 }
 
+/**
+ * Admin-authored custom CSS: replace the whole-word `selector` token with the
+ * node's scoped class, and neutralize any `</style` so authored CSS cannot
+ * break out of the <style> tag it is injected into.
+ */
+function sanitizeCustomCss(css: string, sel: string): string {
+  return css.replace(/\bselector\b/g, sel).replace(/<\/style/gi, "<\\/style");
+}
+
 /** Full stylesheet fragment for one node, scoped to `.n-{id}`. Empty if nothing to style. */
 export function nodeCss(node: Node): string {
   const sel = `.n-${node.id}`;
@@ -127,7 +136,7 @@ export function nodeCss(node: Node): string {
   parts.push(...hideCss(sel, advanced));
 
   const custom = typeof advanced.customCss === "string" ? advanced.customCss.trim() : "";
-  if (custom) parts.push(custom.replace(/selector/g, sel));
+  if (custom) parts.push(sanitizeCustomCss(custom, sel));
 
   return parts.join("");
 }
