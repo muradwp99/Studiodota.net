@@ -10,7 +10,8 @@ import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/
 import StyleRenderer from "@/components/admin/StyleRenderer";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
 import { inputCls, labelCls, Notice } from "@/components/admin/ui";
-import { findNode, findParent, updateNode, updateSiblings, removeNode, duplicateNode, insertNode } from "@/lib/nodes/tree";
+import { findNode, findParent, updateNode, updateSiblings, removeNode, duplicateNode, insertNode, moveNode } from "@/lib/nodes/tree";
+import { treeDepth } from "@/lib/nodes/walk";
 import EditableNode from "@/components/admin/EditableNode";
 import { EditorContext } from "@/components/admin/editorContext";
 
@@ -48,6 +49,9 @@ export default function PageBuilder({
   const [settingsTab, setSettingsTab] = useState<"page" | "block">("page");
   const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const [state, setState] = useState<PageActionState | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);       // reorder source node id
+  const [dragType, setDragType] = useState<string | null>(null);   // palette insert type
+  const [dropTarget, setDropTarget] = useState<{ parentId: string | null; index: number } | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -108,6 +112,26 @@ export default function PageBuilder({
     set("blocks", removeNode(page.blocks, id));
     setSelected(null);
     setSettingsTab("page");
+  };
+
+  const MAX_DEPTH = 6;
+  const handleDrop = () => {
+    const target = dropTarget;
+    setDragId(null); setDragType(null); setDropTarget(null);
+    if (!target) return;
+    if (dragType !== null) {
+      const bt = blockTypeFor(dragType);
+      if (!bt) return;
+      const block: PageBlock = { id: crypto.randomUUID(), type: dragType, props: structuredClone(bt.defaults) };
+      const next = insertNode(page.blocks, target, block);
+      if (treeDepth(next) > MAX_DEPTH) { setState({ error: `Blocks can nest at most ${MAX_DEPTH} levels deep.` }); return; }
+      set("blocks", next);
+      selectBlock(block.id);
+    } else if (dragId !== null) {
+      const next = moveNode(page.blocks, dragId, target);
+      if (treeDepth(next) > MAX_DEPTH) { setState({ error: `Blocks can nest at most ${MAX_DEPTH} levels deep.` }); return; }
+      set("blocks", next);
+    }
   };
 
   const updateSelectedProps = (path: Path, value: unknown) => {
@@ -212,7 +236,10 @@ export default function PageBuilder({
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--bone-dim)]">Blocks</span>
               <button type="button" aria-label="Close inserter" onClick={() => setInserterOpen(false)} className="text-[var(--muted)] hover:text-[var(--bone)]">×</button>
             </div>
-            <ElementsPanel onInsert={(type) => insertAt(insertTarget(), type)} />
+            <ElementsPanel
+              onInsert={(type) => insertAt(insertTarget(), type)}
+              onDragType={(t) => { setDragType(t); if (t === null) setDropTarget(null); }}
+            />
           </div>
         )}
 
@@ -248,9 +275,19 @@ export default function PageBuilder({
                   </button>
                 </div>
               )}
-              <EditorContext.Provider value={{ serviceOptions, selectedId: selected, select: selectBlock, edit: updateBlockProp, move, duplicate, remove }}>
+              <EditorContext.Provider
+                value={{
+                  serviceOptions, selectedId: selected, select: selectBlock, edit: updateBlockProp, move, duplicate, remove,
+                  dragActive: dragId !== null || dragType !== null,
+                  dropTarget,
+                  startDrag: setDragId,
+                  endDrag: () => { setDragId(null); setDropTarget(null); },
+                  hover: setDropTarget,
+                  drop: handleDrop,
+                }}
+              >
                 {page.blocks.map((b, i) => (
-                  <EditableNode key={b.id} node={b} siblingCount={page.blocks.length} index={i} />
+                  <EditableNode key={b.id} node={b} siblingCount={page.blocks.length} index={i} parentId={null} />
                 ))}
               </EditorContext.Provider>
             </div>

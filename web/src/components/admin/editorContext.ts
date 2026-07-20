@@ -2,6 +2,8 @@
 
 import { createContext, useContext } from "react";
 
+export type DropTarget = { parentId: string | null; index: number };
+
 export type EditorApi = {
   serviceOptions: string[];
   selectedId: string | null;
@@ -10,6 +12,13 @@ export type EditorApi = {
   move: (id: string, dir: -1 | 1) => void;
   duplicate: (id: string) => void;
   remove: (id: string) => void;
+  // drag
+  dragActive: boolean;
+  dropTarget: DropTarget | null;
+  startDrag: (id: string) => void;
+  endDrag: () => void;
+  hover: (target: DropTarget) => void;
+  drop: () => void;
 };
 
 export const EditorContext = createContext<EditorApi | null>(null);
