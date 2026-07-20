@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { savePage, deletePage, type PageActionState } from "@/lib/actions/pages";
 import { BLOCK_TYPES, blockTypeFor, type PageBlock } from "@/lib/pageBlocks";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
+import ElementsPanel from "@/components/admin/ElementsPanel";
 import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/FieldsRenderer";
 import StyleRenderer from "@/components/admin/StyleRenderer";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS } from "@/lib/nodes/styleControls";
@@ -244,7 +245,14 @@ export default function PageBuilder({
 
       <Notice state={state} />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[1fr_330px]">
+      <div className="grid items-start gap-5 lg:grid-cols-[210px_1fr_330px]">
+        {/* Left: elements panel — click a block to add it (after the selected block, else at the end) */}
+        <ElementsPanel
+          onInsert={(type) =>
+            insertAt(selected ? page.blocks.findIndex((b) => b.id === selected) + 1 : page.blocks.length, type)
+          }
+        />
+
         {/* Canvas */}
         <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--ink)]">
           {page.blocks.length === 0 && (

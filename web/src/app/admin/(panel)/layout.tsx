@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBlock } from "@/lib/content";
@@ -18,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ]);
 
   return (
-    <div className="min-h-screen bg-[var(--ink)]">
+    <div className={`${GeistSans.className} min-h-screen bg-[var(--ink)]`}>
       <AdminBar siteName={site.name} userName={user.name} />
       <div className="flex min-h-[calc(100vh-2.25rem)]">
         <aside className="sticky top-9 hidden h-[calc(100vh-2.25rem)] w-44 shrink-0 overflow-y-auto bg-[#1d2023] md:block">
@@ -37,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </a>
             ))}
           </div>
-          <main className="mx-auto w-full max-w-5xl px-6 py-8 md:px-10">{children}</main>
+          <main className="mx-auto w-full max-w-[1440px] px-6 py-8 md:px-10">{children}</main>
         </div>
       </div>
     </div>
