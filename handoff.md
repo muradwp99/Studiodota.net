@@ -4,6 +4,38 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
+## Session update — 2026-07-20 (Live Editor A2 inspector + A3 left panel + FULL-SCREEN Gutenberg-style editor)
+
+**Branch `feature/admin-v1-client-ready`, all pushed to origin (through `d389e71`). `npx tsc --noEmit` clean; 54 Vitest tests pass.** Continued the Live Editor: A2.1 (inspector), A3.1 (left panel), then reworked the whole editor into a **full-screen Gutenberg-style** UI at the client's request.
+
+### What the client wants (important context)
+They want the page editor to look/behave **exactly like WordPress Gutenberg** — full-screen, left block inserter, right settings sidebar — and WP-style row actions on the Pages list. They provided the Gutenberg source zip (`D:\Realistic Projects\Aus Projects\Project 11\gutenberg.23.5.3.zip`) as the reference. **We do NOT embed `@wordpress/block-editor`** (it's a WP plugin tied to WP's data layer, doesn't fit Next/Prisma) — we **replicate its UI/UX** on our own block system.
+
+### A2.1 — Content/Style/Advanced inspector (commits `319c81f..9d343aa`)
+- `web/src/lib/nodes/styleControls.ts` — `StyleControl` spec + `STYLE_CONTROLS`/`ADVANCED_CONTROLS`.
+- `web/src/components/admin/controls/` — ColorControl, DimensionControl, SliderControl, ButtonGroupControl.
+- `web/src/components/admin/StyleRenderer.tsx` — renders StyleControl specs (parallel to FieldsRenderer).
+- Controls write bg/color/align/maxWidth/minHeight/borderRadius (style) + padding/margin/zIndex/cssClasses/cssId (advanced) — **all already mapped by the A1 css engine**.
+- **`needsBox(node)` in css.ts** → renderer wraps a node in `display:contents` UNLESS a box prop/children need a real box (so styling never shifts the page). Public-side verified.
+
+### A3.1 — left elements panel + admin font (commit `7743659`)
+- `web/src/components/admin/ElementsPanel.tsx` — categorized (Layout/Text/Media/Widgets/Embed), searchable, click-to-insert block library.
+- Admin UI font switched Archivo → **Geist Sans** (`geist` pkg; applied in `app/admin/(panel)/layout.tsx`); admin `<main>` widened to 1440px.
+
+### FULL-SCREEN editor rebuild + Pages row actions (commit `d389e71`)
+- **`PageBuilder.tsx` fully rebuilt** as a `fixed inset-0 z-50` full-screen editor (theme-aware tokens, NOT the old embedded panel): header bar (`+` inserter toggle · title · Save/Update · ⚙ settings toggle · `←` exit), **slide-in left inserter** (ElementsPanel), centered **canvas "page"**, right sidebar with **Page / Block tabs** (Block = Content/Style/Advanced when a block is selected; Page = status/slug/SEO/Move-to-Trash). Block hover toolbar (move/dup/delete) kept.
+- `app/admin/(panel)/pages/page.tsx` — **WP-style hover row actions** on live pages: Edit · View · Trash.
+- The old between-block `+` popups were removed; insertion is via the left panel (inserts after the selected block, else at end).
+
+### ⚠️ CRITICAL GOTCHA — Turbopack dev cache wedges after a machine restart
+Symptom: the editor "doesn't work" / the `+` does nothing, and the browser console shows a **stale JSX/parse error that contradicts a clean `tsc`** (e.g. an old `</aside>` on a line that is actually `</div>` on disk). This is a wedged Turbopack cache, NOT a real code error. **Fix:** kill the dev server on :3000, `rm -rf web/.next`, restart `npm run dev`. Always do a clean restart after big edits or a machine reboot. (This was almost certainly the client's "+ not working" too.)
+
+### Verification constraint (unchanged)
+The admin is `requireAdmin`-gated; the agent **cannot log in** (entering a password is a prohibited action), so the editor UI is **verified by the client's spot-check**. The block-render/engine path is verified public-side by DB-injecting styled nodes into a published page. `tsc`/eslint/Vitest cover the pure logic.
+
+### Next (roadmap)
+Drag-between-blocks inserter; **true nested containers** (A3.2 — drop widgets into columns; recursive drag/select/edit — note `PageBuilder.updateBlockProp` + `duplicate` must recurse); deeper **A2.2** style controls (typography/border/shadow/gradient/hover/motion/custom-CSS); **A2.3** ResponsiveField + device toggle (TRAP: `needsBox` is one boolean applied as fixed inline `display:contents` — must move into per-breakpoint CSS when a box can be set at only tablet/mobile). Full A2/A3 trap list in the git-ignored `.superpowers/sdd/progress.md`.
+
 ## Session update — 2026-07-19 (Live Editor A1 foundation + scroll-scrub hero + homepage drift/drag)
 
 **Branch `feature/admin-v1-client-ready` (NOT pushed to origin). `npx tsc --noEmit` clean; 35 Vitest tests pass; homepage verified live in-browser.** Two threads: (1) started the Elementor/Gutenberg-class **Live Editor** (sub-project A of the A→G roadmap) — **A1 foundation complete**; (2) built the **scroll-scrub hero** + **homepage horizontal-drift sections with manual drag**.
