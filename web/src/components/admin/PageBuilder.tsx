@@ -169,7 +169,7 @@ export default function PageBuilder({
   const insertIndex = () => (selected ? page.blocks.findIndex((b) => b.id === selected) + 1 : page.blocks.length);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--ink)] text-[var(--bone)]">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[var(--ink)] text-[var(--bone)]">
       {/* ---- Header bar ---- */}
       <header className="flex h-14 shrink-0 items-center gap-1 border-b border-[var(--line)] bg-[var(--surface)] px-2">
         <Link href="/admin/pages" title="Back to Pages" aria-label="Back to Pages" className={iconBtn}>←</Link>
