@@ -1,9 +1,22 @@
 import { describe, it, expect } from "vitest";
 import { STYLE_CONTROLS, ADVANCED_CONTROLS, type StyleControl } from "./styleControls";
 
-// Keys the A1 CSS engine (css.ts) actually renders. Keep in sync with styleToCss/wrapperAttrs.
-const STYLE_KEYS = new Set(["backgroundColor", "color", "textAlign", "minHeight", "maxWidth", "borderRadius"]);
-const ADV_KEYS = new Set(["padding", "margin", "zIndex", "cssClasses", "cssId"]);
+// Keys the CSS engine (css.ts) renders. Keep in sync with styleToCss/hoverToCss/hideCss/wrapperAttrs.
+const STYLE_KEYS = new Set([
+  "backgroundColor", "color", "textAlign",
+  "fontSize", "fontWeight", "lineHeight", "letterSpacing", "textTransform",
+  "width", "minHeight", "maxWidth", "borderRadius",
+  "borderWidth", "borderStyle", "borderColor",
+  "boxShadow",
+  "hover.backgroundColor", "hover.color",
+]);
+const ADV_KEYS = new Set([
+  "padding", "margin",
+  "position", "zIndex",
+  "hideDesktop", "hideTablet", "hideMobile",
+  "cssClasses", "cssId",
+  "customCss",
+]);
 
 const flatKeys = (cs: StyleControl[]): string[] =>
   cs.flatMap((c) => (c.kind === "group" ? flatKeys(c.controls) : [c.key]));
