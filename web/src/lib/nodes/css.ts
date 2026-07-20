@@ -136,5 +136,6 @@ export function needsBox(node: Node): boolean {
   if (STYLE_BOX_KEYS.some((k) => hasVal(s[k]))) return true;
   if (ADV_BOX_KEYS.some((k) => hasVal(a[k]))) return true;
   if (s.hover && typeof s.hover === "object") return true;
+  if (typeof a.customCss === "string" && a.customCss.trim()) return true;
   return false;
 }

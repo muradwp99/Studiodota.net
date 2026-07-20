@@ -113,4 +113,7 @@ describe("needsBox", () => {
     expect(needsBox(n({ advanced: { padding: { unit: "px" } } }))).toBe(false);
     expect(needsBox(n({ style: { maxWidth: {} } }))).toBe(false);
   });
+  it("true when customCss is set", () => {
+    expect(needsBox(n({ advanced: { customCss: "selector{width:300px}" } }))).toBe(true);
+  });
 });
