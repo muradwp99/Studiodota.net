@@ -4,6 +4,39 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
+## Session update — 2026-07-20 (LATEST: A2.2 controls + drag-to-insert + full-screen chrome fix)
+
+**Branch `feature/admin-v1-client-ready`. 9 new commits `b5c1f19..9c2d0a5`, NOT pushed / NOT merged (kept branch as-is). `npx tsc --noEmit` clean; 78 Vitest tests pass (6 files).** Subagent-driven build of a 3-part editor slice the client asked for (topbar overlap fix + "drag and drop not worked" + "more advanced controlling/styling"). Followed brainstorm→spec→plan→subagent-build with per-task reviews + a final whole-branch review.
+- **Spec:** `docs/superpowers/specs/2026-07-20-live-editor-a2.2-controls-drag-insert-chrome-design.md`
+- **Plan:** `docs/superpowers/plans/2026-07-20-live-editor-a2.2-controls-drag-insert-chrome.md`
+- **Ledger (git-ignored):** `.superpowers/sdd/progress.md` — full task-by-task record + all Minor findings.
+
+### What shipped (3 parts)
+1. **Full-screen chrome fix** (`b5c1f19`): `PageBuilder.tsx` root `z-50`→`z-[100]` so the editor covers the admin bar (`AdminBar` is `z-[90]`, dropdowns `z-[95]`). Fixes the client screenshot where "Howdy, …" overlapped the editor header.
+2. **Drag-and-drop** (`0f19223`,`357d1d4`,`25dc343`): new pure **`web/src/lib/nodes/dnd.ts`** (`insertIndexFor`/`reorderIndexFor`, unit-tested); reorder now uses the helper + sets `dataTransfer` (Firefox-reliable); **NEW palette drag-to-insert** — `ElementsPanel` items are `draggable` and report type via `onDragType`; `PageBuilder` gains a `dragType` state mirroring `dragIndex`; canvas reuses the gold drop-indicator to insert before/after the hovered block; blocks-container + empty-page act as append/empty dropzones (dashed "Drop block here"). Reorder handle (`⠿`) still works. Click-to-insert kept (keyboard path). **NOTE:** the client's "drag and drop not worked" was most likely (a) palette drag was never built (now is) and/or (b) the Turbopack cache wedge — recipe below starts with a clean `.next` wipe.
+3. **A2.2 inspector controls** (`f937d80`,`9863486`,`658fc58`,`17c6050`): `css.ts` `styleToCss` now emits **typography** (font-size/weight/line-height/letter-spacing/text-transform — inherited, `display:contents`-safe, NOT box-generating), **width**, **border** (width/style/color; defaults style to `solid`), **box-shadow** (presets none/soft/medium/strong via a map), **position**. New Style groups: Typography, Border, Shadow, **Hover** (bg+text, dotted keys `hover.*`). New Advanced groups: **Position**, **Visibility** (hide desktop/tablet/mobile toggles), **Custom CSS** (textarea, HARDENED). New renderer kinds `toggle` + `textarea` and **dotted-key** path resolution in `StyleRenderer` (`c.key.split(".")` → get/set nested). Guard tests keep **control-key ↔ engine emission ↔ needsBox** in lockstep (`styleControls.test.ts`, `css.test.ts`).
+
+### Final whole-branch review (opus) — verdict "ready to merge = YES", 3 Minor, fixed in `9c2d0a5`
+- **#1 (real):** `boxShadow:"none"` forced an empty box (`needsBox` true but no CSS emitted) → `needsBox` now gates `boxShadow` through `shadowOf` (only real presets force a box); `boxShadow` removed from `STYLE_BOX_KEYS`, dedicated tests added.
+- **#2 (defense-in-depth):** `</style>` escape only guarded `customCss`, but free-text color values reach the same `dangerouslySetInnerHTML` `<style>` sink → the `</style` neutralization is now applied ONCE over the whole assembled sheet in `nodeCss` (covers colors + any emission); `sanitizeCustomCss` reduced to the whole-word `selector` replace.
+- **#3:** `StyleRenderer` switch got a `default:{const _exhaustive:never=c;…}` guard.
+
+### ⚠️ STILL NEEDS CLIENT SPOT-CHECK (agent cannot log in — admin is `requireAdmin`-gated; entering a password is prohibited)
+Everything above is verified by `tsc` + 78 Vitest + per-task/final review, but the **editor UI itself was NOT clicked through by the agent.** Client recipe (also in the plan's "Final verification"):
+1. **Clean restart** (kills the Turbopack wedge that masquerades as "editor broken"): stop dev on :3000 → `rm -rf web/.next` → `cd web && npm run dev`.
+2. Chrome: open a page editor → admin bar gone, Save/⚙/← fully clickable.
+3. Drag-to-insert: drag "Heading" from the left panel between two blocks / onto an empty page / into the gutter below the last block.
+4. Reorder: drag the `⠿` handle. 5. Controls: set Border+Shadow+Hover+Typography, toggle "Hide on mobile", try Position/Custom CSS → Save → View published page renders the styles.
+
+### What REMAINS (next slices)
+- **A3.2 — nested containers** (the big one): drop widgets INTO `columns`/containers; recursive drag/select/edit. TRAP (still true): `PageBuilder.updateBlockProp` + `duplicate` only handle TOP-LEVEL blocks — must recurse into `children`.
+- **A2.2 phase 2** (deferred this slice): **gradient** background, **background-image** picker (media), **motion/animation** presets. When bg-image/gradient land, wire `background`/`backgroundImage` emission in `styleToCss` (they're still listed in `STYLE_BOX_KEYS` as DEAD placeholders — either emit them or prune).
+- **A2.3 — ResponsiveField + device toggle** (TRAP unchanged): `needsBox` is one boolean applied as a fixed inline `display:contents`; once a box can be set at only tablet/mobile, move the box/contents decision INTO per-breakpoint CSS in `css.ts`.
+- **Per-element typography targeting:** wrapper typography inherits through `display:contents` but a block's own type classes (e.g. `display-l`) override `font-size` — documented limitation; deeper targeting later.
+- **Harmless deferred Minors:** palette `onDragEnd` leaves stale `overIndex` (confirmed no functional effect — indicator guard false once `dragType` null); `FieldsRenderer` lacks the same exhaustiveness guard (pre-existing pattern).
+- **⚠️ PRE-EXISTING LINT (surfaced this session):** `npm run lint` has **9 errors + 3 warnings in UNRELATED files** (ContactForm/Navbar/VideoPlayer/InlineText/Hero3D/HeroScrub) — NOT from this slice (changed files are lint-clean). `tsc` is clean, but a production `npm run build` may trip on these — worth a dedicated lint-cleanup pass. (`npm run build` was NOT run this session; only `tsc` + Vitest.)
+- **Push/merge:** branch is 44 commits ahead of `origin/master`, still unpushed — say the word.
+
 ## Session update — 2026-07-20 (Live Editor A2 inspector + A3 left panel + FULL-SCREEN Gutenberg-style editor)
 
 **Branch `feature/admin-v1-client-ready`, all pushed to origin (through `d389e71`). `npx tsc --noEmit` clean; 54 Vitest tests pass.** Continued the Live Editor: A2.1 (inspector), A3.1 (left panel), then reworked the whole editor into a **full-screen Gutenberg-style** UI at the client's request.
