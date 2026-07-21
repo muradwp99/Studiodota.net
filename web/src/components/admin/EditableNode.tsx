@@ -3,7 +3,7 @@
 import { nodeCss, wrapperAttrs } from "@/lib/nodes/css";
 import type { PageBlock } from "@/lib/pageBlocks";
 import { blockTypeFor } from "@/lib/pageBlocks";
-import { Block, containerFlexStyle } from "@/components/blocks/BlockRenderer";
+import { Block } from "@/components/blocks/BlockRenderer";
 import { useEditor } from "@/components/admin/editorContext";
 
 const toolbarBtn =
@@ -23,7 +23,7 @@ export default function EditableNode({
   const ed = useEditor();
   const on = ed.selectedId === node.id;
   const isContainer = node.type === "container";
-  const css = nodeCss(node);
+  const css = nodeCss(node, { solidBox: true });
   const { className, id } = wrapperAttrs(node);
   const kids = node.children ?? [];
 
@@ -32,7 +32,6 @@ export default function EditableNode({
       className={`${className} relative outline-offset-[-2px] ${on ? "outline outline-2 outline-[var(--gold)]" : "hover:outline hover:outline-1 hover:outline-[var(--line-strong)]"}`}
       id={id}
       data-node={node.id}
-      style={containerFlexStyle(node)}
       role="button"
       tabIndex={0}
       aria-label={`Select ${blockTypeFor(node.type)?.label ?? node.type} block`}

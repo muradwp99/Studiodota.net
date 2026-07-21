@@ -7,39 +7,13 @@ import VideoPlayer from "@/components/VideoPlayer";
 import ContactForm from "@/components/ContactForm";
 import InlineText from "@/components/blocks/InlineText";
 import type { PageBlock } from "@/lib/pageBlocks";
-import { nodeCss, wrapperAttrs, needsBox } from "@/lib/nodes/css";
+import { nodeCss, wrapperAttrs } from "@/lib/nodes/css";
 
 /**
  * Renderer for block-editor pages. Used by BOTH the public route (no `edit`)
  * and the admin canvas (with `edit`, which turns text nodes into inline,
  * click-to-type fields). The no-edit output is byte-identical to before.
  */
-
-const ALIGN: Record<string, string> = { start: "flex-start", center: "center", end: "flex-end", stretch: "stretch" };
-const JUSTIFY: Record<string, string> = { start: "flex-start", center: "center", end: "flex-end", between: "space-between" };
-
-/** Flex layout for a container node, derived from its props. undefined for non-containers. */
-export function containerFlexStyle(node: PageBlock): React.CSSProperties | undefined {
-  if (node.type !== "container") return undefined;
-  const p = node.props ?? {};
-  return {
-    display: "flex",
-    flexDirection: p.direction === "row" ? "row" : "column",
-    gap: typeof p.gap === "number" ? `${p.gap}px` : undefined,
-    alignItems: ALIGN[String(p.align)] ?? "stretch",
-    justifyContent: JUSTIFY[String(p.justify)] ?? "flex-start",
-    flexWrap: p.wrap ? "wrap" : "nowrap",
-  };
-}
-
-/** The wrapper's inline style: container flex; else a real box when it needs one OR is a
- *  flex item (a container's child MUST be a box so flex doesn't dissolve it); else
- *  layout-transparent `display:contents`. */
-export function nodeWrapperStyle(node: PageBlock, flexItem = false): React.CSSProperties | undefined {
-  const flex = containerFlexStyle(node);
-  if (flex) return flex;
-  return needsBox(node) || flexItem ? undefined : { display: "contents" };
-}
 
 export type BlockCtx = { serviceOptions: string[] };
 type Edit = ((path: (string | number)[], value: string) => void) | undefined;
@@ -440,7 +414,7 @@ function renderNode(
   const editForNode: Edit = edit ? (path, value) => edit(node.id, path, value) : undefined;
   const inner = <Block block={node} ctx={ctx} edit={editForNode} />;
   const kids = node.children?.length ? node.children.map((c) => renderNode(c, ctx, edit, node.type === "container")) : null;
-  const css = nodeCss(node);
+  const css = nodeCss(node, { solidBox: flexItem });
   const hasWrap = Boolean(css || kids || node.style || node.advanced);
 
   if (!hasWrap) return <Fragment key={node.id}>{inner}</Fragment>;
@@ -452,7 +426,6 @@ function renderNode(
       className={className}
       id={id}
       data-node={node.id}
-      style={nodeWrapperStyle(node, flexItem)}
     >
       {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
       {inner}
