@@ -4,7 +4,31 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
-## Session update — 2026-07-20 (LATEST: A2.2 controls + drag-to-insert + full-screen chrome fix)
+## Session update — 2026-07-21 (LATEST: editor bug fixes + NESTED CONTAINERS A3.2)
+
+**Branch `feature/admin-v1-client-ready`, 56 commits ahead of `master`, NOT pushed / NOT merged (kept as-is). `npx tsc --noEmit` clean; 90 Vitest tests pass (95 − 5 pruned dnd tests).** Two threads: (1) diagnosed the client's "inspector edits not working / elements look odd" report; (2) built **A3.2 nested containers** (subagent-driven, per-task reviews + opus final review + fix wave).
+
+### Thread 1 — client bug report, root causes (2 distinct)
+- **Systemic: wedged Turbopack cache (again).** Console showed a stale `</aside>` parse error for `ElementsPanel.tsx:70` that contradicted disk + clean tsc → broken client bundle → ALL editor interactivity dead + stale CSS ("elements look bigger"). Fix is operational: kill :3000, `rm -rf web/.next`, `npm run dev`. **Tell the client: always clean-restart after pulling editor changes.**
+- **Real code bug (FIXED `e5578aa`):** `InlineText` wrote its DOM text only on mount → sidebar Content edits updated state but not the canvas. Now reconciles on `value` change, skipping while focused (caret safe). Browser-verified.
+- **Verification technique (agent can't log in — password entry prohibited):** mount `PageBuilder` on a TEMPORARY unauth route `web/src/app/dev-editor/page.tsx` with sample blocks, drive it in the in-app browser, DELETE the route after. Gotchas: browser console buffer persists across server restarts (stale errors — read from a FRESH tab); synthetic `DragEvent`s work for DnD testing but must target the INNERMOST element (`.find()` on divs returns the outermost match).
+
+### Thread 2 — A3.2 nested containers DONE (8 commits `1e5aa5f..f951954`)
+- **Spec:** `docs/superpowers/specs/2026-07-20-nested-container-core-design.md` · **Plan:** `docs/superpowers/plans/2026-07-20-nested-container-core.md` · **Ledger:** `.superpowers/sdd/progress.md` (full per-task record + follow-ups).
+- **`web/src/lib/nodes/tree.ts`** (pure, 14 tests): `findNode/findParent/updateNode/updateSiblings/removeNode/insertNode/moveNode/duplicateNode/isDescendant`. `moveNode` no-ops on self/descendant targets; `duplicateNode` deep-clones with FRESH ids recursively (fixes the old nested-id-clone trap). ALL PageBuilder mutations route through these → depth-agnostic.
+- **`container` block** (Layout category, first): flexbox — Content tab = direction (row/column) / gap / align / justify / wrap via a NEW **`select` FieldSpec kind** (added to pageRegistry + validateFields [allow-list coercion, 3 tests] + FieldsRenderer). Full A2.2 Style/Advanced applies. Renders children via the wrapper (`containerFlexStyle`); its own `Block` case returns null.
+- **`BlockRenderer`**: exported `Block` + `containerFlexStyle` + `nodeWrapperStyle(node, flexItem)`; container children thread `flexItem=true` so flex can't dissolve `display:contents` children. **Public render byte-identical for existing pages** (verified algebraically in review).
+- **`EditableNode.tsx` + `editorContext.ts`** (new): recursive editable canvas — every node at any depth is selectable/editable/duplicable/removable/movable; chrome (outline+toolbar+drag handle) renders ON SELECT (avoids nested group-hover cross-talk — that was a review catch, fixed `a66269a`). Editor wrapper is ALWAYS a real box (chrome needs an anchor) — deliberate, minor divergence from public `display:contents`.
+- **Recursive DnD**: every drop resolves to `{parentId, index}`; per-node onDragOver targets its sibling slot (stopPropagation = innermost wins); empty-container zone targets inside; blocks-container catches empty-page/gutter drops (append) — that last one was the opus final-review's Important catch (silent no-op regression), fixed `f951954` + browser-verified. Depth-6 guard on BOTH drag and click-insert paths (shared MAX_DEPTH; save-side `validateTree` still enforces too). `lib/nodes/dnd.ts` deleted (orphaned by the {parentId,index} model).
+- **Browser-verified end-to-end** (temp route, synthetic DragEvents): container flex row/gap; recursive select → inspector; nested sidebar-edit → canvas; click-insert into selected container; palette-drag INTO container; reorder within; cross-container move out to top level; empty-page drop; handle on-select.
+
+### Follow-ups (all triaged "acceptable", none blocking — from `.superpowers/sdd/progress.md`)
+`moveNode` nonexistent-parentId guard (unreachable today); `EditorContext` value not memoized (all nodes re-render per keystroke — pre-existing characteristic); direct unit tests for `containerFlexStyle`/`nodeWrapperStyle` (they import the heavy BlockRenderer module graph — extract to a pure module if testing); `select`-validator test with a non-first default; `ed.hover` per-dragover-tick setState dedup; nested `role="button"` a11y semantics. Plus older: A2.3 responsive (needsBox-per-breakpoint trap), gradient/bg-image controls (dead `STYLE_BOX_KEYS` placeholders), old `columns` widget migration, 9 pre-existing lint errors in unrelated files.
+
+### ⚠️ STILL NEEDS CLIENT SPOT-CHECK (agent cannot log in)
+Clean restart (`rm -rf web/.next` → `npm run dev`), then in the real admin: add a **Container**, set direction **row**, drag Heading/Image/Text INTO it, nest a Container in a Container, reorder/move children across containers, edit a nested child's text+style from the sidebar, Save → View published page (nested flex layout renders; verify on mobile width too — container layout is base-only for now, so a row stays a row on mobile until A2.3).
+
+## Session update — 2026-07-20 (A2.2 controls + drag-to-insert + full-screen chrome fix)
 
 **Branch `feature/admin-v1-client-ready`. 9 new commits `b5c1f19..9c2d0a5`, NOT pushed / NOT merged (kept branch as-is). `npx tsc --noEmit` clean; 78 Vitest tests pass (6 files).** Subagent-driven build of a 3-part editor slice the client asked for (topbar overlap fix + "drag and drop not worked" + "more advanced controlling/styling"). Followed brainstorm→spec→plan→subagent-build with per-task reviews + a final whole-branch review.
 - **Spec:** `docs/superpowers/specs/2026-07-20-live-editor-a2.2-controls-drag-insert-chrome-design.md`
