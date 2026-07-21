@@ -41,8 +41,9 @@ export const BLOCK_TYPES: BlockType[] = [
       sel("align", "Align items", [{ value: "stretch", label: "Stretch" }, { value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }]),
       sel("justify", "Justify", [{ value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }, { value: "between", label: "Space between" }]),
       tog("wrap", "Wrap"),
+      tog("stackOnMobile", "Stack on mobile"),
     ],
-    defaults: { direction: "column", gap: 24, align: "stretch", justify: "start", wrap: false },
+    defaults: { direction: "column", gap: 24, align: "stretch", justify: "start", wrap: false, stackOnMobile: true },
   },
   {
     type: "hero",

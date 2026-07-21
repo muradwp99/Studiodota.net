@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { savePage, deletePage, type PageActionState } from "@/lib/actions/pages";
 import { blockTypeFor, type PageBlock } from "@/lib/pageBlocks";
+import type { Breakpoint } from "@/lib/nodes/types";
 import ElementsPanel from "@/components/admin/ElementsPanel";
 import FieldsRenderer, { setAt, type Json, type Path } from "@/components/admin/FieldsRenderer";
 import StyleRenderer from "@/components/admin/StyleRenderer";
@@ -44,6 +45,7 @@ export default function PageBuilder({
   const [page, setPage] = useState<PageInput>(initial);
   const [pageId, setPageId] = useState<string | null>(id);
   const [selected, setSelected] = useState<string | null>(null);
+  const [device, setDevice] = useState<Breakpoint>("base");
   const [tab, setTab] = useState<"content" | "style" | "advanced">("content");
   const [inserterOpen, setInserterOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(true);
@@ -201,6 +203,19 @@ export default function PageBuilder({
           {page.title || "Untitled page"}
         </div>
 
+        <div className="mr-1 hidden items-center gap-0.5 rounded-lg border border-[var(--line-strong)] p-0.5 md:flex" role="group" aria-label="Preview device">
+          {([["base", "Desktop"], ["tablet", "Tablet"], ["mobile", "Mobile"]] as const).map(([bp, label]) => (
+            <button
+              key={bp}
+              type="button"
+              aria-pressed={device === bp}
+              onClick={() => setDevice(bp)}
+              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${device === bp ? "bg-[var(--gold)] text-[#17191c]" : "text-[var(--bone-dim)] hover:bg-[var(--surface-2)]"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         {pageId && page.status === "published" && page.slug && (
           <Link href={`/${page.slug}`} target="_blank" className="rounded-md px-3 py-2 text-sm text-[var(--bone)] transition-colors hover:bg-[var(--surface-2)]">
             View
@@ -250,7 +265,7 @@ export default function PageBuilder({
 
         {/* Center: canvas */}
         <div className="min-w-0 flex-1 overflow-y-auto">
-          <div className="mx-auto my-6 w-[min(100%-2rem,1100px)] overflow-hidden rounded-md border border-[var(--line)] bg-[var(--surface)] shadow-[0_1px_4px_rgba(17,19,21,0.06)]">
+          <div className={`mx-auto my-6 overflow-hidden rounded-md border border-[var(--line)] bg-[var(--surface)] shadow-[0_1px_4px_rgba(17,19,21,0.06)] transition-[width] ${device === "mobile" ? "w-[min(100%-2rem,390px)]" : device === "tablet" ? "w-[min(100%-2rem,1024px)]" : "w-[min(100%-2rem,1100px)]"}`}>
             {/* Title (page metadata) */}
             <div className="px-8 pt-8 md:px-12">
               <input
@@ -296,7 +311,7 @@ export default function PageBuilder({
               )}
               <EditorContext.Provider
                 value={{
-                  serviceOptions, selectedId: selected, select: selectBlock, edit: updateBlockProp, move, duplicate, remove,
+                  serviceOptions, selectedId: selected, device, select: selectBlock, edit: updateBlockProp, move, duplicate, remove,
                   dragActive: dragId !== null || dragType !== null,
                   dropTarget,
                   startDrag: setDragId,
@@ -355,10 +370,10 @@ export default function PageBuilder({
                       )
                     )}
                     {tab === "style" && (
-                      <StyleRenderer controls={STYLE_CONTROLS} data={(selectedBlock.style ?? {}) as Json} onChange={updateSelectedStyle} />
+                      <StyleRenderer controls={STYLE_CONTROLS} data={(selectedBlock.style ?? {}) as Json} onChange={updateSelectedStyle} device={device} />
                     )}
                     {tab === "advanced" && (
-                      <StyleRenderer controls={ADVANCED_CONTROLS} data={(selectedBlock.advanced ?? {}) as Json} onChange={updateSelectedAdvanced} />
+                      <StyleRenderer controls={ADVANCED_CONTROLS} data={(selectedBlock.advanced ?? {}) as Json} onChange={updateSelectedAdvanced} device={device} />
                     )}
                   </>
                 ) : (

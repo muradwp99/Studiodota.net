@@ -23,13 +23,20 @@ export default function EditableNode({
   const ed = useEditor();
   const on = ed.selectedId === node.id;
   const isContainer = node.type === "container";
-  const css = nodeCss(node, { solidBox: true });
+  const css = nodeCss(node, { solidBox: true, preview: ed.device });
   const { className, id } = wrapperAttrs(node);
   const kids = node.children ?? [];
 
+  const adv = (node.advanced ?? {}) as Record<string, unknown>;
+  const hiddenHere =
+    (ed.device === "base" && Boolean(adv.hideDesktop)) ||
+    (ed.device === "tablet" && Boolean(adv.hideTablet)) ||
+    (ed.device === "mobile" && Boolean(adv.hideMobile));
+  const deviceLabel = ed.device === "base" ? "Desktop" : ed.device === "tablet" ? "Tablet" : "Mobile";
+
   return (
     <div
-      className={`${className} relative outline-offset-[-2px] ${on ? "outline outline-2 outline-[var(--gold)]" : "hover:outline hover:outline-1 hover:outline-[var(--line-strong)]"}`}
+      className={`${className} relative outline-offset-[-2px] ${on ? "outline outline-2 outline-[var(--gold)]" : "hover:outline hover:outline-1 hover:outline-[var(--line-strong)]"}${hiddenHere ? " opacity-40" : ""}`}
       id={id}
       data-node={node.id}
       role="button"
@@ -48,6 +55,12 @@ export default function EditableNode({
       onDrop={(e) => { if (!ed.dragActive) return; e.preventDefault(); e.stopPropagation(); ed.drop(); }}
     >
       {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
+
+      {hiddenHere && (
+        <span className="pointer-events-none absolute left-2 bottom-2 z-30 rounded bg-[#17191c] px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-[var(--gold-media)]">
+          Hidden on {deviceLabel}
+        </span>
+      )}
 
       {/* drag handle — shown when this node is selected; drags this node for reorder/move */}
       {on && (

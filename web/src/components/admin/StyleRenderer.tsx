@@ -8,8 +8,10 @@ import DimensionControl from "@/components/admin/controls/DimensionControl";
 import SliderControl from "@/components/admin/controls/SliderControl";
 import ButtonGroupControl from "@/components/admin/controls/ButtonGroupControl";
 import ToggleControl from "@/components/admin/controls/ToggleControl";
+import type { Breakpoint, Responsive } from "@/lib/nodes/types";
+import { resolveAt, writeSlot, clearSlot, hasSlot } from "@/lib/nodes/responsive";
 
-export default function StyleRenderer({ controls, data, onChange }: { controls: StyleControl[]; data: Json; onChange: (path: Path, value: unknown) => void }) {
+export default function StyleRenderer({ controls, data, onChange, device = "base" }: { controls: StyleControl[]; data: Json; onChange: (path: Path, value: unknown) => void; device?: Breakpoint }) {
   const render = (c: StyleControl, key: string): React.ReactNode => {
     if (c.kind === "group") {
       return (
@@ -20,22 +22,43 @@ export default function StyleRenderer({ controls, data, onChange }: { controls: 
       );
     }
     const path: Path = c.key.split(".");
-    const val = getAt(data, path);
+    const raw = getAt(data, path);
+    const RESPONSIVE_KINDS = ["color", "slider", "dimension", "buttongroup"];
+    const responsive = RESPONSIVE_KINDS.includes(c.kind) && !c.key.includes(".");
+    const val = responsive ? resolveAt(raw as Responsive<unknown>, device) : raw;
+    const write = (v: unknown) =>
+      onChange(path, responsive ? (v === undefined || v === "" ? clearSlot(raw, device) : writeSlot(raw, device, v)) : v);
+    const overridden = responsive && device !== "base" && hasSlot(raw, device);
+    const wrap = (el: React.ReactNode) =>
+      responsive && overridden ? (
+        <div key={key} className="relative">
+          {el}
+          <button
+            type="button"
+            title={`Clear ${device} override`}
+            aria-label={`Clear ${device} override for ${c.label}`}
+            onClick={() => onChange(path, clearSlot(raw, device))}
+            className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-[var(--gold)] text-[0.6rem] font-bold text-[#17191c]"
+          >
+            ×
+          </button>
+        </div>
+      ) : el;
     switch (c.kind) {
       case "color":
-        return <ColorControl key={key} label={c.label} value={String(val ?? "")} onChange={(v) => onChange(path, v)} />;
+        return wrap(<ColorControl key={key} label={c.label} value={String(val ?? "")} onChange={(v) => write(v)} />);
       case "dimension":
-        return <DimensionControl key={key} label={c.label} value={(val as BoxValue) ?? undefined} onChange={(v) => onChange(path, v)} />;
+        return wrap(<DimensionControl key={key} label={c.label} value={(val as BoxValue) ?? undefined} onChange={(v) => write(v)} />);
       case "slider":
-        return <SliderControl key={key} label={c.label} min={c.min} max={c.max} step={c.step} unit={c.unit} value={typeof val === "number" ? val : undefined} onChange={(v) => onChange(path, v)} />;
+        return wrap(<SliderControl key={key} label={c.label} min={c.min} max={c.max} step={c.step} unit={c.unit} value={typeof val === "number" ? val : undefined} onChange={(v) => write(v)} />);
       case "buttongroup":
-        return <ButtonGroupControl key={key} label={c.label} options={c.options} value={String(val ?? "")} onChange={(v) => onChange(path, v)} />;
+        return wrap(<ButtonGroupControl key={key} label={c.label} options={c.options} value={String(val ?? "")} onChange={(v) => write(v)} />);
       case "text": {
         const id = `sc-${c.key}`;
         return (
           <div key={key}>
             <label htmlFor={id} className={labelCls}>{c.label}</label>
-            <input id={id} className={inputCls} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange(path, e.target.value)} />
+            <input id={id} className={inputCls} value={String(raw ?? "")} placeholder={c.placeholder} onChange={(e) => onChange(path, e.target.value)} />
           </div>
         );
       }
@@ -44,12 +67,12 @@ export default function StyleRenderer({ controls, data, onChange }: { controls: 
         return (
           <div key={key}>
             <label htmlFor={id} className={labelCls}>{c.label}</label>
-            <textarea id={id} rows={5} className={`${inputCls} font-mono text-xs`} value={String(val ?? "")} placeholder={c.placeholder} onChange={(e) => onChange(path, e.target.value)} />
+            <textarea id={id} rows={5} className={`${inputCls} font-mono text-xs`} value={String(raw ?? "")} placeholder={c.placeholder} onChange={(e) => onChange(path, e.target.value)} />
           </div>
         );
       }
       case "toggle":
-        return <ToggleControl key={key} label={c.label} value={val === true} onChange={(v) => onChange(path, v)} />;
+        return <ToggleControl key={key} label={c.label} value={raw === true} onChange={(v) => onChange(path, v)} />;
       default: {
         const _exhaustive: never = c;
         return _exhaustive;
