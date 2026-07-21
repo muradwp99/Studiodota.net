@@ -1,4 +1,5 @@
 import type { Node, Responsive, Breakpoint } from "./types";
+import { resolveAt } from "./responsive";
 
 /** Pick the value for a breakpoint. A scalar applies only at base (the base rule cascades down). */
 export function resolveResponsive<T>(
@@ -43,12 +44,26 @@ function shadowOf(v: unknown): string | undefined {
   return typeof v === "string" && SHADOW_PRESETS[v] ? SHADOW_PRESETS[v] : undefined;
 }
 
-/** True when boxShadow resolves to a real preset (scalar or any breakpoint); "none"/unset do not force a box. */
-function hasShadow(v: unknown): boolean {
-  if (v && typeof v === "object") {
-    return Object.values(v as Record<string, unknown>).some((x) => Boolean(shadowOf(x)));
-  }
-  return Boolean(shadowOf(v));
+const ALIGN_CSS: Record<string, string> = { start: "flex-start", center: "center", end: "flex-end", stretch: "stretch" };
+const JUSTIFY_CSS: Record<string, string> = { start: "flex-start", center: "center", end: "flex-end", between: "space-between" };
+
+/** Base flex declarations for a container node ("" for non-containers). */
+function containerDecls(node: Node): string {
+  if (node.type !== "container") return "";
+  const p = node.props ?? {};
+  let css = "display:flex;";
+  css += decl("flex-direction", p.direction === "row" ? "row" : "column");
+  if (typeof p.gap === "number") css += decl("gap", `${p.gap}px`);
+  css += decl("align-items", ALIGN_CSS[String(p.align)] ?? "stretch");
+  css += decl("justify-content", JUSTIFY_CSS[String(p.justify)] ?? "flex-start");
+  css += decl("flex-wrap", p.wrap ? "wrap" : "nowrap");
+  return css;
+}
+
+/** Does this row container stack to a column below 767px? */
+function containerStacks(node: Node): boolean {
+  const p = node.props ?? {};
+  return node.type === "container" && p.direction === "row" && Boolean(p.stackOnMobile);
 }
 
 export function styleToCss(
@@ -123,22 +138,54 @@ function sanitizeCustomCss(css: string, sel: string): string {
   return css.replace(/\bselector\b/g, sel);
 }
 
-/** Full stylesheet fragment for one node, scoped to `.n-{id}`. Empty if nothing to style. */
-export function nodeCss(node: Node): string {
+/** Full stylesheet fragment for one node, scoped to `.n-{id}`. Empty if nothing to style.
+ *  opts.preview (editor): ONE flat rule resolved at that breakpoint — no media queries,
+ *  no hide-* rules (the editor badges hidden nodes instead).
+ *  opts.solidBox: never emit display:contents (flex items and the editor wrapper are real boxes). */
+export function nodeCss(node: Node, opts?: { preview?: Breakpoint; solidBox?: boolean }): string {
   const sel = `.n-${node.id}`;
   const style = (node.style ?? {}) as Record<string, unknown>;
   const advanced = (node.advanced ?? {}) as Record<string, unknown>;
   const parts: string[] = [];
-
-  const base = styleToCss(style, advanced, "base");
+  const cont = containerDecls(node);
   const hover = hoverToCss(style);
+
+  if (opts?.preview) {
+    const bps: Breakpoint[] =
+      opts.preview === "mobile" ? ["base", "tablet", "mobile"] : opts.preview === "tablet" ? ["base", "tablet"] : ["base"];
+    let flat = cont;
+    if (containerStacks(node) && opts.preview === "mobile") flat += "flex-direction:column;";
+    for (const b of bps) flat += styleToCss(style, advanced, b);
+    const rule = hover ? `transition:all ${transitionOf(style)};${flat}` : flat;
+    if (rule) parts.push(`${sel}{${rule}}`);
+    if (hover) parts.push(`${sel}:hover{${hover}}`);
+    const custom = typeof advanced.customCss === "string" ? advanced.customCss.trim() : "";
+    if (custom) parts.push(sanitizeCustomCss(custom, sel));
+    return parts.join("").replace(/<\/style/gi, "<\\/style");
+  }
+
+  // Per-breakpoint display decision (public render): contents at base unless boxed,
+  // reverting to a real box at the first breakpoint that needs one. Containers are
+  // always boxes; solidBox callers (flex items, the editor) opt out entirely.
+  // BARE nodes (no style/advanced bags) must stay "" so BlockRenderer keeps its
+  // no-wrapper Fragment path — byte-identity for untouched nodes.
+  const hasBags = Boolean(node.style || node.advanced);
+  let display = "";
+  if (!opts?.solidBox && node.type !== "container" && hasBags && !needsBoxAt(node, "base")) {
+    display = "display:contents;";
+    if (needsBoxAt(node, "tablet")) parts.push(`@media (max-width:1024px){${sel}{display:revert;}}`);
+    else if (needsBoxAt(node, "mobile")) parts.push(`@media (max-width:767px){${sel}{display:revert;}}`);
+  }
+
+  const base = display + cont + styleToCss(style, advanced, "base");
   const baseRule = hover ? `transition:all ${transitionOf(style)};${base}` : base;
-  if (baseRule) parts.push(`${sel}{${baseRule}}`);
+  if (baseRule) parts.unshift(`${sel}{${baseRule}}`);
   if (hover) parts.push(`${sel}:hover{${hover}}`);
 
   const tablet = styleToCss(style, advanced, "tablet");
   if (tablet) parts.push(`@media (max-width:1024px){${sel}{${tablet}}}`);
-  const mobile = styleToCss(style, advanced, "mobile");
+  const mobileExtra = containerStacks(node) ? "flex-direction:column;" : "";
+  const mobile = mobileExtra + styleToCss(style, advanced, "mobile");
   if (mobile) parts.push(`@media (max-width:767px){${sel}{${mobile}}}`);
 
   parts.push(...hideCss(sel, advanced));
@@ -146,8 +193,6 @@ export function nodeCss(node: Node): string {
   const custom = typeof advanced.customCss === "string" ? advanced.customCss.trim() : "";
   if (custom) parts.push(sanitizeCustomCss(custom, sel));
 
-  // Neutralize any `</style` in the assembled sheet (custom CSS or free-text style
-  // values) so it can't break out of the injected <style> tag.
   return parts.join("").replace(/<\/style/gi, "<\\/style");
 }
 
@@ -173,20 +218,26 @@ function hasVal(v: unknown): boolean {
   return true;
 }
 
-/**
- * Does this node need a real box, or can its wrapper be `display:contents`
- * (layout-transparent)? True when it has children or any box-generating style/
- * advanced property; false when only inheritable text styling (color/align) or
- * bare attributes (cssClasses/cssId) are set.
- */
-export function needsBox(node: Node): boolean {
+/** A key counts as boxed at a breakpoint using CASCADED values (base flows down). */
+function hasValAt(v: unknown, bp: Breakpoint): boolean {
+  return hasVal(resolveAt(v as Responsive<unknown>, bp));
+}
+
+/** needsBox evaluated at one breakpoint. Box-ness is monotonic (base cascades),
+ *  so needsBoxAt(base) ⇒ needsBoxAt(tablet) ⇒ needsBoxAt(mobile). */
+export function needsBoxAt(node: Node, bp: Breakpoint): boolean {
   if (node.children?.length) return true;
   const s = (node.style ?? {}) as Record<string, unknown>;
   const a = (node.advanced ?? {}) as Record<string, unknown>;
-  if (STYLE_BOX_KEYS.some((k) => hasVal(s[k]))) return true;
-  if (hasShadow(s.boxShadow)) return true;
-  if (ADV_BOX_KEYS.some((k) => hasVal(a[k]))) return true;
+  if (STYLE_BOX_KEYS.some((k) => hasValAt(s[k], bp))) return true;
+  if (shadowOf(resolveAt(s.boxShadow as Responsive<unknown>, bp))) return true;
+  if (ADV_BOX_KEYS.some((k) => hasValAt(a[k], bp))) return true;
   if (s.hover && typeof s.hover === "object") return true;
   if (typeof a.customCss === "string" && a.customCss.trim()) return true;
   return false;
+}
+
+/** Box needed at ANY breakpoint (mobile sees the full cascade — see monotonicity). */
+export function needsBox(node: Node): boolean {
+  return needsBoxAt(node, "mobile");
 }

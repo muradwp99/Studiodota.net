@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveResponsive, styleToCss, nodeCss, wrapperAttrs, needsBox } from "./css";
+import { resolveResponsive, styleToCss, nodeCss, wrapperAttrs, needsBox, needsBoxAt } from "./css";
 import type { Node } from "./types";
 
 describe("resolveResponsive", () => {
@@ -194,5 +194,100 @@ describe("needsBox", () => {
         expect(needsBox(n({ advanced: { [k]: val } }))).toBe(true);
       });
     }
+  });
+});
+
+describe("needsBoxAt / per-breakpoint display rules", () => {
+  const n = (over: Partial<Node>): Node => ({ id: "abc", type: "text", props: {}, ...over });
+
+  it("mobile-only box prop: no box at base, box at mobile", () => {
+    const node = n({ style: { backgroundColor: { mobile: "#000" } } });
+    expect(needsBoxAt(node, "base")).toBe(false);
+    expect(needsBoxAt(node, "tablet")).toBe(false);
+    expect(needsBoxAt(node, "mobile")).toBe(true);
+  });
+  it("base box prop cascades: box everywhere", () => {
+    const node = n({ style: { backgroundColor: "#000" } });
+    expect(needsBoxAt(node, "base")).toBe(true);
+    expect(needsBoxAt(node, "mobile")).toBe(true);
+  });
+  it("boxShadow 'none' never forces a box at any bp", () => {
+    expect(needsBoxAt(n({ style: { boxShadow: "none" } }), "mobile")).toBe(false);
+  });
+  it("emits display:contents + revert at the first boxed bp", () => {
+    const css = nodeCss(n({ style: { color: "#111", backgroundColor: { mobile: "#000" } } }));
+    expect(css).toContain("display:contents");
+    expect(css).toContain("@media (max-width:767px){.n-abc{display:revert;}}");
+  });
+  it("tablet-first box uses the tablet query", () => {
+    const css = nodeCss(n({ style: { color: "#111", backgroundColor: { tablet: "#000" } } }));
+    expect(css).toContain("@media (max-width:1024px){.n-abc{display:revert;}}");
+    expect(css).not.toContain("max-width:767px){.n-abc{display:revert");
+  });
+  it("box at base emits NO display rules (unchanged behavior)", () => {
+    const css = nodeCss(n({ style: { backgroundColor: "#000" } }));
+    expect(css).not.toContain("display:contents");
+    expect(css).not.toContain("display:revert");
+  });
+  it("solidBox suppresses display rules", () => {
+    const css = nodeCss(n({ style: { color: "#111" } }), { solidBox: true });
+    expect(css).not.toContain("display:contents");
+  });
+  it("inheritable-only style STILL emits display:contents (replaces the old inline style)", () => {
+    const css = nodeCss(n({ style: { color: "#111" } }));
+    expect(css).toContain("display:contents");
+  });
+});
+
+describe("container CSS + stackOnMobile", () => {
+  const c = (props: Record<string, unknown>, over: Partial<Node> = {}): Node =>
+    ({ id: "abc", type: "container", props, ...over });
+
+  it("emits flex layout from props in the base rule", () => {
+    const css = nodeCss(c({ direction: "row", gap: 24, align: "center", justify: "between", wrap: true }));
+    expect(css).toContain("display:flex;");
+    expect(css).toContain("flex-direction:row;");
+    expect(css).toContain("gap:24px;");
+    expect(css).toContain("align-items:center;");
+    expect(css).toContain("justify-content:space-between;");
+    expect(css).toContain("flex-wrap:wrap;");
+  });
+  it("stackOnMobile on a row emits the mobile column override", () => {
+    const css = nodeCss(c({ direction: "row", stackOnMobile: true }));
+    expect(css).toContain("@media (max-width:767px){.n-abc{flex-direction:column;}}");
+  });
+  it("stackOnMobile on a column emits no override", () => {
+    const css = nodeCss(c({ direction: "column", stackOnMobile: true }));
+    expect(css).not.toContain("flex-direction:column;}}"); // no media override needed
+  });
+  it("a container never emits display:contents (even when empty/un-styled)", () => {
+    expect(nodeCss(c({ direction: "row" }))).not.toContain("display:contents");
+  });
+});
+
+describe("nodeCss preview mode", () => {
+  const n = (over: Partial<Node>): Node => ({ id: "abc", type: "text", props: {}, ...over });
+
+  it("emits ONE flat rule resolved at the previewed bp (cascade order, later wins)", () => {
+    const css = nodeCss(n({ style: { fontSize: { base: 20, mobile: 14 } } }), { preview: "mobile", solidBox: true });
+    expect(css).toContain("font-size:20px;");           // base first…
+    expect(css).toContain("font-size:14px;");           // …mobile later in the SAME block (wins)
+    expect(css.indexOf("font-size:14px;")).toBeGreaterThan(css.indexOf("font-size:20px;"));
+    expect(css).not.toContain("@media");
+  });
+  it("desktop preview shows base only", () => {
+    const css = nodeCss(n({ style: { fontSize: { base: 20, mobile: 14 } } }), { preview: "base", solidBox: true });
+    expect(css).toContain("font-size:20px;");
+    expect(css).not.toContain("font-size:14px;");
+  });
+  it("preview suppresses hide-* display:none (editor shows a badge instead)", () => {
+    const css = nodeCss(n({ advanced: { hideMobile: true } }), { preview: "mobile", solidBox: true });
+    expect(css).not.toContain("display:none");
+  });
+  it("preview of a stackOnMobile row resolves to column at mobile", () => {
+    const css = nodeCss({ id: "abc", type: "container", props: { direction: "row", stackOnMobile: true } }, { preview: "mobile", solidBox: true });
+    expect(css).toContain("flex-direction:row;");
+    expect(css.indexOf("flex-direction:column;")).toBeGreaterThan(css.indexOf("flex-direction:row;"));
+    expect(css).not.toContain("@media");
   });
 });
