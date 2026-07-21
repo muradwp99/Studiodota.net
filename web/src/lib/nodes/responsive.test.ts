@@ -70,3 +70,20 @@ describe("hasSlot", () => {
     expect(hasSlot(undefined, "base")).toBe(false);
   });
 });
+
+describe("falsy values (0 and empty string)", () => {
+  it("an explicit 0 slot resolves as 0, not the parent value", () => {
+    expect(resolveAt({ base: 10, mobile: 0 }, "mobile")).toBe(0);
+    expect(resolveAt(0, "tablet")).toBe(0);
+  });
+  it("writeSlot preserves a scalar 0 as base", () => {
+    expect(writeSlot(0, "mobile", 4)).toEqual({ base: 0, mobile: 4 });
+  });
+  it("hasSlot: scalar 0 counts as base-set", () => {
+    expect(hasSlot(0, "base")).toBe(true);
+  });
+  it("a raw empty-string scalar resolves as unset", () => {
+    expect(resolveAt("", "base")).toBeUndefined();
+    expect(resolveAt("", "mobile")).toBeUndefined();
+  });
+});

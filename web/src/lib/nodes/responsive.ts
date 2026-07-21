@@ -21,7 +21,7 @@ export function resolveAt<T>(v: Responsive<T> | undefined, bp: Breakpoint): T | 
     if (bp === "tablet") return s.tablet ?? s.base;
     return s.base;
   }
-  return v as T; // a scalar applies from base and cascades everywhere
+  return (v as unknown) === "" ? undefined : (v as T); // a scalar applies from base and cascades everywhere ("" counts as unset)
 }
 
 export function writeSlot(cur: unknown, bp: Breakpoint, value: unknown): unknown {
