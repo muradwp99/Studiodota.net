@@ -24,12 +24,13 @@ export default function EditableNode({
   const on = ed.selectedId === node.id;
   const isContainer = node.type === "container";
   const css = nodeCss(node);
-  const { className } = wrapperAttrs(node);
+  const { className, id } = wrapperAttrs(node);
   const kids = node.children ?? [];
 
   return (
     <div
       className={`${className} relative outline-offset-[-2px] ${on ? "outline outline-2 outline-[var(--gold)]" : "hover:outline hover:outline-1 hover:outline-[var(--line-strong)]"}`}
+      id={id}
       data-node={node.id}
       style={containerFlexStyle(node)}
       role="button"
@@ -49,7 +50,7 @@ export default function EditableNode({
     >
       {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
 
-      {/* drag handle — visible on hover; drags this node for reorder/move */}
+      {/* drag handle — shown when this node is selected; drags this node for reorder/move */}
       {on && (
         <span
           draggable

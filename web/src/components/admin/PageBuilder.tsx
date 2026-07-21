@@ -30,6 +30,7 @@ const slugify = (s: string) =>
 const iconBtn =
   "grid h-9 w-9 place-items-center rounded-md text-lg text-[var(--bone)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-30";
 const iconBtnActive = "bg-[var(--gold)] text-[#17191c] hover:bg-[var(--gold-hi)]";
+const MAX_DEPTH = 6;
 
 export default function PageBuilder({
   id,
@@ -85,7 +86,12 @@ export default function PageBuilder({
     const bt = blockTypeFor(type);
     if (!bt) return;
     const block: PageBlock = { id: crypto.randomUUID(), type, props: structuredClone(bt.defaults) };
-    set("blocks", insertNode(page.blocks, target, block));
+    const next = insertNode(page.blocks, target, block);
+    if (treeDepth(next) > MAX_DEPTH) {
+      setState({ error: `Blocks can nest at most ${MAX_DEPTH} levels deep.` });
+      return;
+    }
+    set("blocks", next);
     selectBlock(block.id);
   };
 
@@ -114,7 +120,6 @@ export default function PageBuilder({
     setSettingsTab("page");
   };
 
-  const MAX_DEPTH = 6;
   const handleDrop = () => {
     const target = dropTarget;
     setDragId(null); setDragType(null); setDropTarget(null);
@@ -262,17 +267,31 @@ export default function PageBuilder({
             </div>
 
             {/* Blocks */}
-            <div className="mt-6 bg-[var(--ink)]">
+            <div
+              className="mt-6 bg-[var(--ink)]"
+              onDragOver={(e) => {
+                if (dragId === null && dragType === null) return;
+                e.preventDefault();
+                setDropTarget({ parentId: null, index: page.blocks.length });
+              }}
+              onDrop={(e) => { e.preventDefault(); handleDrop(); }}
+            >
               {page.blocks.length === 0 && (
-                <div className="m-4 px-8 py-16 text-center">
-                  <p className="text-sm text-[var(--muted)]">Empty page.</p>
-                  <button
-                    type="button"
-                    onClick={() => setInserterOpen(true)}
-                    className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#17191c] hover:bg-[var(--gold-hi)]"
-                  >
-                    + Add your first block
-                  </button>
+                <div className={`m-4 px-8 py-16 text-center ${dragId !== null || dragType !== null ? "rounded-lg border-2 border-dashed border-[var(--gold)] bg-[var(--surface-2)]" : ""}`}>
+                  {dragId !== null || dragType !== null ? (
+                    <p className="text-sm font-semibold text-[var(--gold-ink)]">Drop block here</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-[var(--muted)]">Empty page.</p>
+                      <button
+                        type="button"
+                        onClick={() => setInserterOpen(true)}
+                        className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#17191c] hover:bg-[var(--gold-hi)]"
+                      >
+                        + Add your first block
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
               <EditorContext.Provider
