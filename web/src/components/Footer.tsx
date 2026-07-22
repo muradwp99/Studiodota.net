@@ -53,7 +53,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
             <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
               {site.footerServices.map((s) => (
                 <li key={s}>
-                  <Link href="/services" className="hover:text-[var(--bone)]">{s}</Link>
+                  <Link href="#" className="hover:text-[var(--bone)]">{s}</Link>
                 </li>
               ))}
             </ul>
@@ -73,8 +73,8 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
         <div className="flex flex-col gap-4 border-t border-[var(--line)] py-8 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.name}. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-[var(--bone)]">Privacy Policy</Link>
-            <Link href="/privacy" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>
+            <Link href="#" className="hover:text-[var(--bone)]">Privacy Policy</Link>
+            <Link href="#" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>
           </div>
         </div>
       </div>
