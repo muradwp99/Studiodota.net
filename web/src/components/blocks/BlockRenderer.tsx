@@ -414,6 +414,8 @@ function renderNode(
   const editForNode: Edit = edit ? (path, value) => edit(node.id, path, value) : undefined;
   const inner = <Block block={node} ctx={ctx} edit={editForNode} />;
   const kids = node.children?.length ? node.children.map((c) => renderNode(c, ctx, edit, node.type === "container")) : null;
+  // solidBox for flex items: a container child must stay a real box — emitted
+  // display:contents would make flex layout dissolve it.
   const css = nodeCss(node, { solidBox: flexItem });
   const hasWrap = Boolean(css || kids || node.style || node.advanced);
 

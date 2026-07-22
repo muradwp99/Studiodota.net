@@ -23,6 +23,9 @@ export default function EditableNode({
   const ed = useEditor();
   const on = ed.selectedId === node.id;
   const isContainer = node.type === "container";
+  // solidBox: the editor wrapper anchors chrome (outline/toolbar/handle) and must
+  // never receive the emitted display:contents; preview resolves styles at the
+  // toggled device instead of media queries (which ignore a narrowed canvas).
   const css = nodeCss(node, { solidBox: true, preview: ed.device });
   const { className, id } = wrapperAttrs(node);
   const kids = node.children ?? [];
