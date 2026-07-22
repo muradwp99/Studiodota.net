@@ -4,7 +4,28 @@
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
 
-## Session update — 2026-07-21 (LATEST: editor bug fixes + NESTED CONTAINERS A3.2)
+## Session update — 2026-07-21 (LATEST 2: RESPONSIVE CONTROLS + DEVICE TOGGLE — A2.3 DONE)
+
+**Branch `feature/admin-v1-client-ready`, NOT pushed / NOT merged. `npx tsc --noEmit` clean; 124 Vitest tests pass.** A2.3 built spec→plan→execution. Mid-slice the user switched from subagent-driven to **inline (Fable) execution** — Task 4's subagent was cut off by a session limit AFTER committing (`f1bc78f`); the controller reviewed that diff directly, ran the gate, and finished Tasks 4–5 + final review inline. 7 commits: `89524ee..4248dcc`.
+- **Spec:** `docs/superpowers/specs/2026-07-21-responsive-controls-device-toggle-design.md` · **Plan:** `docs/superpowers/plans/2026-07-21-responsive-controls-device-toggle.md` · **Ledger:** `.superpowers/sdd/progress.md`
+
+### What shipped
+- **`web/src/lib/nodes/responsive.ts`** (18 tests): value-level slot helpers — `resolveAt` (CASCADED read: mobile??tablet??base; scalar everywhere; `""` = unset), `writeSlot` (lossless: non-base write on scalar → `{base:scalar,[bp]:v}`), `clearSlot` (collapse `{base:x}`→`x`), `hasSlot`.
+- **Engine (`css.ts`):** `needsBoxAt(node,bp)` (cascaded per-bp box decision; `needsBox` ≡ mobile via monotonicity); **container flex moved inline→generated CSS** (`containerDecls`; stylesheet can't beat inline — that's why) + **`stackOnMobile`** (row → `flex-direction:column` ≤767px); **display rules in CSS** (`display:contents` at base + `display:revert` media at first boxed bp — gated on `hasBags` so bare nodes stay `""`/Fragment-path byte-identical); **`nodeCss(node,{preview,solidBox})`** — preview = ONE flat rule in cascade order (later duplicate declarations win), no media/hide rules; `solidBox` suppresses contents (flex items + editor wrapper — LOAD-BEARING, now commented at both call sites).
+- **Renderer:** `nodeWrapperStyle`/`containerFlexStyle` deleted; wrapper divs carry NO inline style (public passes `solidBox:flexItem`; editor `solidBox:true, preview:device`).
+- **Editor:** Desktop/Tablet/Mobile segmented toggle in the header; canvas 1100/1024/390px; `EditorApi.device`; dimmed **"Hidden on <device>" badge** for hide-toggles at the previewed device; **StyleRenderer device-aware** for color/slider/dimension/buttongroup with non-dotted keys (read `resolveAt`, write `writeSlot`, empty→`clearSlot`, gold override dot + × clear at non-base; `hover.*`/text/textarea/toggle stay base-only); container gets **"Stack on mobile"** (default ON for new).
+- **Browser-verified** (temp route, clean restart, deleted): toggle+widths; row stacks at Mobile; base-20/mobile-14 font-size with inherited display + computed both ways; dot + clear-collapse; hidden badge; DnD regression; zero console errors.
+
+### Final review (inline) — Minor triage
+FIXED: solidBox invariant comments (`4248dcc`). ACCEPTED: tablet-first box emits revert + tablet styles as two separate 1024px media blocks (cosmetic); hand-authored `{base:x, mobile:""}` would read un-boxed at mobile (unreachable via editor — `clearSlot` deletes keys; note for a future normalize pass); override-wrapper remount on dot appear/disappear (controlled inputs, harmless).
+
+### ⚠️ CLIENT SPOT-CHECK (agent cannot log in) — now covers A2.2 + A3.2 + A2.3
+Clean restart (`rm -rf web/.next` → `npm run dev`) then in the real admin: device toggle ↔ set a font-size/padding only at Mobile ↔ dot + clear; container "Stack on mobile"; **publish and view the page at a narrow browser width — the REAL media queries are the one thing the editor preview can't prove.**
+
+### Known limitations (by design this slice)
+Preview is resolved-flat (author media queries in Custom CSS won't fire in the narrow canvas); pre-A2.3 saved containers behave as stackOnMobile:false until edited; breakpoints fixed at 1024/767.
+
+## Session update — 2026-07-21 (editor bug fixes + NESTED CONTAINERS A3.2)
 
 **Branch `feature/admin-v1-client-ready`, 56 commits ahead of `master`, NOT pushed / NOT merged (kept as-is). `npx tsc --noEmit` clean; 90 Vitest tests pass (95 − 5 pruned dnd tests).** Two threads: (1) diagnosed the client's "inspector edits not working / elements look odd" report; (2) built **A3.2 nested containers** (subagent-driven, per-task reviews + opus final review + fix wave).
 
