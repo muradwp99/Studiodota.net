@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import SplitReveal from "@/components/SplitReveal";
@@ -14,9 +13,6 @@ import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
 import type { BlockData } from "@/content/defaults";
-
-/* Three.js ambient lattice — client-only, loaded lazily so three never blocks LCP. */
-const GeometryField = dynamic(() => import("@/components/GeometryField"), { ssr: false });
 
 /* All homepage content arrives as props (CMS blocks) — see app/(site)/page.tsx. */
 export type HomeData = {
@@ -88,13 +84,33 @@ function CountUp({ end, prefix = "", suffix = "", duration = 1600 }: { end: numb
 }
 
 /* ---------------- About ---------------- */
-function About({ d }: { d: HomeData["about"] }) {
+function About({ d, chips }: { d: HomeData["about"]; chips: { image: string; title: string }[] }) {
+  // Manifesto with inline image chips: the statement leads, the architecture
+  // stays present INSIDE the sentence (small photo pills between words).
+  const words = d.title.split(/\s+/).filter(Boolean);
+  const chipAfter: Record<number, number> =
+    words.length >= 4 && chips.length >= 2
+      ? { [Math.ceil(words.length / 3) - 1]: 0, [words.length - 2]: 1 }
+      : {};
   return (
     <section className="section pattern-dots" id="about">
       <div className="shell">
-        {/* Manifesto: the statement IS the section — LARGO-scale type, full width. */}
         <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
-        <SplitReveal text={d.title} tag="h2" className="display-2xl mt-10" />
+        <Reveal delay={60}>
+          <h2 className="display-2xl mt-10 max-w-[26ch]">
+            {words.map((w, i) => (
+              <span key={i}>
+                {i > 0 ? " " : null}
+                {w}
+                {chipAfter[i] !== undefined && chips[chipAfter[i]] ? (
+                  <span className="relative mx-[0.14em] inline-block h-[0.72em] w-[1.7em] overflow-hidden rounded-full align-[-0.08em]">
+                    <Image src={chips[chipAfter[i]].image} alt={chips[chipAfter[i]].title} fill sizes="140px" className="object-cover" />
+                  </span>
+                ) : null}
+              </span>
+            ))}
+          </h2>
+        </Reveal>
         <div className="mt-14 grid gap-x-16 gap-y-8 lg:grid-cols-[0.85fr_1.15fr]">
           <Reveal><CTA href="/about" label={d.ctaLabel} variant="ghost" /></Reveal>
           <Reveal delay={120}>
@@ -141,19 +157,23 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
         </Reveal>
       </div>
 
-      {/* The service names are the primary read — giant list rows, LARGO-style. */}
+      {/* Service names lead the section; each row keeps the work visible beside it. */}
       <div className="shell mt-12">
         {d.items.map((s, i) => (
-          <Link
-            key={s.title}
-            href="/services"
-            className="group grid grid-cols-[auto_1fr] items-baseline gap-x-5 border-t border-[var(--line-strong)] py-6 md:py-8"
-          >
-            <span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{String(i + 1).padStart(2, "0")}</span>
-            <span className="display-index block transition-[transform,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-3 group-hover:text-[var(--gold-ink)]">
-              <SplitReveal text={s.title} tag="span" className="block" />
-            </span>
-          </Link>
+          <Reveal key={s.title} delay={i * 60}>
+            <Link
+              href="/services"
+              className="group grid grid-cols-[1fr_auto] items-center gap-x-6 border-t border-[var(--line-strong)] py-5 md:py-7"
+            >
+              <span>
+                <span className="display-index block text-[var(--bone)] transition-colors duration-500 group-hover:text-[var(--gold-ink)]">{s.title}</span>
+                <span className="mt-1.5 hidden max-w-[52ch] text-sm text-[var(--muted)] sm:block">{s.sub}</span>
+              </span>
+              <span className="relative hidden h-16 w-28 shrink-0 overflow-hidden rounded-lg sm:block md:h-20 md:w-36">
+                <Image src={s.image} alt="" fill sizes="144px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105" />
+              </span>
+            </Link>
+          </Reveal>
         ))}
         <div className="border-t border-[var(--line-strong)]" />
       </div>
@@ -257,42 +277,18 @@ function StatDarkCard({ end, suffix, label }: { end: number; suffix: string; lab
 function Featured({ d }: { d: HomeData["featured"] }) {
   return (
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,11vw,9rem)]" style={{ color: "var(--on-media)" }}>
-      {/* Ambient architectural lattice behind the type — the section's only "image" at rest. */}
-      <GeometryField className="absolute inset-0 z-0" opacity={0.15} />
-      <div className="shell relative z-10">
+      <div className="shell">
         <Reveal><span className="font-mono text-xs tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>{d.kicker}</span></Reveal>
         <SplitReveal text={`${d.title} ${d.titleMuted}`} tag="h2" className="display-2xl mt-8" />
       </div>
-      {/* Projects as their names — photography appears on hover, not at rest. */}
-      <div className="shell relative z-10 mt-14">
+      {/* Names lead; the work stays visible in a persistent preview panel. */}
+      <div className="shell mt-14">
         <ProjectIndex items={d.items} linkLabel={d.linkLabel} />
       </div>
     </section>
   );
 }
 
-/* ---------------- Kinetic word band ---------------- */
-function KineticBand() {
-  const words = ["LIVING", "PLAYING", "WORKING"];
-  const row = [...words, ...words, ...words];
-  return (
-    <section aria-hidden="true" data-nav-tone="dark" className="overflow-hidden bg-[#111315] pb-[clamp(3rem,7vw,6rem)]">
-      <div className="marquee-wrap" style={{ "--marquee-dur": "70s" } as React.CSSProperties}>
-        <div className="marquee-track">
-          {[...row, ...row].map((w, i) => (
-            <span
-              key={i}
-              className="display-index mx-5 shrink-0 whitespace-nowrap"
-              style={{ color: i % 3 === 1 ? "var(--gold-media)" : "rgba(246,245,242,0.22)" }}
-            >
-              {w} <span className="mx-4">—</span>
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ---------------- Showreel ---------------- */
 function Showreel({ d }: { d: HomeData["showreel"] }) {
@@ -718,7 +714,6 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
         <ParallaxImage src={d.image} alt="" sizes="100vw" range={7} className="h-full w-full" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(112deg, rgba(9,10,12,0.93) 10%, rgba(9,10,12,0.6) 52%, rgba(9,10,12,0.84) 100%)" }} aria-hidden="true" />
       </div>
-      <GeometryField className="absolute inset-0 z-[1]" opacity={0.12} />
       <div className="shell relative z-10 py-[clamp(6rem,14vw,11rem)]" style={{ color: "var(--on-media)" }}>
         <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span></Reveal>
         {/* The headline is the CTA — one giant interactive line. */}
@@ -782,11 +777,10 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
 export default function Sections({ data, posts, contact }: { data: HomeData; posts: JournalCard[]; contact: { email: string; phone: string } }) {
   return (
     <>
-      <About d={data.about} />
+      <About d={data.about} chips={data.featured.items.slice(0, 2)} />
       <ServicesSlider d={data.services} />
       <WhyChoose d={data.whyChoose} />
       <Featured d={data.featured} />
-      <KineticBand />
       <Showreel d={data.showreel} />
       <Process d={data.process} />
       <Timeline d={data.timeline} />
