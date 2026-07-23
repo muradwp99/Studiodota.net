@@ -1,5 +1,15 @@
 # Studiodota.net — Session Handoff
 
+## Session update — 2026-07-22 (TYPE-LED HOMEPAGE REDESIGN — client's largo.studio direction)
+
+**Commit `c685790` on `feature/admin-v1-client-ready` (unpushed). tsc/lint/tests clean; browser-verified 1440+390.** Client email: highlight text/wording over images, ref https://largo.studio/. Full measured trace of that site + the design in `docs/superpowers/specs/2026-07-22-type-led-redesign-design.md` (spec `0b3680d`, plan `c155d57`).
+- **Trace essentials:** statements 186–189px (13vw) / lh 0.77–1.0 / −7% tracking; projects index = names at 110px + tiny meta rows (no image cards at rest); split-word ghost-rise reveals (y+200, no mask); 312 scroll-bound elements; their "geometry" = a 2D-canvas logo module bg (NO three.js on their site).
+- **Built:** `.display-2xl` (12.5vw, lh 0.86, −4.5%) + `.display-index` tokens; **`SplitReveal.tsx`** (per-word ghost-rise, hydration-safe split, reduced-motion static); About → full-width manifesto; Services → giant name rows; **Featured → typographic project index** (`ProjectIndex.tsx`: names + location·year, cursor-following image card on hover [gsap quickTo], inline thumbs <md, giant "View all projects" closer); KineticBand marquee (LIVING/PLAYING/WORKING); FinalCTA headline = giant link to /contact; **`GeometryField.tsx`** = lazy R3F wireframe plan-lattice behind Featured + CTA (dpr≤1.5, IO pause, pointer parallax, reduced-motion static). FeaturedCard/QuoteMark deleted (dead). CMS blocks untouched — all copy still admin-editable.
+- **⚠️ TESTING GOTCHA discovered:** `SmoothScroll` wires `lenis.on("scroll", ScrollTrigger.update)` — programmatic `scrollTo`/`scrollIntoView` jumps produce NO ST ticks, so enter-reveals don't fire under scripted jumps (looks broken in automation; fine for real users). To test reveals headlessly: jump ABOVE the section, then dispatch stepped `WheelEvent`s (Lenis smooths → ticks fire). Verified: all reveals fire under wheel-driven scroll.
+- **Tuning knobs** (if the client wants it louder/quieter): clamp mid terms in `.display-2xl`/`.display-index` (globals.css), lattice `opacity` props in Sections.tsx (0.15/0.12), marquee `--marquee-dur` (70s), SplitReveal stagger (0.06).
+- **Next (phase 2, on client sign-off):** inner pages (services/about statements), possible type-led hero variant, overlay-nav + page transitions (LARGO's canvas-mask move).
+
+
 > Read this first to continue work in a fresh session. Full detail also in
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
