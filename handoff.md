@@ -1,5 +1,11 @@
 # Studiodota.net — Session Handoff
 
+## Session update — 2026-07-22 (LATEST: type-led v2 — "type frames the architecture", commit `2f77fd8`)
+
+**User rejected v1 (`c685790`).** Studied v1 against gpt-taste / design-taste-frontend / high-end-visual-design / hallmark / impeccable (all installed as skills; impeccable context: root PRODUCT.md register=brand). **Diagnosis of v1:** editorial-typographic specimen lane (a reflex-reject lane) on an image-led architecture brief — imagery removed at rest; 192px display over the ~96px "shouting" ceiling; −0.055em under the −0.04em tracking floor; ghost-rise repeated across 4 sections; 3rd marquee; unmotivated three.js lattice; banned mono `01/02` meta-labels.
+**v2 keeps the client's text-led ask but photography stays present:** display-2xl capped `clamp(2.8rem,6.5vw,7rem)` lh .98 ls −.035em; About = manifesto with **inline photo chips inside the headline** (chips fed from `featured.items[0..1]` — no schema change); Services rows = name + sub + right-edge thumbnail (no numbers); Featured = ProjectIndex v2 with **persistent sticky preview panel** (crossfade per hovered/FOCUSED row; first project at rest; inline thumbs <lg) — cursor-chasing card removed; KineticBand + GeometryField **deleted**; CTA giant line stays (now ≤7rem). SplitReveal survives (Featured heading + CTA only). Browser-verified 1440/390 (values in commit msg). Magnific: **out of credits** (only 1 hero reference generated: magnific.com/app/creation/TecEXIaVNR — top up for the full set). Client review next; if she wants louder, raise clamp mid toward 8vw, NOT past the 7rem cap.
+
+
 ## Session update — 2026-07-22 (TYPE-LED HOMEPAGE REDESIGN — client's largo.studio direction)
 
 **Commit `c685790` on `feature/admin-v1-client-ready` (unpushed). tsc/lint/tests clean; browser-verified 1440+390.** Client email: highlight text/wording over images, ref https://largo.studio/. Full measured trace of that site + the design in `docs/superpowers/specs/2026-07-22-type-led-redesign-design.md` (spec `0b3680d`, plan `c155d57`).
