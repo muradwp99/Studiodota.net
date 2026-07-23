@@ -3,15 +3,20 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
-import ScrollHighlightText from "@/components/ScrollHighlightText";
+import SplitReveal from "@/components/SplitReveal";
+import ProjectIndex from "@/components/home/ProjectIndex";
 import ImageMaskText from "@/components/ImageMaskText";
 import VideoPlayer from "@/components/VideoPlayer";
 import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
 import type { BlockData } from "@/content/defaults";
+
+/* Three.js ambient lattice — client-only, loaded lazily so three never blocks LCP. */
+const GeometryField = dynamic(() => import("@/components/GeometryField"), { ssr: false });
 
 /* All homepage content arrives as props (CMS blocks) — see app/(site)/page.tsx. */
 export type HomeData = {
@@ -87,14 +92,13 @@ function About({ d }: { d: HomeData["about"] }) {
   return (
     <section className="section pattern-dots" id="about">
       <div className="shell">
-        <div className="grid gap-12 lg:grid-cols-2">
-          <div>
-            <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
-            <h2 className="display-l mt-10 max-w-[16ch]"><ScrollHighlightText text={d.title} /></h2>
-            <Reveal delay={130}><CTA href="/about" label={d.ctaLabel} variant="ghost" /></Reveal>
-          </div>
+        {/* Manifesto: the statement IS the section — LARGO-scale type, full width. */}
+        <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
+        <SplitReveal text={d.title} tag="h2" className="display-2xl mt-10" />
+        <div className="mt-14 grid gap-x-16 gap-y-8 lg:grid-cols-[0.85fr_1.15fr]">
+          <Reveal><CTA href="/about" label={d.ctaLabel} variant="ghost" /></Reveal>
           <Reveal delay={120}>
-            <div className="space-y-6 text-[var(--bone-dim)] lg:pt-2">
+            <div className="max-w-[64ch] space-y-6 text-[var(--bone-dim)]">
               <p>{d.paragraph1}</p>
               <p>{d.paragraph2}</p>
             </div>
@@ -137,8 +141,25 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
         </Reveal>
       </div>
 
-      {/* Big cards drift left as the section scrolls through the viewport. */}
-      <div data-nav-tone="dark" className="mt-10">
+      {/* The service names are the primary read — giant list rows, LARGO-style. */}
+      <div className="shell mt-12">
+        {d.items.map((s, i) => (
+          <Link
+            key={s.title}
+            href="/services"
+            className="group grid grid-cols-[auto_1fr] items-baseline gap-x-5 border-t border-[var(--line-strong)] py-6 md:py-8"
+          >
+            <span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{String(i + 1).padStart(2, "0")}</span>
+            <span className="display-index block transition-[transform,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-3 group-hover:text-[var(--gold-ink)]">
+              <SplitReveal text={s.title} tag="span" className="block" />
+            </span>
+          </Link>
+        ))}
+        <div className="border-t border-[var(--line-strong)]" />
+      </div>
+
+      {/* The detail carousel — big cards drift left as the section scrolls through. */}
+      <div data-nav-tone="dark" className="mt-14">
         <ParallaxX direction="left" className="px-[var(--edge)]" trackClassName="gap-5">
           {d.items.map((s, i) => (
             <article
@@ -232,79 +253,42 @@ function StatDarkCard({ end, suffix, label }: { end: number; suffix: string; lab
   );
 }
 
-/* ---------------- Featured: Inside, Outside (editorial project cards) ---------------- */
-function QuoteMark({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 46 34" fill="currentColor" aria-hidden="true" className={className}>
-      <path d="M12 0h9l-3 9h-9L12 0Z" />
-      <path d="M33 0h9l-3 9h-9L33 0Z" />
-      <path d="M7.7 13h9l-7 21h-9l7-21Z" />
-      <path d="M28.7 13h9l-7 21h-9l7-21Z" />
-    </svg>
-  );
-}
-
-function FeaturedCard({ p }: { p: HomeData["featured"]["items"][number] }) {
-  return (
-    <article
-      className="group grid shrink-0 grid-cols-2 overflow-hidden rounded-lg"
-      style={{ width: "min(88vw, 660px)", background: "#f7f6f3", color: "#17191c" }}
-    >
-      <div className="flex min-h-[320px] flex-col justify-between gap-10 p-7 md:min-h-[420px] md:p-9">
-        <QuoteMark className="h-8 w-auto self-start" />
-        <div>
-          <h3 className="max-w-[14ch] text-[1.5rem] font-medium leading-[1.12] tracking-[-0.015em] md:text-[1.9rem]">{p.title}</h3>
-          <div className="mt-3 text-sm" style={{ color: "#6b7178" }}>{p.location} / {p.year}</div>
-          <Link
-            href={`/projects/${p.slug}`}
-            className="mt-8 inline-flex items-center gap-2.5 rounded-full border border-[rgba(23,25,28,0.28)] py-2 pl-2.5 pr-5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#17191c] hover:bg-[#17191c] hover:text-[#f7f6f3]"
-          >
-            <span className="grid h-6 w-6 place-items-center rounded-full border border-current text-[0.7rem]" aria-hidden="true">→</span>
-            View Details
-          </Link>
-        </div>
-      </div>
-      <div className="relative min-h-full overflow-hidden">
-        <Image
-          src={p.image}
-          alt={p.title}
-          fill
-          sizes="(max-width:768px) 44vw, 330px"
-          className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07]"
-        />
-      </div>
-    </article>
-  );
-}
-
+/* ---------------- Featured: Inside, Outside (typographic project index) ---------------- */
 function Featured({ d }: { d: HomeData["featured"] }) {
-  const items = d.items;
-  const half = Math.ceil(items.length / 2);
-  const rowA = items.slice(0, half);
-  const rowB = items.slice(half);
   return (
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,11vw,9rem)]" style={{ color: "var(--on-media)" }}>
-      <div className="shell">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <Reveal><span className="font-mono text-xs tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>{d.kicker}</span></Reveal>
-            <Reveal delay={70}><h2 className="display-l mt-6">{d.title} <span style={{ color: "rgba(246,245,242,0.45)" }}>{d.titleMuted}</span></h2></Reveal>
-          </div>
-          <Reveal delay={130}>
-            <Link href="/projects" className="link-underline hidden text-sm font-semibold sm:inline-block" style={{ color: "var(--gold-media)" }}>{d.linkLabel}</Link>
-          </Reveal>
-        </div>
+      {/* Ambient architectural lattice behind the type — the section's only "image" at rest. */}
+      <GeometryField className="absolute inset-0 z-0" opacity={0.15} />
+      <div className="shell relative z-10">
+        <Reveal><span className="font-mono text-xs tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>{d.kicker}</span></Reveal>
+        <SplitReveal text={`${d.title} ${d.titleMuted}`} tag="h2" className="display-2xl mt-8" />
       </div>
-      {/* Two rows drift in opposite directions as the section scrolls through. */}
-      <div className="mt-14 space-y-6">
-        <ParallaxX direction="left" className="px-[var(--edge)]" trackClassName="gap-6">
-          {rowA.map((p, i) => <FeaturedCard key={p.slug + i} p={p} />)}
-        </ParallaxX>
-        {rowB.length > 0 && (
-          <ParallaxX direction="right" className="px-[var(--edge)]" trackClassName="gap-6">
-            {rowB.map((p, i) => <FeaturedCard key={p.slug + i} p={p} />)}
-          </ParallaxX>
-        )}
+      {/* Projects as their names — photography appears on hover, not at rest. */}
+      <div className="shell relative z-10 mt-14">
+        <ProjectIndex items={d.items} linkLabel={d.linkLabel} />
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Kinetic word band ---------------- */
+function KineticBand() {
+  const words = ["LIVING", "PLAYING", "WORKING"];
+  const row = [...words, ...words, ...words];
+  return (
+    <section aria-hidden="true" data-nav-tone="dark" className="overflow-hidden bg-[#111315] pb-[clamp(3rem,7vw,6rem)]">
+      <div className="marquee-wrap" style={{ "--marquee-dur": "70s" } as React.CSSProperties}>
+        <div className="marquee-track">
+          {[...row, ...row].map((w, i) => (
+            <span
+              key={i}
+              className="display-index mx-5 shrink-0 whitespace-nowrap"
+              style={{ color: i % 3 === 1 ? "var(--gold-media)" : "rgba(246,245,242,0.22)" }}
+            >
+              {w} <span className="mx-4">—</span>
+            </span>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -734,14 +718,19 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
         <ParallaxImage src={d.image} alt="" sizes="100vw" range={7} className="h-full w-full" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(112deg, rgba(9,10,12,0.93) 10%, rgba(9,10,12,0.6) 52%, rgba(9,10,12,0.84) 100%)" }} aria-hidden="true" />
       </div>
-      <div className="shell relative z-10 grid items-center gap-14 py-[clamp(6rem,14vw,11rem)] lg:grid-cols-[1.05fr_0.95fr] lg:gap-20" style={{ color: "var(--on-media)" }}>
+      <GeometryField className="absolute inset-0 z-[1]" opacity={0.12} />
+      <div className="shell relative z-10 py-[clamp(6rem,14vw,11rem)]" style={{ color: "var(--on-media)" }}>
+        <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span></Reveal>
+        {/* The headline is the CTA — one giant interactive line. */}
+        <Link href="/contact" className="group mt-6 block w-fit max-w-full">
+          <SplitReveal text={d.title} tag="span" className="display-2xl block transition-colors duration-500 group-hover:text-[var(--gold-media)]" />
+        </Link>
+        <div className="mt-16 grid items-start gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
         <div>
-          <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span></Reveal>
-          <Reveal delay={70}><h2 className="display-l mt-6 max-w-[13ch]">{d.title}</h2></Reveal>
-          <Reveal delay={130}>
-            <p className="mt-6 max-w-[44ch]" style={{ color: "var(--on-media-dim)" }}>{d.body}</p>
+          <Reveal delay={90}>
+            <p className="max-w-[44ch]" style={{ color: "var(--on-media-dim)" }}>{d.body}</p>
           </Reveal>
-          <Reveal delay={190}>
+          <Reveal delay={160}>
             <div className="mt-10 space-y-2 text-lg">
               <a href={`mailto:${contact.email}`} className="link-underline block w-max font-semibold">{contact.email}</a>
               <a href={`tel:${contact.phone.replace(/\s/g, "")}`} className="link-underline block w-max" style={{ color: "var(--on-media-dim)" }}>{contact.phone}</a>
@@ -784,6 +773,7 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
             )}
           </div>
         </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -796,6 +786,7 @@ export default function Sections({ data, posts, contact }: { data: HomeData; pos
       <ServicesSlider d={data.services} />
       <WhyChoose d={data.whyChoose} />
       <Featured d={data.featured} />
+      <KineticBand />
       <Showreel d={data.showreel} />
       <Process d={data.process} />
       <Timeline d={data.timeline} />

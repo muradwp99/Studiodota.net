@@ -119,6 +119,26 @@ html.lenis body {
 }
 
 /* ---------- Typography ---------- */
+/* LARGO-scale display: statements set at ~12.5vw, tight leading, medium weight —
+   scale carries the impact, not boldness. */
+.display-2xl {
+  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.86;
+  font-size: clamp(3.2rem, 12.5vw, 12rem);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+/* Typographic project-index rows — names do the work images used to. */
+.display-index {
+  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  font-size: clamp(2.1rem, 7vw, 7rem);
+  overflow-wrap: anywhere;
+}
 .display-xl {
   font-family: var(--font-gilroy), system-ui, sans-serif;
   font-weight: 800;
