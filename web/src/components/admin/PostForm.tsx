@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePost, deletePost, type ActionState } from "@/lib/actions/collections";
 import MediaPicker from "@/components/admin/MediaPicker";
+import SeoPanel from "@/components/admin/SeoPanel";
+import type { SeoBlob } from "@/lib/seoScore";
 import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
 
 export type PostSectionInput = { id: string; heading: string; body: string[] };
@@ -21,6 +23,7 @@ export type PostInput = {
   intro: string;
   sections: PostSectionInput[];
   published: boolean;
+  seo: SeoBlob;
 };
 
 const slugify = (s: string) =>
@@ -82,7 +85,7 @@ export default function PostForm({ id, initial, categories = [] }: { id: string 
 
   return (
     <div className="space-y-5 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="title" className={labelCls}>Title</label>
           <input
@@ -141,7 +144,7 @@ export default function PostForm({ id, initial, categories = [] }: { id: string 
           </label>
         </div>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="authorName" className={labelCls}>Author name</label>
           <input id="authorName" className={inputCls} value={data.authorName} onChange={(e) => set("authorName", e.target.value)} />
@@ -183,6 +186,20 @@ export default function PostForm({ id, initial, categories = [] }: { id: string 
         </div>
       </fieldset>
 
+      <div>
+        <span className={labelCls}>SEO</span>
+        <SeoPanel
+          value={data.seo}
+          onChange={(seo) => set("seo", seo)}
+          ctx={{
+            baseTitle: data.title,
+            slug: data.slug,
+            content: [data.intro, ...data.sections.flatMap((s) => [s.heading, ...s.body])].join(" "),
+            path: data.slug ? `/journal/${data.slug}` : undefined,
+            fallbackImage: data.image,
+          }}
+        />
+      </div>
       <Notice state={state} />
       <div className="flex items-center justify-between gap-4 border-t border-[var(--line)] pt-5">
         <button type="button" onClick={save} disabled={pending} className={btnPrimaryCls}>

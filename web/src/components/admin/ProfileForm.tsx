@@ -33,7 +33,7 @@ export default function ProfileForm({ initial }: { initial: { name: string; emai
   };
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       <section className="space-y-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
         <h2 className="text-sm font-bold">Profile</h2>
         <div>

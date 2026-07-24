@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { sanitizeSeo } from "@/lib/seoScore";
 
 export type ActionState = { ok?: boolean; error?: string; savedAt?: number };
 
@@ -17,15 +19,22 @@ const projectSchema = z.object({
   slug,
   title: z.string().trim().min(1).max(160),
   summary: z.string().trim().min(1).max(1200),
-  category: z.enum(["residential", "commercial", "institutional", "masterplan"]),
+  category: z.enum([
+    "single-family", "multifamily", "affordable-housing", "mixed-use",
+    "commercial", "office", "senior-living",
+    // legacy values kept so older rows still validate
+    "residential", "institutional", "masterplan",
+  ]),
   sector: z.string().trim().min(1).max(80),
   location: z.string().trim().max(120).default(""),
-  year: z.string().trim().min(2).max(12),
+  year: z.string().trim().max(12).default(""),
   services: z.array(z.string().trim().min(1).max(60)).max(8),
   heroImage: imagePath.refine((v) => v !== "", "Hero image is required"),
   interiorImage: imagePath.default(""),
+  gallery: z.array(imagePath).max(24).default([]),
   published: z.boolean().default(true),
   sort: z.number().int().min(-1000).max(1000).default(0),
+  seo: z.unknown().transform((v) => sanitizeSeo(v)),
 });
 
 function fieldErrors(err: z.ZodError): string {
@@ -40,9 +49,9 @@ export async function saveProject(id: string | null, data: unknown): Promise<Act
     const clash = await db.project.findUnique({ where: { slug: parsed.data.slug } });
     if (clash && clash.id !== id) return { error: `Slug "${parsed.data.slug}" is already used by "${clash.title}".` };
     if (id) {
-      await db.project.update({ where: { id }, data: parsed.data });
+      await db.project.update({ where: { id }, data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     } else {
-      await db.project.create({ data: parsed.data });
+      await db.project.create({ data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     }
     revalidatePath("/", "layout");
     return { ok: true, savedAt: Date.now() };
@@ -54,7 +63,7 @@ export async function saveProject(id: string | null, data: unknown): Promise<Act
 
 export async function deleteProject(id: string): Promise<void> {
   await requireAdmin();
-  await db.project.delete({ where: { id } });
+  await db.project.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/", "layout");
   redirect("/admin/projects");
 }
@@ -84,6 +93,7 @@ const postSchema = z.object({
     .min(1)
     .max(14),
   published: z.boolean().default(true),
+  seo: z.unknown().transform((v) => sanitizeSeo(v)),
 });
 
 export async function savePost(id: string | null, data: unknown): Promise<ActionState> {
@@ -94,9 +104,9 @@ export async function savePost(id: string | null, data: unknown): Promise<Action
     const clash = await db.post.findUnique({ where: { slug: parsed.data.slug } });
     if (clash && clash.id !== id) return { error: `Slug "${parsed.data.slug}" is already used by "${clash.title}".` };
     if (id) {
-      await db.post.update({ where: { id }, data: parsed.data });
+      await db.post.update({ where: { id }, data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     } else {
-      await db.post.create({ data: parsed.data });
+      await db.post.create({ data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     }
     revalidatePath("/", "layout");
     return { ok: true, savedAt: Date.now() };
@@ -108,7 +118,7 @@ export async function savePost(id: string | null, data: unknown): Promise<Action
 
 export async function deletePost(id: string): Promise<void> {
   await requireAdmin();
-  await db.post.delete({ where: { id } });
+  await db.post.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/", "layout");
   redirect("/admin/posts");
 }
@@ -148,11 +158,11 @@ export async function saveGalleryItem(id: string | null, data: unknown): Promise
 export async function deleteGalleryItem(id: string): Promise<ActionState> {
   await requireAdmin();
   try {
-    await db.galleryItem.delete({ where: { id } });
+    await db.galleryItem.update({ where: { id }, data: { deletedAt: new Date() } });
     revalidatePath("/", "layout");
     return { ok: true };
   } catch {
-    return { error: "Could not delete the item." };
+    return { error: "Could not move the item to Trash." };
   }
 }
 
@@ -172,10 +182,10 @@ export async function setMessageRead(id: string, read: boolean): Promise<ActionS
 export async function deleteMessage(id: string): Promise<ActionState> {
   await requireAdmin();
   try {
-    await db.contactMessage.delete({ where: { id } });
+    await db.contactMessage.update({ where: { id }, data: { deletedAt: new Date() } });
     revalidatePath("/admin/messages");
     return { ok: true };
   } catch {
-    return { error: "Could not delete the message." };
+    return { error: "Could not move the message to Trash." };
   }
 }

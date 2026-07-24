@@ -1,6 +1,7 @@
 "use client";
 
 import Reveal from "@/components/Reveal";
+import LineMask from "@/components/motion/LineMask";
 import { ParallaxImage } from "@/components/Parallax";
 
 /**
@@ -35,9 +36,7 @@ export default function PageHero({
         <Reveal>
           <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{eyebrow}</span>
         </Reveal>
-        <Reveal delay={70}>
-          <h1 className="display-l mt-5 max-w-[18ch]" style={{ textWrap: "balance" }}>{title}</h1>
-        </Reveal>
+        <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[18ch]" delay={0.08} />
         {lede && (
           <Reveal delay={130}>
             <p className="lede mt-6 max-w-[54ch]" style={{ color: "var(--on-media-dim)" }}>{lede}</p>

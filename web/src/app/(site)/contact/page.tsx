@@ -4,10 +4,11 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import ContactForm from "@/components/ContactForm";
 import { getBlock } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.contact");
-  return { title: "Contact", description: d.lede };
+  return pageMetadata({ seo: d.seo, title: "Contact", description: d.lede, path: "/contact" });
 }
 
 export default async function ContactPage() {

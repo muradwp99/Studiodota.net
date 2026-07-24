@@ -29,9 +29,12 @@ model Session {
 /// One row per editable page section / settings group. `data` is the section's
 /// JSON payload; shape is defined by the page registry + content defaults.
 model Block {
-  key       String   @id
-  data      Json
-  updatedAt DateTime @updatedAt
+  key        String    @id
+  data       Json
+  draft      Json?
+  snapshot   Json?
+  snapshotAt DateTime?
+  updatedAt  DateTime  @updatedAt
 }
 
 model Project {
@@ -46,10 +49,17 @@ model Project {
   services      Json
   heroImage     String
   interiorImage String   @default("")
-  published     Boolean  @default(true)
-  sort          Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  gallery       Json     @default("[]")
+  published     Boolean   @default(true)
+  sort          Int       @default(0)
+  seo           Json      @default("{}")
+  snapshot      Json?
+  snapshotAt    DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([deletedAt])
 }
 
 model Post {
@@ -64,10 +74,16 @@ model Post {
   inlineImage String   @default("")
   authorName  String
   authorRole  String
-  intro       String   @db.Text
+  intro       String    @db.Text
   sections    Json
-  published   Boolean  @default(true)
-  updatedAt   DateTime @updatedAt
+  published   Boolean   @default(true)
+  seo         Json      @default("{}")
+  snapshot    Json?
+  snapshotAt  DateTime?
+  deletedAt   DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@index([deletedAt])
 }
 
 model GalleryItem {
@@ -76,41 +92,67 @@ model GalleryItem {
   sector    String
   image     String
   category  String
-  type      String  @default("photo")
-  youtubeId String  @default("")
-  tall      Boolean @default(false)
-  published Boolean @default(true)
-  sort      Int     @default(0)
+  type       String    @default("photo")
+  youtubeId  String    @default("")
+  tall       Boolean   @default(false)
+  published  Boolean   @default(true)
+  sort       Int       @default(0)
+  snapshot   Json?
+  snapshotAt DateTime?
+  deletedAt  DateTime?
+
+  @@index([deletedAt])
 }
 
 /// User-created pages built with the block editor (WordPress "Pages").
 model Page {
-  id             String   @id @default(cuid())
-  slug           String   @unique
+  id             String    @id @default(cuid())
+  slug           String    @unique
   title          String
-  status         String   @default("published")
+  status         String    @default("published")
   blocks         Json
-  seoTitle       String   @default("")
-  seoDescription String   @default("")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  draft          Json?
+  snapshot       Json?
+  snapshotAt     DateTime?
+  seoTitle       String    @default("")
+  seoDescription String    @default("")
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([deletedAt])
 }
 
 model Media {
+  id        String    @id @default(cuid())
+  path      String    @unique
+  alt       String    @default("")
+  mime      String    @default("")
+  size      Int       @default(0)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([deletedAt])
+}
+
+/// URL redirects applied by src/proxy.ts (301/308 or 302/307).
+model Redirect {
   id        String   @id @default(cuid())
-  path      String   @unique
-  alt       String   @default("")
-  mime      String   @default("")
-  size      Int      @default(0)
+  from      String   @unique
+  to        String
+  permanent Boolean  @default(true)
   createdAt DateTime @default(now())
 }
 
 model ContactMessage {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   email     String
-  message   String   @db.Text
-  service   String   @default("")
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  message   String    @db.Text
+  service   String    @default("")
+  read      Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([deletedAt])
 }

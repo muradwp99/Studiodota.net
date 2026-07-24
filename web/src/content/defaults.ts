@@ -8,6 +8,19 @@
  */
 
 const R = (n: string) => `/media/renders/${n}.jpg`;
+/** Imported client project renders (see scripts/optimize-project-images.mjs). */
+const P = (slug: string, n: number) => `/projects/${slug}/${String(n).padStart(2, "0")}.webp`;
+const PLACEHOLDER = "/projects/placeholder.webp";
+/** Per-entity SEO blob (RankMath-style) — spread into every page.* block and
+ *  mirrored on Project/Post rows. Empty values fall back to the global defaults. */
+const emptySeo = {
+  title: "", description: "", focusKeyword: "", canonical: "",
+  ogTitle: "", ogDescription: "", ogImage: "",
+  twitterTitle: "", twitterDescription: "", twitterImage: "",
+  noindex: false, nofollow: false, noarchive: false,
+};
+const seoDefaults = { seo: emptySeo };
+export const EMPTY_SEO = emptySeo;
 
 export const BLOCK_DEFAULTS = {
   site: {
@@ -20,6 +33,8 @@ export const BLOCK_DEFAULTS = {
     metaTitle: "Studiodota — Architecture & Design Studio",
     metaDescription:
       "Studiodota is an architecture and design practice creating buildings and spaces defined by clarity, craft, and lasting value — from concept to completion.",
+    ogImage: R("hero"),
+    twitterHandle: "",
     footerHeadline: "An architecture & design studio shaping spaces built to endure.",
     footerServices: [
       "Architectural Design",
@@ -37,10 +52,23 @@ export const BLOCK_DEFAULTS = {
     ],
   },
 
+  integrations: {
+    // Paste an ID and the script is injected automatically — no code needed.
+    gaId: "",
+    gtmId: "",
+    metaPixelId: "",
+    tiktokPixelId: "",
+    // Raw code injected site-wide (own risk — admin only). Head = tracking,
+    // verification meta, fonts. Footer = chat widgets, extra scripts.
+    headCode: "",
+    footerCode: "",
+    // Where new enquiry notifications are emailed (blank = the site contact email).
+    notifyEmail: "",
+  },
+
   nav: {
     getStartedLabel: "Get Started",
-    blogLabel: "Blog",
-    contactLabel: "Contact",
+    getStartedHref: "/contact",
   },
 
   "home.hero": {
@@ -54,18 +82,18 @@ export const BLOCK_DEFAULTS = {
   },
 
   "home.about": {
-    kicker: "(SD 02) — ABOUT",
-    title: "Architecture that stands for clarity and purpose.",
+    kicker: "(SD 02) — WHO WE ARE",
+    title: "Simplifying complexity in design.",
     paragraph1:
-      "Studiodota is an architecture and design practice defined by a minimal yet human-centered philosophy. Guided by decades of collective expertise, we approach every project with rigor, precision, and creativity — buildings shaped with clarity, restraint, and long-lasting value.",
+      "Studiodot A is a pioneering Architecture + Engineering firm, founded by Nubaira Haque in 2021 with a vision to simplify complexity in design. From bespoke residential work to urban infill and expansive developments, every project is approached with collaboration and creativity.",
     paragraph2:
-      "Our practice spans scales and disciplines, from residential and commercial architecture to cultural institutions and urban design. By blending technical expertise with cultural awareness, we create environments that respect context, enhance daily life, and inspire those who experience them.",
-    ctaLabel: "Explore the studio",
+      "Our approach is rooted in the unique characteristics of each site and its context — reimagining traditional design paradigms and exploring the intersections between buildings, landscape, and environment. The result: distinctive, evocative spaces that challenge conventions.",
+    ctaLabel: "Meet the studio",
     stats: [
-      { end: 20, suffix: "+", label: "Years of experience", desc: "Designing spaces that combine function and beauty." },
-      { end: 100, suffix: "+", label: "Completed projects", desc: "Across residential, commercial, and cultural sectors." },
-      { end: 85, suffix: "%", label: "Repeat clients", desc: "Reflecting long-term trust and lasting relationships." },
-      { end: 12, suffix: "", label: "Countries served", desc: "Delivering projects with global reach and local sensitivity." },
+      { end: 5, suffix: "+", label: "Years of practice", desc: "Founded by Nubaira Haque in 2021." },
+      { end: 25, suffix: "+", label: "Projects in the portfolio", desc: "From single-family homes to 158-unit communities." },
+      { end: 7, suffix: "", label: "Sectors served", desc: "Residential through commercial, office, and senior living." },
+      { end: 2, suffix: "", label: "Disciplines under one roof", desc: "Architecture and engineering, working as one team." },
     ],
   },
 
@@ -103,12 +131,12 @@ export const BLOCK_DEFAULTS = {
   "home.whyChoose": {
     label: "Why choose us",
     title: "A studio dedicated to better spaces.",
-    body: "A full-service architecture studio committed to delivering thoughtful, high-quality spaces. Our work blends creativity, technical skill, and attention to detail.",
+    body: "A full-service Architecture + Engineering practice committed to thoughtful, buildable spaces — creativity, technical skill, and attention to detail in every drawing set.",
     ctaLabel: "Explore our work",
-    cardLeft: { image: R("atelier-house"), prefix: "£", end: 85, suffix: "M +", label: "Value delivered across residential and commercial projects." },
-    cardMidTop: { end: 112, suffix: " +", label: "Completed architectural works across the UK and internationally." },
-    cardMidBottom: { end: 2, suffix: "M sq ft.", label: "Total built environment we've planned, designed, or overseen." },
-    cardRight: { image: R("riverside-warehouse"), end: 210, suffix: " +", label: "Partners, builders, and clients." },
+    cardLeft: { image: P("town-homes-la-habra", 2), prefix: "", end: 600, suffix: "+", label: "Homes and units across the studio's active designs." },
+    cardMidTop: { end: 29, suffix: "", label: "Projects in the portfolio — concept studies to construction documents." },
+    cardMidBottom: { end: 10, suffix: "+", label: "Cities across Southern California, from San Diego to the High Desert." },
+    cardRight: { image: P("moreno-valley", 3), end: 7, suffix: "", label: "Sectors — single-family to senior living, office, and mixed use." },
   },
 
   "home.featured": {
@@ -117,10 +145,12 @@ export const BLOCK_DEFAULTS = {
     titleMuted: "Outside",
     linkLabel: "View all projects →",
     items: [
-      { slug: "urban-oasis", title: "Urban Oasis Apartments", location: "London, UK", year: "2025", image: R("urban-oasis") },
-      { slug: "atelier-house", title: "Atelier House", location: "Copenhagen, Denmark", year: "2025", image: R("atelier-house") },
-      { slug: "meridian-sports", title: "Meridian Sports Centre", location: "Manchester, UK", year: "2024", image: R("meridian-sports") },
-      { slug: "harbour-masterplan", title: "Harbour Quarter Masterplan", location: "Oslo, Norway", year: "2025", image: R("harbour-masterplan") },
+      { slug: "apartments-hesperia", title: "Apartments @ Hesperia", location: "Hesperia, CA", year: "Multifamily", image: P("apartments-hesperia", 1) },
+      { slug: "town-homes-la-habra", title: "Town Homes @ La Habra", location: "La Habra, CA", year: "Townhomes", image: P("town-homes-la-habra", 1) },
+      { slug: "senior-housing-fontana", title: "Senior Housing @ Fontana", location: "Fontana, CA", year: "Senior Living", image: P("senior-housing-fontana", 1) },
+      { slug: "office-san-diego", title: "Office @ San Diego", location: "San Diego, CA", year: "Office", image: P("office-san-diego", 1) },
+      { slug: "condominium-temple-simi-valley", title: "Condominium & Temple", location: "Simi Valley, CA", year: "Mixed Use", image: P("condominium-temple-simi-valley", 1) },
+      { slug: "sfr-lot-07", title: "Lot 07", location: "Southern California", year: "Single Family", image: P("sfr-lot-07", 1) },
     ],
   },
 
@@ -152,14 +182,14 @@ export const BLOCK_DEFAULTS = {
   },
 
   "home.timeline": {
-    title: "Projects timeline",
+    title: "Selected works",
     items: [
-      { year: "2021", n: "01.", pre: "The", accent: "Pinnacle", post: "Residence", image: R("atelier-house") },
-      { year: "2022", n: "02.", pre: "Urban", accent: "Haven", post: "Apartments", image: R("urban-oasis") },
-      { year: "2023", n: "03.", pre: "Leafy", accent: "Court", post: "Precinct", image: R("leafy-precinct") },
-      { year: "2024", n: "04.", pre: "Riverside", accent: "Works", post: "District", image: R("riverside-warehouse") },
-      { year: "2025", n: "05.", pre: "Meridian", accent: "Sports", post: "Centre", image: R("meridian-sports") },
-      { year: "2026", n: "06.", pre: "The", accent: "Horizon", post: "Masterplan", image: R("harbour-masterplan") },
+      { year: "Multifamily", n: "01", pre: "Apartments @", accent: "Hesperia", post: "", image: P("apartments-hesperia", 1) },
+      { year: "Townhomes", n: "02", pre: "Town Homes @", accent: "La Habra", post: "", image: P("town-homes-la-habra", 1) },
+      { year: "Senior Living", n: "03", pre: "Senior Housing @", accent: "Fontana", post: "", image: P("senior-housing-fontana", 1) },
+      { year: "Mixed Use", n: "04", pre: "Condominium &", accent: "Temple", post: "", image: P("condominium-temple-simi-valley", 1) },
+      { year: "Multifamily", n: "05", pre: "Hesperia @", accent: "47 West", post: "", image: P("hesperia-47-west", 1) },
+      { year: "Single Family", n: "06", pre: "Lot", accent: "07", post: "Residence", image: P("sfr-lot-07", 1) },
     ],
   },
 
@@ -171,10 +201,11 @@ export const BLOCK_DEFAULTS = {
         "Studiodota turned a complex brief into a building our community immediately embraced. The clarity they bring to every decision shows up in the finished space.",
       name: "Maya Chen",
       role: "Co-founder & CEO, Northline",
+      image: "/media/avatars/avatar-1.webp",
     },
     quotes: [
-      { quote: "They operate like an extension of our team. Strategic, calm, and relentless about outcomes.", name: "Jordan Reyes", role: "Head of Product, Vanta" },
-      { quote: "From day one, they asked the right questions — and delivered a building our clients are proud of.", name: "Aisha Patel", role: "Development Director, Fieldway" },
+      { quote: "They operate like an extension of our team. Strategic, calm, and relentless about outcomes.", name: "Jordan Reyes", role: "Head of Product, Vanta", image: "/media/avatars/avatar-2.webp" },
+      { quote: "From day one, they asked the right questions — and delivered a building our clients are proud of.", name: "Aisha Patel", role: "Development Director, Fieldway", image: "/media/avatars/avatar-3.webp" },
     ],
     ctaLabel: "Work with us",
   },
@@ -213,6 +244,26 @@ export const BLOCK_DEFAULTS = {
     viewAllLabel: "View all",
   },
 
+  /** Homepage section order + visibility. Managed under Appearance → Homepage.
+   *  Kept in sync with HOME_SECTION_META in src/lib/homeSections.ts. */
+  "home.layout": {
+    sections: [
+      { id: "about", enabled: true },
+      { id: "services", enabled: true },
+      { id: "whyChoose", enabled: true },
+      { id: "featured", enabled: true },
+      { id: "showreel", enabled: true },
+      { id: "process", enabled: true },
+      { id: "timeline", enabled: true },
+      { id: "testimonials", enabled: true },
+      { id: "clients", enabled: true },
+      { id: "statement", enabled: true },
+      { id: "faq", enabled: true },
+      { id: "journals", enabled: true },
+      { id: "cta", enabled: true },
+    ],
+  },
+
   "home.cta": {
     label: "Get in touch",
     title: "Let's build something lasting.",
@@ -222,77 +273,121 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.services": {
-    eyebrow: "What we do",
-    title: "Every discipline your project needs.",
-    lede: "From first sketch through to handover — one practice covering every stage of architecture and design for private and commercial clients.",
-    image: R("harbour-masterplan"),
-    statement: "Six disciplines, one continuous practice — so nothing is lost between concept and completion.",
-    ctaTitle: "Not sure which you need? Start with a vision.",
+    ...seoDefaults,
+    eyebrow: "Services",
+    title: "Every phase, from first study to final approval.",
+    lede: "A full-service Architecture + Engineering practice — pre-design through construction documentation, with visualization and entitlement support along the way.",
+    image: P("moreno-valley", 1),
+    statement: "Five phases, one continuous practice — nothing is lost between the first site study and the final approval.",
+    ctaTitle: "Not sure which phase you're in? Start with a conversation.",
     ctaLabel: "Get a quote",
     items: [
       {
-        id: "architecture",
-        title: "Architectural Design",
-        detail: "We lead projects end to end — brief, concept, planning, technical design, and construction — resolving form, structure, and detail into buildings built to last.",
-        blurb: "Full-service design from first concept to a completed building.",
-        image: R("atelier-house"),
-        tags: ["Concept", "Planning", "Technical design", "Delivery"],
+        id: "pre-design",
+        num: "01",
+        title: "Pre-Design",
+        blurb: "Feasibility, programming, and site intelligence — before a line is drawn.",
+        image: P("office-san-diego", 8),
+        tags: [
+          "Master Planning / Programming",
+          "Space Schematics / Flow Diagrams",
+          "Existing Facilities Studies",
+          "Economic Feasibility Studies",
+          "Site Analysis / Selection",
+          "Site Development Planning",
+          "Detailed Site Utilization Studies",
+          "On / Off-Site Utility Studies",
+          "Environmental Studies / Reports",
+          "Project Financing / Budgeting",
+          "Project Development Scheduling",
+        ],
       },
       {
-        id: "interior",
-        title: "Interior Architecture",
-        detail: "Spatial planning, materials, and lighting resolved together so interiors feel considered, comfortable, and quietly refined.",
-        blurb: "Interiors shaped by light, material, and the way people move.",
-        image: R("interior"),
-        tags: ["Space planning", "Materials", "Lighting", "FF&E"],
+        id: "schematic-design",
+        num: "02",
+        title: "Schematic Design",
+        blurb: "The plan takes shape — siting, massing, and utilization resolved into a clear direction.",
+        image: P("hesperia-47-west", 1),
+        tags: [
+          "Master Planning / Programming",
+          "Site Analysis / Selection",
+          "Site Development Planning",
+          "Detailed Site Utilization Studies",
+          "On / Off-Site Utility Studies",
+          "Environmental Studies / Reports",
+          "Project Development Scheduling",
+        ],
       },
       {
-        id: "urban",
-        title: "Urban & Masterplanning",
-        detail: "Mixed-use precincts, phasing strategies, and public realm designed for movement, density, and long-term value.",
-        blurb: "Precincts and public realm planned around how communities live.",
-        image: R("harbour-masterplan"),
-        tags: ["Zoning", "Public realm", "Phasing", "Density"],
+        id: "design-development",
+        num: "03",
+        title: "Design Development",
+        blurb: "Architecture, structure, and systems developed together — materials and details locked in.",
+        image: P("moreno-valley", 2),
+        tags: [
+          "Architectural Design / Documents",
+          "Structural Design / Documents",
+          "MEP Design / Documents",
+          "Civil Design / Documents",
+          "Landscape Design / Documents",
+          "Material Specifications",
+          "Project Development Scheduling",
+        ],
       },
       {
-        id: "renovation",
-        title: "Renovation & Restoration",
-        detail: "Sensitive interventions that respect the existing fabric while bringing light, performance, and use up to modern standards.",
-        blurb: "New life for existing and heritage structures, handled with care.",
-        image: R("riverside-warehouse"),
-        tags: ["Assessment", "Heritage", "Retrofit", "Delivery"],
+        id: "construction-documentation",
+        num: "04",
+        title: "Construction Documentation",
+        blurb: "Permit-ready drawing sets across every discipline — coordinated and complete.",
+        image: P("town-homes-la-habra", 1),
+        tags: [
+          "Architectural Design / Documents",
+          "Structural Design / Documents",
+          "MEP Design / Documents",
+          "Civil Design / Documents",
+          "Landscape Design / Documents",
+          "Material Specifications",
+          "Project Development Scheduling",
+        ],
       },
       {
-        id: "landscape",
-        title: "Landscape & Environment",
-        detail: "Gardens, courtyards, and public grounds integrated with the build for climate, ecology, and everyday life.",
-        blurb: "Outdoor space designed as part of the architecture, not after it.",
-        image: R("leafy-precinct"),
-        tags: ["Courtyards", "Ecology", "Climate", "Public grounds"],
-      },
-      {
-        id: "sustainability",
-        title: "Sustainability",
-        detail: "Passive design, embodied-carbon thinking, and building performance embedded from the first sketch — never bolted on.",
-        blurb: "Low-carbon, high-performance buildings by design.",
-        image: R("meridian-sports"),
-        tags: ["Passive design", "Embodied carbon", "Performance", "Certification"],
+        id: "additional-services",
+        num: "05",
+        title: "Additional Services",
+        blurb: "Visualization, entitlements, and delivery support — everything that moves a project forward.",
+        image: P("sfr-lot-07", 1),
+        tags: [
+          "3D Renderings / Fly-Throughs",
+          "CEQA Study",
+          "Traffic Report",
+          "Permit Services",
+          "Value Engineering / Analysis",
+          "Detailed Construction Cost Estimates",
+          "Fast-Track Delivery",
+          "Website Design",
+        ],
       },
     ],
   },
 
   "page.about": {
-    eyebrow: "The studio",
-    title: "An architecture practice built on clarity.",
-    lede: "Studiodota is a team of architects and designers turning briefs, sites, and ambitions into buildings — considered, durable, and made for the people who use them.",
-    whyLabel: "Why we exist",
-    why1: "Good architecture is quiet. It resolves the real problems — light, space, movement, cost, climate — without shouting about it. That restraint is where lasting value comes from.",
-    why2: "We work across scales, from private homes to civic and mixed-use schemes, leading each project from first sketch through construction. Accurate, collaborative, and dependable.",
+    ...seoDefaults,
+    eyebrow: "Who we are",
+    title: "Simplifying complexity in design.",
+    lede: "Studiodot A is a pioneering Architecture + Engineering firm, founded with a vision to simplify complexity in design — delivering innovative architecture and interior design across a diverse spectrum of projects since 2021.",
+    whyLabel: "The story",
+    why1: "Established by Nubaira Haque in 2021, the firm has consistently delivered innovative architecture and interior design solutions across a diverse spectrum of projects. Since its inception, Studiodot A has cultivated a rich portfolio — spanning bespoke residential designs, cutting-edge urban infill projects, and expansive developments.",
+    why2: "The hallmark of Studiodot A's work lies in its ability to craft distinctive and evocative spaces that challenge conventions. From the form of the structures to the expression of materials, each project exudes a sense of originality and intrigue — offering clients and communities fresh perspectives on architecture and design.",
+    storyImage: P("sfr-lot-07", 1),
+    quoteLabel: "Meet Nubaira",
+    quote: "Our approach to design is deeply rooted in the unique characteristics of each site and the contextual architecture. We strive to reimagine traditional design paradigms, exploring novel intersections between buildings, landscapes, and environmental factors — an exploration that often leads to unexpected and playful elements woven into our designs.",
+    quoteName: "Nubaira Haque",
+    quoteRole: "Founder, Studiodot A",
     stats: [
-      { value: "20", suffix: "+", label: "Years of practice" },
-      { value: "400", suffix: "+", label: "Projects completed" },
-      { value: "24", suffix: "", label: "Specialists on the team" },
-      { value: "18", suffix: "", label: "Design awards" },
+      { value: "2021", suffix: "", label: "Founded by Nubaira Haque" },
+      { value: "25", suffix: "+", label: "Projects in the portfolio" },
+      { value: "7", suffix: "", label: "Sectors across Southern California" },
+      { value: "2", suffix: "", label: "Disciplines — architecture + engineering" },
     ],
     processTitle: "How we work.",
     process: [
@@ -301,25 +396,28 @@ export const BLOCK_DEFAULTS = {
       { step: "03", title: "Technical design", body: "Detailed drawings, coordination with engineers, and planning or consent submissions." },
       { step: "04", title: "Construction & handover", body: "On-site support through construction to a resolved, snag-free, occupied building." },
     ],
-    ctaTitle: "Let's build something that lasts.",
-    ctaLabel: "Get a quote",
+    ctaTitle: "Let's reimagine your project together.",
+    ctaLabel: "Get in touch",
   },
 
   "page.projects": {
-    eyebrow: "Selected work",
-    title: "Projects that speak for themselves.",
-    lede: "Over 400 projects delivered across the built environment — a selection of recent architecture and design work below.",
-    image: R("meridian-sports"),
+    ...seoDefaults,
+    eyebrow: "The work",
+    title: "Projects across Southern California.",
+    lede: "From single-family homes and fire rebuilds to 150-unit communities — architecture and engineering delivered across Southern California.",
+    image: P("apartments-hesperia", 1),
   },
 
   "page.gallery": {
+    ...seoDefaults,
     eyebrow: "Gallery",
     title: "A closer look at the work.",
-    lede: "Photography and film from across the practice — filter by discipline, or take in everything at once.",
-    image: R("interior"),
+    lede: "Renderings and studies from across the practice — filter by discipline, or take in everything at once.",
+    image: P("senior-housing-fontana", 2),
   },
 
   "page.journal": {
+    ...seoDefaults,
     eyebrow: "Journal",
     title: "Notes from the studio.",
     lede: "Craft, process, and ideas — on daylight, materials, sustainability, and the discipline of building well.",
@@ -329,6 +427,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.contact": {
+    ...seoDefaults,
     eyebrow: "Start with a vision",
     title: "Tell us about your project.",
     lede: "Share your brief, site details, drawings, or references. We'll turn them into a considered design — guided from first concept through to construction.",
@@ -339,17 +438,19 @@ export const BLOCK_DEFAULTS = {
     turnaround: "Concept design takes a few weeks; full projects run over several months. We'll confirm a clear programme with your proposal.",
     asideImage: R("atelier-house"),
     serviceOptions: [
-      "Architectural Design",
-      "Interior Architecture",
-      "Urban & Masterplanning",
-      "Renovation & Restoration",
-      "Landscape & Environment",
-      "Sustainability",
+      "Pre-Design",
+      "Schematic Design",
+      "Design Development",
+      "Construction Documentation",
+      "3D Renderings / Visualization",
+      "Permit Services",
+      "Something else",
     ],
   },
 
   menus: {
     primary: [
+      { label: "Who we are", href: "/about" },
       { label: "Services", href: "/services" },
       { label: "Gallery", href: "/gallery" },
       { label: "Projects", href: "/projects" },
@@ -358,7 +459,7 @@ export const BLOCK_DEFAULTS = {
     ],
     footerPages: [
       { label: "Home", href: "/" },
-      { label: "About", href: "/about" },
+      { label: "Who we are", href: "/about" },
       { label: "Portfolio", href: "/projects" },
       { label: "Journal", href: "/journal" },
       { label: "Contact", href: "/contact" },
@@ -375,10 +476,23 @@ export const BLOCK_DEFAULTS = {
   },
 
   appearance: {
-    activeTheme: "studiodota",
+    /** Brand accent (the champagne-bronze). Shades are derived with color-mix. */
+    accent: "#a87f3f",
+  },
+
+  /** Global SEO defaults. Per-page overrides live on each page/project/post. */
+  seo: {
+    defaultDescription: "",
+    defaultOgImage: "",
+    twitterCard: "summary_large_image",
+    twitterSite: "",
+    organizationSchema: true,
+    noindexSite: false,
+    robotsTxt: "",
   },
 
   "page.privacy": {
+    ...seoDefaults,
     eyebrow: "Legal",
     title: "Privacy policy",
     lede: "Plain-English summary of what we collect when you contact us, why, and how long we keep it.",
@@ -394,40 +508,79 @@ export const BLOCK_DEFAULTS = {
 
 /* Mutable, tuple-widened block value types for runtime use (CMS data can have
  * any number of list items, and rows are plain mutable JSON). */
+/* Primitives are widened (literal → string/number/boolean) because CMS rows
+ * hold arbitrary values at runtime — the defaults are just one possible state. */
 type DeepMutable<T> = T extends readonly (infer E)[]
   ? DeepMutable<E>[]
   : T extends object
     ? { -readonly [K in keyof T]: DeepMutable<T[K]> }
-    : T;
+    : T extends string
+      ? string
+      : T extends number
+        ? number
+        : T extends boolean
+          ? boolean
+          : T;
 export type BlockKey = keyof typeof BLOCK_DEFAULTS;
 export type BlockData = { [K in BlockKey]: DeepMutable<(typeof BLOCK_DEFAULTS)[K]> };
 
 /* ---- Collection seed data (tables, not blocks) ---- */
 
+/** Builds a project's gallery image list from the manifest layout on disk. */
+const G = (slug: string, count: number) => Array.from({ length: count }, (_, i) => P(slug, i + 1));
+
 export const SEED_PROJECTS = [
-  { slug: "urban-oasis", title: "Urban Oasis Apartments", summary: "An upscale urban residence with layered outdoor terraces and a refined contemporary exterior.", category: "residential", sector: "Residential", location: "London, UK", year: "2025", services: ["Architecture", "Interiors"], heroImage: R("urban-oasis"), sort: 0 },
-  { slug: "leafy-precinct", title: "Leafy Apartment Precinct", summary: "A leafy low-rise precinct with elevated outlooks and generous, planted shared terraces.", category: "residential", sector: "Residential", location: "Copenhagen, Denmark", year: "2025", services: ["Architecture", "Landscape"], heroImage: R("leafy-precinct"), sort: 1 },
-  { slug: "riverside-warehouse", title: "Riverside Warehouse Development", summary: "A glass-fronted commercial precinct built for access, daylight, and adaptable future tenants.", category: "commercial", sector: "Commercial", location: "Rotterdam, Netherlands", year: "2024", services: ["Architecture", "Masterplan"], heroImage: R("riverside-warehouse"), sort: 2 },
-  { slug: "meridian-sports", title: "Meridian Sports Centre", summary: "A sculptural civic sports centre anchoring an active street with a bold public presence.", category: "institutional", sector: "Institutional", location: "Manchester, UK", year: "2024", services: ["Architecture", "Interiors"], heroImage: R("meridian-sports"), sort: 3 },
-  { slug: "harbour-masterplan", title: "Harbour Quarter Masterplan", summary: "A mixed-use harbour quarter masterplan resolved across phases, promenades, and public realm.", category: "masterplan", sector: "Masterplan", location: "Oslo, Norway", year: "2025", services: ["Masterplan", "Urban design"], heroImage: R("harbour-masterplan"), sort: 4 },
-  { slug: "atelier-house", title: "Atelier House", summary: "A private residence composed around daylight, landscape, and a calm, tactile material palette.", category: "residential", sector: "Residential", location: "Copenhagen, Denmark", year: "2025", services: ["Architecture", "Interiors"], heroImage: R("atelier-house"), sort: 5 },
+  // ---- Published (renders imported from the client's Projects folder) ----
+  { slug: "apartments-hesperia", title: "Apartments @ Hesperia", summary: "A multifamily community studied through seven exterior views — massing, courtyards, and street presence resolved for a high-desert site.", category: "multifamily", sector: "Multifamily", location: "Hesperia, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("apartments-hesperia", 1), interiorImage: P("apartments-hesperia", 2), gallery: G("apartments-hesperia", 7), published: true, sort: 0 },
+  { slug: "town-homes-la-habra", title: "Town Homes @ La Habra", summary: "A townhome development in La Habra — repeating unit rhythm, shared drives, and a warm material palette, studied outside and in.", category: "multifamily", sector: "Townhomes", location: "La Habra, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("town-homes-la-habra", 1), interiorImage: P("town-homes-la-habra", 5), gallery: G("town-homes-la-habra", 5), published: true, sort: 1 },
+  { slug: "senior-housing-fontana", title: "Senior Housing @ Fontana", summary: "Senior housing designed around accessibility, shade, and shared community space — four exterior studies for a Fontana site.", category: "senior-living", sector: "Senior Living", location: "Fontana, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("senior-housing-fontana", 1), interiorImage: P("senior-housing-fontana", 2), gallery: G("senior-housing-fontana", 4), published: true, sort: 2 },
+  { slug: "moreno-valley", title: "Moreno Valley", summary: "A residential community in Moreno Valley — streetscape, building, and amenity-pool studies for a phased development.", category: "multifamily", sector: "Multifamily", location: "Moreno Valley, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("moreno-valley", 1), interiorImage: P("moreno-valley", 3), gallery: G("moreno-valley", 4), published: true, sort: 3 },
+  { slug: "hesperia-47-west", title: "Hesperia @ 47 West", summary: "Four camera studies for 47 West — a Hesperia development balancing repetition, articulation, and desert light.", category: "multifamily", sector: "Multifamily", location: "Hesperia, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("hesperia-47-west", 1), interiorImage: P("hesperia-47-west", 2), gallery: G("hesperia-47-west", 4), published: true, sort: 4 },
+  { slug: "condominium-temple-simi-valley", title: "Condominium & Temple", summary: "A condominium development paired with a temple in Simi Valley — two programs resolved on one site, from massing to entry sequence.", category: "mixed-use", sector: "Mixed Use", location: "Simi Valley, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("condominium-temple-simi-valley", 1), interiorImage: P("condominium-temple-simi-valley", 2), gallery: G("condominium-temple-simi-valley", 6), published: true, sort: 5 },
+  { slug: "office-san-diego", title: "Office @ San Diego", summary: "A corporate office concept — clean lines, a louvered screening wall against harsh sun, and lake-view planning, presented from first sketch to final front view.", category: "office", sector: "Office", location: "San Diego, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("office-san-diego", 1), interiorImage: P("office-san-diego", 2), gallery: G("office-san-diego", 11), published: true, sort: 6 },
+  { slug: "hesperia-commercial", title: "Hesperia @ Commercial", summary: "A commercial pad development in Hesperia — three exterior studies of signage, storefront glazing, and parking approach.", category: "commercial", sector: "Commercial", location: "Hesperia, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("hesperia-commercial", 1), interiorImage: P("hesperia-commercial", 2), gallery: G("hesperia-commercial", 3), published: true, sort: 7 },
+  { slug: "auto-part-riverside", title: "Auto Part @ Riverside", summary: "An auto-parts retail building in Riverside — bold volumes, contrasting cladding, and a clear customer entry beneath an orange canopy.", category: "commercial", sector: "Commercial", location: "Riverside, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("auto-part-riverside", 1), interiorImage: P("auto-part-riverside", 2), gallery: G("auto-part-riverside", 2), published: true, sort: 8 },
+  { slug: "truck-servicing-fontana", title: "Truck Servicing @ Fontana", summary: "A truck-servicing facility in Fontana — service bays, yard circulation, and street frontage studied at eye level and from above.", category: "commercial", sector: "Industrial", location: "Fontana, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("truck-servicing-fontana", 1), interiorImage: P("truck-servicing-fontana", 2), gallery: G("truck-servicing-fontana", 2), published: true, sort: 9 },
+  { slug: "cannabis-lounge", title: "Cannabis Lounge", summary: "A consumption-lounge interior — layered lighting, dark joinery, and seating zones tuned for atmosphere and flow.", category: "commercial", sector: "Hospitality", location: "", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("cannabis-lounge", 1), interiorImage: P("cannabis-lounge", 2), gallery: G("cannabis-lounge", 3), published: true, sort: 10 },
+  { slug: "sfr-lot-07", title: "Lot 07", summary: "A single-family residence — front, rear, and aerial studies of a contemporary two-storey home.", category: "single-family", sector: "Single Family Residence", location: "", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("sfr-lot-07", 1), interiorImage: P("sfr-lot-07", 2), gallery: G("sfr-lot-07", 3), published: true, sort: 11 },
+  { slug: "sfr-lot-09", title: "Lot 09", summary: "A single-family residence studied from the street, the yard, and above.", category: "single-family", sector: "Single Family Residence", location: "", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("sfr-lot-09", 1), interiorImage: P("sfr-lot-09", 2), gallery: G("sfr-lot-09", 3), published: true, sort: 12 },
+  { slug: "san-pedro-house", title: "San Pedro House", summary: "A family home in San Pedro — front and rear studies balancing glazing, privacy, and outdoor living.", category: "single-family", sector: "Single Family Residence", location: "San Pedro, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("san-pedro-house", 1), interiorImage: P("san-pedro-house", 2), gallery: G("san-pedro-house", 2), published: true, sort: 13 },
+  { slug: "tustin-house", title: "Tustin House", summary: "A residential remodel in Tustin — the existing home reimagined with a new elevation, entry, and material palette.", category: "single-family", sector: "Remodel", location: "Tustin, CA", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("tustin-house", 1), interiorImage: P("tustin-house", 2), gallery: G("tustin-house", 2), published: true, sort: 14 },
+  { slug: "rollaway-6663", title: "6663 Rollaway – Stanley", summary: "A single-family residence at 6663 Rollaway — a street-facing study of massing, roofline, and entry.", category: "single-family", sector: "Single Family Residence", location: "", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("rollaway-6663", 1), interiorImage: "", gallery: G("rollaway-6663", 1), published: true, sort: 15 },
+
+  // ---- Drafts (client folders delivered without renders yet — publish after adding images) ----
+  { slug: "affordable-housing-136", title: "Affordable Housing – 136 Units", summary: "A 136-unit affordable housing development — currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 16 },
+  { slug: "affordable-housing-77", title: "Affordable Housing – 77 Units", summary: "A 77-unit affordable housing development — currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 17 },
+  { slug: "affordable-housing-72", title: "Affordable Housing – 72 Units", summary: "A 72-unit affordable housing development — currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 18 },
+  { slug: "affordable-housing-62", title: "Affordable Housing – 62 Units", summary: "A 62-unit affordable housing development — currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 19 },
+  { slug: "crenshaw-apartments", title: "Crenshaw Apartments", summary: "A multifamily apartment development — currently in design; renders to follow.", category: "multifamily", sector: "Multifamily", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 20 },
+  { slug: "mixed-use-114", title: "Mixed Use – 114 Units", summary: "A 114-unit mixed-use development — currently in design; renders to follow.", category: "mixed-use", sector: "Mixed Use", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 21 },
+  { slug: "studio-apartment-158", title: "Studio Apartment – 158 Units", summary: "A 158-unit studio apartment development — currently in design; renders to follow.", category: "multifamily", sector: "Multifamily", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 22 },
+  { slug: "ball-residence", title: "Ball Residence", summary: "A single-family residence — currently in design; renders to follow.", category: "single-family", sector: "Single Family Residence", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 23 },
+  { slug: "sfr-lot-08", title: "Lot 08", summary: "A single-family residence — currently in design; renders to follow.", category: "single-family", sector: "Single Family Residence", location: "", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 24 },
+  { slug: "fire-rebuild-kagawa-st", title: "Kagawa St", summary: "A fire-rebuild residence in Pacific Palisades — currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 25 },
+  { slug: "fire-rebuild-mckendree-01", title: "Mckendree 01", summary: "A fire-rebuild residence in Pacific Palisades — currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 26 },
+  { slug: "fire-rebuild-mckendree-02", title: "Mckendree 02", summary: "A fire-rebuild residence in Pacific Palisades — currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 27 },
+  { slug: "fire-rebuild-temecula", title: "Temecula", summary: "A fire-rebuild residence — currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 28 },
 ];
 
 export const SEED_GALLERY = [
-  { title: "Alpine House", sector: "Private residence", image: R("hero"), category: "architecture", type: "photo", tall: true, sort: 0 },
-  { title: "Atelier House", sector: "Residential", image: R("atelier-house"), category: "residential", type: "photo", sort: 1 },
-  { title: "Studio Vale", sector: "Interior film", image: R("interior"), category: "residential", type: "video", youtubeId: "daL7TkzyW7k", sort: 2 },
-  { title: "Urban Oasis", sector: "Apartments", image: R("urban-oasis"), category: "residential", type: "photo", sort: 3 },
-  { title: "Meridian Centre", sector: "Civic flythrough", image: R("meridian-sports"), category: "architecture", type: "video", youtubeId: "FnrPZuN0m-0", tall: true, sort: 4 },
-  { title: "Harbour Quarter", sector: "Masterplan", image: R("harbour-masterplan"), category: "commercial", type: "photo", sort: 5 },
-  { title: "Leafy Precinct", sector: "Residential", image: R("leafy-precinct"), category: "residential", type: "photo", sort: 6 },
-  { title: "Riverside Works", sector: "Commercial", image: R("riverside-warehouse"), category: "commercial", type: "photo", sort: 7 },
-  { title: "Glass & Steel", sector: "Commercial", image: R("office-tower"), category: "commercial", type: "photo", sort: 8 },
-  { title: "Sky Terrace", sector: "Rooftop amenity", image: R("rooftop-pool"), category: "residential", type: "video", youtubeId: "gToL_3ouPcI", sort: 9 },
-  { title: "Public Realm", sector: "Commercial", image: R("harbour-masterplan"), category: "commercial", type: "photo", tall: true, sort: 10 },
-  { title: "Poolside Living", sector: "Residential interior", image: R("living-pool"), category: "residential", type: "photo", sort: 11 },
-  { title: "Civic Hall", sector: "Institutional", image: R("meridian-sports"), category: "commercial", type: "photo", sort: 12 },
-  { title: "Courtyard", sector: "Landscape film", image: R("leafy-precinct"), category: "residential", type: "video", youtubeId: "zwagmtVuZoI", sort: 13 },
+  { title: "Apartments @ Hesperia", sector: "Multifamily", image: P("apartments-hesperia", 1), category: "residential", type: "photo", tall: true, sort: 0 },
+  { title: "Town Homes @ La Habra", sector: "Townhomes", image: P("town-homes-la-habra", 1), category: "residential", type: "photo", sort: 1 },
+  { title: "Senior Housing @ Fontana", sector: "Senior living", image: P("senior-housing-fontana", 2), category: "residential", type: "photo", tall: true, sort: 2 },
+  { title: "Moreno Valley — Pool", sector: "Amenity", image: P("moreno-valley", 3), category: "residential", type: "photo", sort: 3 },
+  { title: "Lot 07", sector: "Single family", image: P("sfr-lot-07", 1), category: "residential", type: "photo", sort: 4 },
+  { title: "San Pedro House", sector: "Single family", image: P("san-pedro-house", 1), category: "residential", type: "photo", sort: 5 },
+  { title: "Tustin House", sector: "Remodel", image: P("tustin-house", 1), category: "residential", type: "photo", sort: 6 },
+  { title: "Lot 09", sector: "Single family", image: P("sfr-lot-09", 1), category: "residential", type: "photo", tall: true, sort: 7 },
+  { title: "Office @ San Diego", sector: "Office", image: P("office-san-diego", 1), category: "commercial", type: "photo", sort: 8 },
+  { title: "Auto Part @ Riverside", sector: "Commercial", image: P("auto-part-riverside", 1), category: "commercial", type: "photo", sort: 9 },
+  { title: "Hesperia @ Commercial", sector: "Commercial", image: P("hesperia-commercial", 1), category: "commercial", type: "photo", tall: true, sort: 10 },
+  { title: "Truck Servicing @ Fontana", sector: "Industrial", image: P("truck-servicing-fontana", 1), category: "commercial", type: "photo", sort: 11 },
+  { title: "Cannabis Lounge", sector: "Hospitality", image: P("cannabis-lounge", 1), category: "commercial", type: "photo", sort: 12 },
+  { title: "Condominium & Temple", sector: "Mixed use", image: P("condominium-temple-simi-valley", 1), category: "architecture", type: "photo", sort: 13 },
+  { title: "Hesperia @ 47 West", sector: "Multifamily", image: P("hesperia-47-west", 1), category: "architecture", type: "photo", sort: 14 },
+  { title: "Moreno Valley — Streetscape", sector: "Multifamily", image: P("moreno-valley", 1), category: "architecture", type: "photo", tall: true, sort: 15 },
 ];
 
 export const SEED_MEDIA = [
@@ -438,4 +591,10 @@ export const SEED_MEDIA = [
   .concat([
     { path: "/media/blog-banner.png", alt: "Journal CTA banner" },
     { path: "/media/cta-banner.png", alt: "Start your project banner" },
-  ]);
+    { path: PLACEHOLDER, alt: "Renders coming soon" },
+    { path: "/media/avatars/avatar-1.webp", alt: "Placeholder portrait 1" },
+    { path: "/media/avatars/avatar-2.webp", alt: "Placeholder portrait 2" },
+    { path: "/media/avatars/avatar-3.webp", alt: "Placeholder portrait 3" },
+  ])
+  // Every imported project render, so the media pickers can browse them.
+  .concat(SEED_PROJECTS.flatMap((p) => p.gallery.map((path, i) => ({ path, alt: `${p.title} — view ${i + 1}` }))));

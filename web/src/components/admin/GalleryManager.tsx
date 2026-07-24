@@ -56,7 +56,7 @@ function ItemForm({ item, onDone }: { item: GalleryInput; onDone?: () => void })
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className={labelCls}>Title</label>
           <input className={inputCls} value={data.title} onChange={(e) => set("title", e.target.value)} />

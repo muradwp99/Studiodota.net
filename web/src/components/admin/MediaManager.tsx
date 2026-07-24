@@ -2,8 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { uploadMedia, deleteMedia } from "@/lib/actions/media";
-import { btnPrimaryCls, Notice } from "@/components/admin/ui";
+import { uploadMedia, deleteMedia, updateMediaAlt } from "@/lib/actions/media";
+import { btnPrimaryCls, inputCls, Notice } from "@/components/admin/ui";
 
 type MediaRow = { id: string; path: string; alt: string; size: number; mime: string; deletable: boolean };
 
@@ -51,6 +51,24 @@ export default function MediaManager({ items }: { items: MediaRow[] }) {
     }
   };
 
+  const [alts, setAlts] = useState<Record<string, string>>({});
+  const [savedAlt, setSavedAlt] = useState("");
+  const altValue = (m: MediaRow) => (m.id in alts ? alts[m.id] : m.alt);
+  const saveAlt = (m: MediaRow) => {
+    const next = altValue(m);
+    if (next === m.alt) return;
+    startTransition(async () => {
+      const res = await updateMediaAlt(m.id, next);
+      if (res.ok) {
+        setSavedAlt(m.id);
+        setTimeout(() => setSavedAlt(""), 1500);
+        router.refresh();
+      } else {
+        setState(res);
+      }
+    });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
@@ -66,8 +84,20 @@ export default function MediaManager({ items }: { items: MediaRow[] }) {
           <figure key={m.id} className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={m.path} alt={m.alt} className="aspect-[4/3] w-full object-cover" loading="lazy" />
-            <figcaption className="space-y-1.5 p-3">
+            <figcaption className="space-y-2 p-3">
               <div className="truncate font-mono text-[0.62rem] text-[var(--muted)]" title={m.path}>{m.path}</div>
+              <div>
+                <input
+                  aria-label={`Alt text for ${m.path}`}
+                  className={`${inputCls} py-1.5 text-xs`}
+                  placeholder="Describe this image (alt text)"
+                  value={altValue(m)}
+                  onChange={(e) => setAlts((a) => ({ ...a, [m.id]: e.target.value }))}
+                  onBlur={() => saveAlt(m)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); } }}
+                />
+                {savedAlt === m.id && <span className="mt-1 block text-[0.62rem] text-[var(--gold-ink)]">Saved ✓</span>}
+              </div>
               <div className="flex items-center justify-between text-xs">
                 <button type="button" className="text-[var(--gold-ink)] hover:underline" onClick={() => copy(m.path)}>
                   {copied === m.path ? "Copied ✓" : "Copy path"}

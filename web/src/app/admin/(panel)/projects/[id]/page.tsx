@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import ProjectForm, { type ProjectInput } from "@/components/admin/ProjectForm";
+import type { SeoBlob } from "@/lib/seoScore";
 
 export const metadata = { title: "Edit project" };
 
@@ -9,15 +10,17 @@ const EMPTY: ProjectInput = {
   slug: "",
   title: "",
   summary: "",
-  category: "residential",
-  sector: "Residential",
+  category: "single-family",
+  sector: "Single Family Residence",
   location: "",
-  year: `${new Date().getFullYear()}`,
+  year: "",
   services: [],
   heroImage: "",
   interiorImage: "",
+  gallery: [],
   published: true,
   sort: 0,
+  seo: {},
 };
 
 export default async function AdminProjectEdit({ params }: { params: Promise<{ id: string }> }) {
@@ -38,8 +41,10 @@ export default async function AdminProjectEdit({ params }: { params: Promise<{ i
         services: Array.isArray(project.services) ? (project.services as string[]) : [],
         heroImage: project.heroImage,
         interiorImage: project.interiorImage,
+        gallery: Array.isArray(project.gallery) ? (project.gallery as string[]) : [],
         published: project.published,
         sort: project.sort,
+        seo: (project.seo && typeof project.seo === "object" ? project.seo : {}) as SeoBlob,
       }
     : EMPTY;
 

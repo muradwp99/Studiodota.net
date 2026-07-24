@@ -10,7 +10,9 @@ export type FieldSpec =
   | { kind: "number"; key: string; label: string; help?: string }
   | { kind: "toggle"; key: string; label: string; help?: string }
   | { kind: "image"; key: string; label: string; help?: string }
+  | { kind: "select"; key: string; label: string; options: { value: string; label: string }[]; help?: string }
   | { kind: "stringList"; key: string; label: string; help?: string }
+  | { kind: "seo"; key: string; label: string; help?: string }
   | { kind: "group"; key: string; label: string; fields: FieldSpec[] }
   | { kind: "list"; key: string; label: string; item: FieldSpec[]; addable?: boolean; help?: string };
 
@@ -20,9 +22,10 @@ const t = (key: string, label: string): FieldSpec => ({ kind: "text", key, label
 const ta = (key: string, label: string, rows = 3): FieldSpec => ({ kind: "textarea", key, label, rows });
 const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, label });
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
+const tog = (key: string, label: string): FieldSpec => ({ kind: "toggle", key, label });
 
 const statItem = [num("end", "Number"), t("suffix", "Suffix"), t("label", "Label"), ta("desc", "Description", 2)];
-const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company")];
+const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company"), img("image", "Portrait")];
 
 export const BLOCK_SPECS: BlockSpec[] = [
   {
@@ -38,6 +41,8 @@ export const BLOCK_SPECS: BlockSpec[] = [
       t("address2", "Address line 2"),
       t("metaTitle", "SEO — default title"),
       ta("metaDescription", "SEO — meta description"),
+      img("ogImage", "Default social share image (Open Graph)"),
+      t("twitterHandle", "Twitter/X handle (e.g. @studiodota)"),
       t("footerHeadline", "Footer headline"),
       { kind: "stringList", key: "footerServices", label: "Footer service links" },
       { kind: "list", key: "socials", label: "Social links", addable: true, item: [t("label", "Label"), t("href", "URL")] },
@@ -47,7 +52,21 @@ export const BLOCK_SPECS: BlockSpec[] = [
     key: "nav",
     title: "Navigation",
     description: "Menu items are managed under Appearance → Menus.",
-    fields: [t("getStartedLabel", "Get Started button")],
+    fields: [t("getStartedLabel", "Get Started — label"), t("getStartedHref", "Get Started — link")],
+  },
+  {
+    key: "integrations",
+    title: "Integrations & tracking",
+    description: "Paste an ID and the tracking script is added automatically. Custom code is injected site-wide — only paste code you trust.",
+    fields: [
+      t("gaId", "Google Analytics 4 — Measurement ID (G-XXXXXXX)"),
+      t("gtmId", "Google Tag Manager — Container ID (GTM-XXXXXX)"),
+      t("metaPixelId", "Meta (Facebook) Pixel ID"),
+      t("tiktokPixelId", "TikTok Pixel ID"),
+      ta("headCode", "Custom code — <head> (verification meta, fonts, analytics)", 5),
+      ta("footerCode", "Custom code — before </body> (chat widgets, extra scripts)", 5),
+      t("notifyEmail", "Email new enquiries to (blank = your contact email)"),
+    ],
   },
   {
     key: "home.hero",
@@ -204,18 +223,20 @@ export const BLOCK_SPECS: BlockSpec[] = [
       t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image"),
       ta("statement", "Scroll statement", 3),
       {
-        kind: "list", key: "items", label: "Service blocks", addable: true,
-        item: [t("id", "Anchor id"), t("title", "Title"), ta("detail", "Detail", 3), ta("blurb", "Blurb", 2), img("image", "Image"), { kind: "stringList", key: "tags", label: "Tags" }],
+        kind: "list", key: "items", label: "Service phases", addable: true,
+        item: [t("id", "Anchor id"), t("num", "Phase number"), t("title", "Title"), ta("blurb", "Blurb", 2), img("image", "Image"), { kind: "stringList", key: "tags", label: "Line items" }],
       },
       t("ctaTitle", "Bottom CTA title"), t("ctaLabel", "Bottom CTA button"),
     ],
   },
   {
     key: "page.about",
-    title: "Studio (about) page",
+    title: "Who we are page",
     fields: [
       t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"),
-      t("whyLabel", "Why-we-exist label"), ta("why1", "Paragraph 1", 3), ta("why2", "Paragraph 2", 3),
+      t("whyLabel", "Story label"), ta("why1", "Story paragraph 1", 4), ta("why2", "Story paragraph 2", 4),
+      img("storyImage", "Story image"),
+      t("quoteLabel", "Quote label"), ta("quote", "Founder quote", 4), t("quoteName", "Quote name"), t("quoteRole", "Quote role"),
       { kind: "list", key: "stats", label: "Stats", item: [t("value", "Value"), t("suffix", "Suffix"), t("label", "Label")] },
       t("processTitle", "Process heading"),
       { kind: "list", key: "process", label: "Process steps", addable: true, item: [t("step", "Number"), t("title", "Title"), ta("body", "Body", 2)] },
@@ -276,9 +297,32 @@ export const BLOCK_SPECS: BlockSpec[] = [
   {
     key: "appearance",
     title: "Appearance",
-    fields: [t("activeTheme", "Active theme id")],
+    description: "Edited under Appearance → Themes.",
+    fields: [t("accent", "Brand accent (hex)")],
+  },
+  {
+    key: "seo",
+    title: "SEO defaults",
+    description: "Site-wide search & social defaults. Each page can override them.",
+    fields: [
+      ta("defaultDescription", "Default meta description", 2),
+      img("defaultOgImage", "Default social share image"),
+      { kind: "select", key: "twitterCard", label: "Twitter card", options: [
+        { value: "summary_large_image", label: "Large image" },
+        { value: "summary", label: "Summary" },
+      ] },
+      t("twitterSite", "Twitter @site handle"),
+      tog("organizationSchema", "Emit Organization structured data (JSON-LD)"),
+      tog("noindexSite", "Hide the WHOLE site from search engines (staging)"),
+      ta("robotsTxt", "Custom robots.txt — leave blank to use the default", 6),
+    ],
   },
 ];
+
+// Give every built-in page the full RankMath-style SEO panel.
+for (const s of BLOCK_SPECS) {
+  if (s.key.startsWith("page.")) s.fields.push({ kind: "seo", key: "seo", label: "SEO" });
+}
 
 export const specFor = (key: string) => BLOCK_SPECS.find((s) => s.key === key);
 
@@ -290,8 +334,8 @@ export const PAGES: { slug: string; title: string; blurb: string; blocks: BlockK
     blurb: "Hero, every section, and the contact CTA.",
     blocks: ["home.hero", "home.about", "home.services", "home.whyChoose", "home.featured", "home.showreel", "home.process", "home.timeline", "home.testimonials", "home.clients", "home.statement", "home.faq", "home.journals", "home.cta"],
   },
-  { slug: "services", title: "Services", blurb: "Hero, statement, and the six service blocks.", blocks: ["page.services"] },
-  { slug: "about", title: "Studio", blurb: "Hero, philosophy, stats, and process.", blocks: ["page.about"] },
+  { slug: "services", title: "Services", blurb: "Hero, statement, and the five service phases.", blocks: ["page.services"] },
+  { slug: "about", title: "Who we are", blurb: "Story, founder quote, stats, and process.", blocks: ["page.about"] },
   { slug: "projects", title: "Projects", blurb: "Hero copy for the work index.", blocks: ["page.projects"] },
   { slug: "gallery", title: "Gallery", blurb: "Hero copy for the gallery.", blocks: ["page.gallery"] },
   { slug: "journal", title: "Journal", blurb: "Hero copy and the bottom banner.", blocks: ["page.journal"] },

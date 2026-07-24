@@ -6,10 +6,23 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { blockTypeFor, RESERVED_SLUGS } from "@/lib/pageBlocks";
-import { validateFields, ValidationError } from "@/lib/validateFields";
+import { RESERVED_SLUGS } from "@/lib/pageBlocks";
+import { ValidationError } from "@/lib/validateFields";
+import { validateTree } from "@/lib/nodes/validate";
+import type { Node } from "@/lib/nodes/types";
 
 export type PageActionState = { ok?: boolean; error?: string; savedAt?: number; id?: string };
+
+const nodeSchema: z.ZodType<Node> = z.lazy(() =>
+  z.object({
+    id: z.string().min(1).max(40),
+    type: z.string().min(1).max(40),
+    props: z.record(z.string(), z.unknown()),
+    style: z.record(z.string(), z.unknown()).optional(),
+    advanced: z.record(z.string(), z.unknown()).optional(),
+    children: z.array(nodeSchema).optional(),
+  }),
+);
 
 const pageSchema = z.object({
   title: z.string().trim().min(1, "Give the page a title.").max(200),
@@ -22,15 +35,7 @@ const pageSchema = z.object({
   status: z.enum(["draft", "published"]),
   seoTitle: z.string().trim().max(200).default(""),
   seoDescription: z.string().trim().max(300).default(""),
-  blocks: z
-    .array(
-      z.object({
-        id: z.string().min(1).max(40),
-        type: z.string().min(1).max(40),
-        props: z.record(z.string(), z.unknown()),
-      }),
-    )
-    .max(60),
+  blocks: z.array(nodeSchema).max(120),
 });
 
 export async function savePage(id: string | null, data: unknown): Promise<PageActionState> {
@@ -47,11 +52,7 @@ export async function savePage(id: string | null, data: unknown): Promise<PageAc
   }
 
   try {
-    const blocks = page.blocks.map((b) => {
-      const type = blockTypeFor(b.type);
-      if (!type) throw new ValidationError(`Unknown block type "${b.type}".`);
-      return { id: b.id, type: b.type, props: validateFields(type.fields, b.props, type.defaults) };
-    });
+    const blocks = validateTree(page.blocks);
 
     const clash = await db.page.findUnique({ where: { slug: page.slug } });
     if (clash && clash.id !== id) {
@@ -84,7 +85,7 @@ export async function savePage(id: string | null, data: unknown): Promise<PageAc
 
 export async function deletePage(id: string): Promise<void> {
   await requireAdmin();
-  await db.page.delete({ where: { id } });
+  await db.page.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/", "layout");
   redirect("/admin/pages");
 }

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getBlock } from "@/lib/content";
 import PageBuilder from "@/components/admin/PageBuilder";
-import type { PageBlock } from "@/lib/pageBlocks";
+import { normalizeTree } from "@/lib/nodes/normalize";
 
 export const metadata = { title: "Edit Page" };
 
@@ -23,7 +23,7 @@ export default async function EditBlockPage({ params }: { params: Promise<{ id: 
         status: page.status,
         seoTitle: page.seoTitle,
         seoDescription: page.seoDescription,
-        blocks: (Array.isArray(page.blocks) ? page.blocks : []) as PageBlock[],
+        blocks: normalizeTree(page.blocks),
       }}
       serviceOptions={contact.serviceOptions}
     />

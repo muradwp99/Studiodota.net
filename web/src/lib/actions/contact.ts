@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { clientKey } from "@/lib/auth";
+import { getBlock } from "@/lib/content";
+import { sendMail } from "@/lib/mail";
 
 export type ContactState = { ok?: boolean; error?: string };
 
@@ -50,6 +52,34 @@ export async function submitContact(input: unknown): Promise<ContactState> {
     } else {
       bucket.count += 1;
     }
+
+    // Honour the 180-day retention promised in the privacy policy — opportunistic
+    // purge on each new enquiry, so it needs no scheduler.
+    // ponytail: deletes everything past 180d; the policy's "active project"
+    // exception can't be honoured without a project-link flag on the message.
+    try {
+      const cutoff = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+      await db.contactMessage.deleteMany({ where: { createdAt: { lt: cutoff } } });
+    } catch (e) {
+      console.error("retention purge", e);
+    }
+
+    // Notify the studio — never let a mail hiccup fail the enquiry.
+    try {
+      const [site, integrations] = await Promise.all([getBlock("site"), getBlock("integrations")]);
+      const to = integrations.notifyEmail?.trim() || site.email;
+      if (to) {
+        await sendMail({
+          to,
+          replyTo: email,
+          subject: `New enquiry from ${name}`,
+          text: `New enquiry via ${site.name}\n\nName: ${name}\nEmail: ${email}${service ? `\nService: ${service}` : ""}${phone ? `\nPhone: ${phone}` : ""}\n\n${message}\n\n— View in the admin: /admin/messages`,
+        });
+      }
+    } catch (e) {
+      console.error("enquiry notification", e);
+    }
+
     return { ok: true };
   } catch (e) {
     console.error("submitContact", e);

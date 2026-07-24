@@ -64,6 +64,7 @@ function buildItems(unread: number): Item[] {
       label: "Appearance", href: "/admin/appearance/themes", icon: icons.appearance,
       children: [
         { label: "Themes", href: "/admin/appearance/themes" },
+        { label: "Homepage layout", href: "/admin/appearance/homepage" },
         { label: "Customize", href: "/admin/appearance/customize" },
         { label: "Menus", href: "/admin/appearance/menus" },
       ],
@@ -75,7 +76,12 @@ function buildItems(unread: number): Item[] {
     },
     {
       label: "Settings", href: "/admin/settings/general", icon: icons.settings,
-      children: [{ label: "General", href: "/admin/settings/general" }],
+      children: [
+        { label: "General", href: "/admin/settings/general" },
+        { label: "SEO", href: "/admin/settings/seo" },
+        { label: "Redirects", href: "/admin/settings/redirects" },
+        { label: "Integrations", href: "/admin/settings/integrations" },
+      ],
     },
   ];
 }

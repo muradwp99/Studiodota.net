@@ -24,16 +24,15 @@ export const getBlock = cache(async <K extends BlockKey>(key: K): Promise<BlockD
 export const getProjects = cache(async () => {
   try {
     return await db.project.findMany({
-      where: { published: true },
+      where: { published: true, deletedAt: null },
       orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
     });
   } catch {
-    return SEED_PROJECTS.map((p, i) => ({
+    return SEED_PROJECTS.filter((p) => p.published).map((p, i) => ({
       id: `seed-${i}`,
-      interiorImage: "",
-      published: true,
       createdAt: new Date(),
       updatedAt: new Date(),
+      seo: {},
       ...p,
     }));
   }
@@ -41,16 +40,16 @@ export const getProjects = cache(async () => {
 
 export const getProject = cache(async (slug: string) => {
   try {
-    return await db.project.findFirst({ where: { slug, published: true } });
+    return await db.project.findFirst({ where: { slug, published: true, deletedAt: null } });
   } catch {
-    const p = SEED_PROJECTS.find((x) => x.slug === slug);
-    return p ? { id: slug, interiorImage: "", published: true, createdAt: new Date(), updatedAt: new Date(), ...p } : null;
+    const p = SEED_PROJECTS.find((x) => x.slug === slug && x.published);
+    return p ? { id: slug, createdAt: new Date(), updatedAt: new Date(), seo: {}, ...p } : null;
   }
 });
 
 export const getPosts = cache(async () => {
   try {
-    return await db.post.findMany({ where: { published: true }, orderBy: { date: "desc" } });
+    return await db.post.findMany({ where: { published: true, deletedAt: null }, orderBy: { date: "desc" } });
   } catch {
     return [];
   }
@@ -58,7 +57,7 @@ export const getPosts = cache(async () => {
 
 export const getPost = cache(async (slug: string) => {
   try {
-    return await db.post.findFirst({ where: { slug, published: true } });
+    return await db.post.findFirst({ where: { slug, published: true, deletedAt: null } });
   } catch {
     return null;
   }
@@ -66,7 +65,7 @@ export const getPost = cache(async (slug: string) => {
 
 export const getGalleryItems = cache(async () => {
   try {
-    return await db.galleryItem.findMany({ where: { published: true }, orderBy: { sort: "asc" } });
+    return await db.galleryItem.findMany({ where: { published: true, deletedAt: null }, orderBy: { sort: "asc" } });
   } catch {
     return SEED_GALLERY.map((g, i) => ({ id: `seed-${i}`, youtubeId: "", tall: false, published: true, ...g }));
   }

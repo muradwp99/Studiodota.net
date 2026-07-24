@@ -33,7 +33,7 @@ async function main() {
   // 3) Projects
   for (const p of SEED_PROJECTS) {
     const found = await db.project.findUnique({ where: { slug: p.slug } });
-    if (!found) await db.project.create({ data: { ...p, interiorImage: p.slug === "atelier-house" ? R("interior") : "" } });
+    if (!found) await db.project.create({ data: { ...p } });
   }
 
   // 4) Posts (from the typed content layer)

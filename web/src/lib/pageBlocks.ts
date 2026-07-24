@@ -6,7 +6,7 @@ import type { FieldSpec } from "@/lib/pageRegistry";
  * validation) plus sensible defaults so a freshly-inserted block looks real.
  */
 
-export type PageBlock = { id: string; type: string; props: Record<string, unknown> };
+export type { Node as PageBlock, PageTree } from "@/lib/nodes/types";
 
 export type BlockType = {
   type: string;
@@ -22,13 +22,29 @@ const ta = (key: string, label: string, rows = 3): FieldSpec => ({ kind: "textar
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
 const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, label });
 const tog = (key: string, label: string): FieldSpec => ({ kind: "toggle", key, label });
+const sel = (key: string, label: string, options: { value: string; label: string }[]): FieldSpec => ({ kind: "select", key, label, options });
 
 export const RESERVED_SLUGS = [
   "", "about", "services", "projects", "journal", "gallery", "contact", "privacy",
-  "admin", "api", "home-2", "uploads", "media", "_next", "login", "favicon.ico",
+  "admin", "api", "uploads", "media", "_next", "login", "favicon.ico",
 ];
 
 export const BLOCK_TYPES: BlockType[] = [
+  {
+    type: "container",
+    label: "Container",
+    description: "A flexible box that holds other blocks (row = columns, column = stack).",
+    icon: "▢",
+    fields: [
+      sel("direction", "Direction", [{ value: "column", label: "Stack (column)" }, { value: "row", label: "Row (columns)" }]),
+      num("gap", "Gap (px)"),
+      sel("align", "Align items", [{ value: "stretch", label: "Stretch" }, { value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }]),
+      sel("justify", "Justify", [{ value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }, { value: "between", label: "Space between" }]),
+      tog("wrap", "Wrap"),
+      tog("stackOnMobile", "Stack on mobile"),
+    ],
+    defaults: { direction: "column", gap: 24, align: "stretch", justify: "start", wrap: false, stackOnMobile: true },
+  },
   {
     type: "hero",
     label: "Hero",
@@ -132,6 +148,22 @@ export const BLOCK_TYPES: BlockType[] = [
     icon: "➔",
     fields: [ta("title", "Title", 2), ta("body", "Body", 2), t("buttonLabel", "Button label"), t("buttonHref", "Button link"), img("image", "Background image")],
     defaults: { title: "Let's talk about your project.", body: "", buttonLabel: "Get in touch", buttonHref: "/contact", image: "/media/renders/harbour-masterplan.jpg" },
+  },
+  {
+    type: "columns",
+    label: "Columns",
+    description: "Two to four text columns side by side.",
+    icon: "▥",
+    fields: [{ kind: "list", key: "items", label: "Columns", addable: true, item: [t("heading", "Heading"), ta("body", "Text", 4)] }],
+    defaults: { items: [{ heading: "First", body: "Describe the first thing." }, { heading: "Second", body: "Describe the second thing." }, { heading: "Third", body: "Describe the third thing." }] },
+  },
+  {
+    type: "embed",
+    label: "Embed / HTML",
+    description: "Paste a map, form, or any embed / custom HTML.",
+    icon: "◇",
+    fields: [ta("html", "Embed code / HTML", 5), t("caption", "Caption")],
+    defaults: { html: "", caption: "" },
   },
   {
     type: "divider",

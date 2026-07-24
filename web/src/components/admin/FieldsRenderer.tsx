@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { FieldSpec } from "@/lib/pageRegistry";
 import MediaPicker from "@/components/admin/MediaPicker";
+import SeoPanel from "@/components/admin/SeoPanel";
+import type { SeoBlob } from "@/lib/seoScore";
 import { inputCls, labelCls, btnGhostCls } from "@/components/admin/ui";
 
 export type Path = (string | number)[];
@@ -48,6 +50,9 @@ export function emptyFor(fields: FieldSpec[]): Json {
         break;
       case "stringList":
         out[f.key] = [];
+        break;
+      case "seo":
+        out[f.key] = {};
         break;
       case "group":
         out[f.key] = emptyFor(f.fields);
@@ -112,6 +117,15 @@ export default function FieldsRenderer({
             {f.label}
           </label>
         );
+      case "select":
+        return (
+          <div key={id}>
+            <label htmlFor={id} className={labelCls}>{f.label}</label>
+            <select id={id} className={inputCls} value={String(val ?? "")} onChange={(e) => onChange(path, e.target.value)}>
+              {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        );
       case "image": {
         const v = String(val ?? "");
         return (
@@ -136,6 +150,16 @@ export default function FieldsRenderer({
           <div key={id}>
             <label htmlFor={id} className={labelCls}>{f.label} <span className="normal-case text-[var(--muted)]">(one per line)</span></label>
             <textarea id={id} rows={Math.min(8, Math.max(3, arr.length + 1))} className={`${inputCls} font-mono text-xs`} value={arr.join("\n")} onChange={(e) => onChange(path, e.target.value.split("\n"))} />
+          </div>
+        );
+      }
+      case "seo": {
+        const blob = (val && typeof val === "object" && !Array.isArray(val) ? val : {}) as SeoBlob;
+        const baseTitle = String(getAt(data, ["title"]) ?? "");
+        return (
+          <div key={id}>
+            <label className={labelCls}>{f.label}</label>
+            <SeoPanel value={blob} onChange={(next) => onChange(path, next)} ctx={{ baseTitle }} />
           </div>
         );
       }

@@ -1,4 +1,5 @@
 import Reveal from "@/components/Reveal";
+import LineMask from "@/components/motion/LineMask";
 
 export default function PageHeader({
   eyebrow,
@@ -14,9 +15,7 @@ export default function PageHeader({
       <Reveal>
         <span className="eyebrow">{eyebrow}</span>
       </Reveal>
-      <Reveal delay={70}>
-        <h1 className="display-l mt-5 max-w-[20ch]">{title}</h1>
-      </Reveal>
+      <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[20ch]" delay={0.08} />
       {lede && (
         <Reveal delay={130}>
           <p className="lede mt-7 max-w-[52ch]">{lede}</p>

@@ -1,8 +1,172 @@
 # Studiodota.net — Session Handoff
 
+## Session update — 2026-07-22 (LATEST: type-led v2 — "type frames the architecture", commit `2f77fd8`)
+
+**User rejected v1 (`c685790`).** Studied v1 against gpt-taste / design-taste-frontend / high-end-visual-design / hallmark / impeccable (all installed as skills; impeccable context: root PRODUCT.md register=brand). **Diagnosis of v1:** editorial-typographic specimen lane (a reflex-reject lane) on an image-led architecture brief — imagery removed at rest; 192px display over the ~96px "shouting" ceiling; −0.055em under the −0.04em tracking floor; ghost-rise repeated across 4 sections; 3rd marquee; unmotivated three.js lattice; banned mono `01/02` meta-labels.
+**v2 keeps the client's text-led ask but photography stays present:** display-2xl capped `clamp(2.8rem,6.5vw,7rem)` lh .98 ls −.035em; About = manifesto with **inline photo chips inside the headline** (chips fed from `featured.items[0..1]` — no schema change); Services rows = name + sub + right-edge thumbnail (no numbers); Featured = ProjectIndex v2 with **persistent sticky preview panel** (crossfade per hovered/FOCUSED row; first project at rest; inline thumbs <lg) — cursor-chasing card removed; KineticBand + GeometryField **deleted**; CTA giant line stays (now ≤7rem). SplitReveal survives (Featured heading + CTA only). Browser-verified 1440/390 (values in commit msg). Magnific: **out of credits** (only 1 hero reference generated: magnific.com/app/creation/TecEXIaVNR — top up for the full set). Client review next; if she wants louder, raise clamp mid toward 8vw, NOT past the 7rem cap.
+
+
+## Session update — 2026-07-22 (TYPE-LED HOMEPAGE REDESIGN — client's largo.studio direction)
+
+**Commit `c685790` on `feature/admin-v1-client-ready` (unpushed). tsc/lint/tests clean; browser-verified 1440+390.** Client email: highlight text/wording over images, ref https://largo.studio/. Full measured trace of that site + the design in `docs/superpowers/specs/2026-07-22-type-led-redesign-design.md` (spec `0b3680d`, plan `c155d57`).
+- **Trace essentials:** statements 186–189px (13vw) / lh 0.77–1.0 / −7% tracking; projects index = names at 110px + tiny meta rows (no image cards at rest); split-word ghost-rise reveals (y+200, no mask); 312 scroll-bound elements; their "geometry" = a 2D-canvas logo module bg (NO three.js on their site).
+- **Built:** `.display-2xl` (12.5vw, lh 0.86, −4.5%) + `.display-index` tokens; **`SplitReveal.tsx`** (per-word ghost-rise, hydration-safe split, reduced-motion static); About → full-width manifesto; Services → giant name rows; **Featured → typographic project index** (`ProjectIndex.tsx`: names + location·year, cursor-following image card on hover [gsap quickTo], inline thumbs <md, giant "View all projects" closer); KineticBand marquee (LIVING/PLAYING/WORKING); FinalCTA headline = giant link to /contact; **`GeometryField.tsx`** = lazy R3F wireframe plan-lattice behind Featured + CTA (dpr≤1.5, IO pause, pointer parallax, reduced-motion static). FeaturedCard/QuoteMark deleted (dead). CMS blocks untouched — all copy still admin-editable.
+- **⚠️ TESTING GOTCHA discovered:** `SmoothScroll` wires `lenis.on("scroll", ScrollTrigger.update)` — programmatic `scrollTo`/`scrollIntoView` jumps produce NO ST ticks, so enter-reveals don't fire under scripted jumps (looks broken in automation; fine for real users). To test reveals headlessly: jump ABOVE the section, then dispatch stepped `WheelEvent`s (Lenis smooths → ticks fire). Verified: all reveals fire under wheel-driven scroll.
+- **Tuning knobs** (if the client wants it louder/quieter): clamp mid terms in `.display-2xl`/`.display-index` (globals.css), lattice `opacity` props in Sections.tsx (0.15/0.12), marquee `--marquee-dur` (70s), SplitReveal stagger (0.06).
+- **Next (phase 2, on client sign-off):** inner pages (services/about statements), possible type-led hero variant, overlay-nav + page transitions (LARGO's canvas-mask move).
+
+
 > Read this first to continue work in a fresh session. Full detail also in
 > `docs/PROJECT-BRIEF.md` and `docs/BUILD-NOTES.md`. Memory: `MEMORY.md` +
 > `studiodota-project.md` (auto-loaded).
+
+## Session update — 2026-07-21 (LATEST 2: RESPONSIVE CONTROLS + DEVICE TOGGLE — A2.3 DONE)
+
+**Branch `feature/admin-v1-client-ready`, NOT pushed / NOT merged. `npx tsc --noEmit` clean; 124 Vitest tests pass.** A2.3 built spec→plan→execution. Mid-slice the user switched from subagent-driven to **inline (Fable) execution** — Task 4's subagent was cut off by a session limit AFTER committing (`f1bc78f`); the controller reviewed that diff directly, ran the gate, and finished Tasks 4–5 + final review inline. 7 commits: `89524ee..4248dcc`.
+- **Spec:** `docs/superpowers/specs/2026-07-21-responsive-controls-device-toggle-design.md` · **Plan:** `docs/superpowers/plans/2026-07-21-responsive-controls-device-toggle.md` · **Ledger:** `.superpowers/sdd/progress.md`
+
+### What shipped
+- **`web/src/lib/nodes/responsive.ts`** (18 tests): value-level slot helpers — `resolveAt` (CASCADED read: mobile??tablet??base; scalar everywhere; `""` = unset), `writeSlot` (lossless: non-base write on scalar → `{base:scalar,[bp]:v}`), `clearSlot` (collapse `{base:x}`→`x`), `hasSlot`.
+- **Engine (`css.ts`):** `needsBoxAt(node,bp)` (cascaded per-bp box decision; `needsBox` ≡ mobile via monotonicity); **container flex moved inline→generated CSS** (`containerDecls`; stylesheet can't beat inline — that's why) + **`stackOnMobile`** (row → `flex-direction:column` ≤767px); **display rules in CSS** (`display:contents` at base + `display:revert` media at first boxed bp — gated on `hasBags` so bare nodes stay `""`/Fragment-path byte-identical); **`nodeCss(node,{preview,solidBox})`** — preview = ONE flat rule in cascade order (later duplicate declarations win), no media/hide rules; `solidBox` suppresses contents (flex items + editor wrapper — LOAD-BEARING, now commented at both call sites).
+- **Renderer:** `nodeWrapperStyle`/`containerFlexStyle` deleted; wrapper divs carry NO inline style (public passes `solidBox:flexItem`; editor `solidBox:true, preview:device`).
+- **Editor:** Desktop/Tablet/Mobile segmented toggle in the header; canvas 1100/1024/390px; `EditorApi.device`; dimmed **"Hidden on <device>" badge** for hide-toggles at the previewed device; **StyleRenderer device-aware** for color/slider/dimension/buttongroup with non-dotted keys (read `resolveAt`, write `writeSlot`, empty→`clearSlot`, gold override dot + × clear at non-base; `hover.*`/text/textarea/toggle stay base-only); container gets **"Stack on mobile"** (default ON for new).
+- **Browser-verified** (temp route, clean restart, deleted): toggle+widths; row stacks at Mobile; base-20/mobile-14 font-size with inherited display + computed both ways; dot + clear-collapse; hidden badge; DnD regression; zero console errors.
+
+### Final review (inline) — Minor triage
+FIXED: solidBox invariant comments (`4248dcc`). ACCEPTED: tablet-first box emits revert + tablet styles as two separate 1024px media blocks (cosmetic); hand-authored `{base:x, mobile:""}` would read un-boxed at mobile (unreachable via editor — `clearSlot` deletes keys; note for a future normalize pass); override-wrapper remount on dot appear/disappear (controlled inputs, harmless).
+
+### ⚠️ CLIENT SPOT-CHECK (agent cannot log in) — now covers A2.2 + A3.2 + A2.3
+Clean restart (`rm -rf web/.next` → `npm run dev`) then in the real admin: device toggle ↔ set a font-size/padding only at Mobile ↔ dot + clear; container "Stack on mobile"; **publish and view the page at a narrow browser width — the REAL media queries are the one thing the editor preview can't prove.**
+
+### Known limitations (by design this slice)
+Preview is resolved-flat (author media queries in Custom CSS won't fire in the narrow canvas); pre-A2.3 saved containers behave as stackOnMobile:false until edited; breakpoints fixed at 1024/767.
+
+## Session update — 2026-07-21 (editor bug fixes + NESTED CONTAINERS A3.2)
+
+**Branch `feature/admin-v1-client-ready`, 56 commits ahead of `master`, NOT pushed / NOT merged (kept as-is). `npx tsc --noEmit` clean; 90 Vitest tests pass (95 − 5 pruned dnd tests).** Two threads: (1) diagnosed the client's "inspector edits not working / elements look odd" report; (2) built **A3.2 nested containers** (subagent-driven, per-task reviews + opus final review + fix wave).
+
+### Thread 1 — client bug report, root causes (2 distinct)
+- **Systemic: wedged Turbopack cache (again).** Console showed a stale `</aside>` parse error for `ElementsPanel.tsx:70` that contradicted disk + clean tsc → broken client bundle → ALL editor interactivity dead + stale CSS ("elements look bigger"). Fix is operational: kill :3000, `rm -rf web/.next`, `npm run dev`. **Tell the client: always clean-restart after pulling editor changes.**
+- **Real code bug (FIXED `e5578aa`):** `InlineText` wrote its DOM text only on mount → sidebar Content edits updated state but not the canvas. Now reconciles on `value` change, skipping while focused (caret safe). Browser-verified.
+- **Verification technique (agent can't log in — password entry prohibited):** mount `PageBuilder` on a TEMPORARY unauth route `web/src/app/dev-editor/page.tsx` with sample blocks, drive it in the in-app browser, DELETE the route after. Gotchas: browser console buffer persists across server restarts (stale errors — read from a FRESH tab); synthetic `DragEvent`s work for DnD testing but must target the INNERMOST element (`.find()` on divs returns the outermost match).
+
+### Thread 2 — A3.2 nested containers DONE (8 commits `1e5aa5f..f951954`)
+- **Spec:** `docs/superpowers/specs/2026-07-20-nested-container-core-design.md` · **Plan:** `docs/superpowers/plans/2026-07-20-nested-container-core.md` · **Ledger:** `.superpowers/sdd/progress.md` (full per-task record + follow-ups).
+- **`web/src/lib/nodes/tree.ts`** (pure, 14 tests): `findNode/findParent/updateNode/updateSiblings/removeNode/insertNode/moveNode/duplicateNode/isDescendant`. `moveNode` no-ops on self/descendant targets; `duplicateNode` deep-clones with FRESH ids recursively (fixes the old nested-id-clone trap). ALL PageBuilder mutations route through these → depth-agnostic.
+- **`container` block** (Layout category, first): flexbox — Content tab = direction (row/column) / gap / align / justify / wrap via a NEW **`select` FieldSpec kind** (added to pageRegistry + validateFields [allow-list coercion, 3 tests] + FieldsRenderer). Full A2.2 Style/Advanced applies. Renders children via the wrapper (`containerFlexStyle`); its own `Block` case returns null.
+- **`BlockRenderer`**: exported `Block` + `containerFlexStyle` + `nodeWrapperStyle(node, flexItem)`; container children thread `flexItem=true` so flex can't dissolve `display:contents` children. **Public render byte-identical for existing pages** (verified algebraically in review).
+- **`EditableNode.tsx` + `editorContext.ts`** (new): recursive editable canvas — every node at any depth is selectable/editable/duplicable/removable/movable; chrome (outline+toolbar+drag handle) renders ON SELECT (avoids nested group-hover cross-talk — that was a review catch, fixed `a66269a`). Editor wrapper is ALWAYS a real box (chrome needs an anchor) — deliberate, minor divergence from public `display:contents`.
+- **Recursive DnD**: every drop resolves to `{parentId, index}`; per-node onDragOver targets its sibling slot (stopPropagation = innermost wins); empty-container zone targets inside; blocks-container catches empty-page/gutter drops (append) — that last one was the opus final-review's Important catch (silent no-op regression), fixed `f951954` + browser-verified. Depth-6 guard on BOTH drag and click-insert paths (shared MAX_DEPTH; save-side `validateTree` still enforces too). `lib/nodes/dnd.ts` deleted (orphaned by the {parentId,index} model).
+- **Browser-verified end-to-end** (temp route, synthetic DragEvents): container flex row/gap; recursive select → inspector; nested sidebar-edit → canvas; click-insert into selected container; palette-drag INTO container; reorder within; cross-container move out to top level; empty-page drop; handle on-select.
+
+### Follow-ups (all triaged "acceptable", none blocking — from `.superpowers/sdd/progress.md`)
+`moveNode` nonexistent-parentId guard (unreachable today); `EditorContext` value not memoized (all nodes re-render per keystroke — pre-existing characteristic); direct unit tests for `containerFlexStyle`/`nodeWrapperStyle` (they import the heavy BlockRenderer module graph — extract to a pure module if testing); `select`-validator test with a non-first default; `ed.hover` per-dragover-tick setState dedup; nested `role="button"` a11y semantics. Plus older: A2.3 responsive (needsBox-per-breakpoint trap), gradient/bg-image controls (dead `STYLE_BOX_KEYS` placeholders), old `columns` widget migration, 9 pre-existing lint errors in unrelated files.
+
+### ⚠️ STILL NEEDS CLIENT SPOT-CHECK (agent cannot log in)
+Clean restart (`rm -rf web/.next` → `npm run dev`), then in the real admin: add a **Container**, set direction **row**, drag Heading/Image/Text INTO it, nest a Container in a Container, reorder/move children across containers, edit a nested child's text+style from the sidebar, Save → View published page (nested flex layout renders; verify on mobile width too — container layout is base-only for now, so a row stays a row on mobile until A2.3).
+
+## Session update — 2026-07-20 (A2.2 controls + drag-to-insert + full-screen chrome fix)
+
+**Branch `feature/admin-v1-client-ready`. 9 new commits `b5c1f19..9c2d0a5`, NOT pushed / NOT merged (kept branch as-is). `npx tsc --noEmit` clean; 78 Vitest tests pass (6 files).** Subagent-driven build of a 3-part editor slice the client asked for (topbar overlap fix + "drag and drop not worked" + "more advanced controlling/styling"). Followed brainstorm→spec→plan→subagent-build with per-task reviews + a final whole-branch review.
+- **Spec:** `docs/superpowers/specs/2026-07-20-live-editor-a2.2-controls-drag-insert-chrome-design.md`
+- **Plan:** `docs/superpowers/plans/2026-07-20-live-editor-a2.2-controls-drag-insert-chrome.md`
+- **Ledger (git-ignored):** `.superpowers/sdd/progress.md` — full task-by-task record + all Minor findings.
+
+### What shipped (3 parts)
+1. **Full-screen chrome fix** (`b5c1f19`): `PageBuilder.tsx` root `z-50`→`z-[100]` so the editor covers the admin bar (`AdminBar` is `z-[90]`, dropdowns `z-[95]`). Fixes the client screenshot where "Howdy, …" overlapped the editor header.
+2. **Drag-and-drop** (`0f19223`,`357d1d4`,`25dc343`): new pure **`web/src/lib/nodes/dnd.ts`** (`insertIndexFor`/`reorderIndexFor`, unit-tested); reorder now uses the helper + sets `dataTransfer` (Firefox-reliable); **NEW palette drag-to-insert** — `ElementsPanel` items are `draggable` and report type via `onDragType`; `PageBuilder` gains a `dragType` state mirroring `dragIndex`; canvas reuses the gold drop-indicator to insert before/after the hovered block; blocks-container + empty-page act as append/empty dropzones (dashed "Drop block here"). Reorder handle (`⠿`) still works. Click-to-insert kept (keyboard path). **NOTE:** the client's "drag and drop not worked" was most likely (a) palette drag was never built (now is) and/or (b) the Turbopack cache wedge — recipe below starts with a clean `.next` wipe.
+3. **A2.2 inspector controls** (`f937d80`,`9863486`,`658fc58`,`17c6050`): `css.ts` `styleToCss` now emits **typography** (font-size/weight/line-height/letter-spacing/text-transform — inherited, `display:contents`-safe, NOT box-generating), **width**, **border** (width/style/color; defaults style to `solid`), **box-shadow** (presets none/soft/medium/strong via a map), **position**. New Style groups: Typography, Border, Shadow, **Hover** (bg+text, dotted keys `hover.*`). New Advanced groups: **Position**, **Visibility** (hide desktop/tablet/mobile toggles), **Custom CSS** (textarea, HARDENED). New renderer kinds `toggle` + `textarea` and **dotted-key** path resolution in `StyleRenderer` (`c.key.split(".")` → get/set nested). Guard tests keep **control-key ↔ engine emission ↔ needsBox** in lockstep (`styleControls.test.ts`, `css.test.ts`).
+
+### Final whole-branch review (opus) — verdict "ready to merge = YES", 3 Minor, fixed in `9c2d0a5`
+- **#1 (real):** `boxShadow:"none"` forced an empty box (`needsBox` true but no CSS emitted) → `needsBox` now gates `boxShadow` through `shadowOf` (only real presets force a box); `boxShadow` removed from `STYLE_BOX_KEYS`, dedicated tests added.
+- **#2 (defense-in-depth):** `</style>` escape only guarded `customCss`, but free-text color values reach the same `dangerouslySetInnerHTML` `<style>` sink → the `</style` neutralization is now applied ONCE over the whole assembled sheet in `nodeCss` (covers colors + any emission); `sanitizeCustomCss` reduced to the whole-word `selector` replace.
+- **#3:** `StyleRenderer` switch got a `default:{const _exhaustive:never=c;…}` guard.
+
+### ⚠️ STILL NEEDS CLIENT SPOT-CHECK (agent cannot log in — admin is `requireAdmin`-gated; entering a password is prohibited)
+Everything above is verified by `tsc` + 78 Vitest + per-task/final review, but the **editor UI itself was NOT clicked through by the agent.** Client recipe (also in the plan's "Final verification"):
+1. **Clean restart** (kills the Turbopack wedge that masquerades as "editor broken"): stop dev on :3000 → `rm -rf web/.next` → `cd web && npm run dev`.
+2. Chrome: open a page editor → admin bar gone, Save/⚙/← fully clickable.
+3. Drag-to-insert: drag "Heading" from the left panel between two blocks / onto an empty page / into the gutter below the last block.
+4. Reorder: drag the `⠿` handle. 5. Controls: set Border+Shadow+Hover+Typography, toggle "Hide on mobile", try Position/Custom CSS → Save → View published page renders the styles.
+
+### What REMAINS (next slices)
+- **A3.2 — nested containers** (the big one): drop widgets INTO `columns`/containers; recursive drag/select/edit. TRAP (still true): `PageBuilder.updateBlockProp` + `duplicate` only handle TOP-LEVEL blocks — must recurse into `children`.
+- **A2.2 phase 2** (deferred this slice): **gradient** background, **background-image** picker (media), **motion/animation** presets. When bg-image/gradient land, wire `background`/`backgroundImage` emission in `styleToCss` (they're still listed in `STYLE_BOX_KEYS` as DEAD placeholders — either emit them or prune).
+- **A2.3 — ResponsiveField + device toggle** (TRAP unchanged): `needsBox` is one boolean applied as a fixed inline `display:contents`; once a box can be set at only tablet/mobile, move the box/contents decision INTO per-breakpoint CSS in `css.ts`.
+- **Per-element typography targeting:** wrapper typography inherits through `display:contents` but a block's own type classes (e.g. `display-l`) override `font-size` — documented limitation; deeper targeting later.
+- **Harmless deferred Minors:** palette `onDragEnd` leaves stale `overIndex` (confirmed no functional effect — indicator guard false once `dragType` null); `FieldsRenderer` lacks the same exhaustiveness guard (pre-existing pattern).
+- **⚠️ PRE-EXISTING LINT (surfaced this session):** `npm run lint` has **9 errors + 3 warnings in UNRELATED files** (ContactForm/Navbar/VideoPlayer/InlineText/Hero3D/HeroScrub) — NOT from this slice (changed files are lint-clean). `tsc` is clean, but a production `npm run build` may trip on these — worth a dedicated lint-cleanup pass. (`npm run build` was NOT run this session; only `tsc` + Vitest.)
+- **Push/merge:** branch is 44 commits ahead of `origin/master`, still unpushed — say the word.
+
+## Session update — 2026-07-20 (Live Editor A2 inspector + A3 left panel + FULL-SCREEN Gutenberg-style editor)
+
+**Branch `feature/admin-v1-client-ready`, all pushed to origin (through `d389e71`). `npx tsc --noEmit` clean; 54 Vitest tests pass.** Continued the Live Editor: A2.1 (inspector), A3.1 (left panel), then reworked the whole editor into a **full-screen Gutenberg-style** UI at the client's request.
+
+### What the client wants (important context)
+They want the page editor to look/behave **exactly like WordPress Gutenberg** — full-screen, left block inserter, right settings sidebar — and WP-style row actions on the Pages list. They provided the Gutenberg source zip (`D:\Realistic Projects\Aus Projects\Project 11\gutenberg.23.5.3.zip`) as the reference. **We do NOT embed `@wordpress/block-editor`** (it's a WP plugin tied to WP's data layer, doesn't fit Next/Prisma) — we **replicate its UI/UX** on our own block system.
+
+### A2.1 — Content/Style/Advanced inspector (commits `319c81f..9d343aa`)
+- `web/src/lib/nodes/styleControls.ts` — `StyleControl` spec + `STYLE_CONTROLS`/`ADVANCED_CONTROLS`.
+- `web/src/components/admin/controls/` — ColorControl, DimensionControl, SliderControl, ButtonGroupControl.
+- `web/src/components/admin/StyleRenderer.tsx` — renders StyleControl specs (parallel to FieldsRenderer).
+- Controls write bg/color/align/maxWidth/minHeight/borderRadius (style) + padding/margin/zIndex/cssClasses/cssId (advanced) — **all already mapped by the A1 css engine**.
+- **`needsBox(node)` in css.ts** → renderer wraps a node in `display:contents` UNLESS a box prop/children need a real box (so styling never shifts the page). Public-side verified.
+
+### A3.1 — left elements panel + admin font (commit `7743659`)
+- `web/src/components/admin/ElementsPanel.tsx` — categorized (Layout/Text/Media/Widgets/Embed), searchable, click-to-insert block library.
+- Admin UI font switched Archivo → **Geist Sans** (`geist` pkg; applied in `app/admin/(panel)/layout.tsx`); admin `<main>` widened to 1440px.
+
+### FULL-SCREEN editor rebuild + Pages row actions (commit `d389e71`)
+- **`PageBuilder.tsx` fully rebuilt** as a `fixed inset-0 z-50` full-screen editor (theme-aware tokens, NOT the old embedded panel): header bar (`+` inserter toggle · title · Save/Update · ⚙ settings toggle · `←` exit), **slide-in left inserter** (ElementsPanel), centered **canvas "page"**, right sidebar with **Page / Block tabs** (Block = Content/Style/Advanced when a block is selected; Page = status/slug/SEO/Move-to-Trash). Block hover toolbar (move/dup/delete) kept.
+- `app/admin/(panel)/pages/page.tsx` — **WP-style hover row actions** on live pages: Edit · View · Trash.
+- The old between-block `+` popups were removed; insertion is via the left panel (inserts after the selected block, else at end).
+
+### ⚠️ CRITICAL GOTCHA — Turbopack dev cache wedges after a machine restart
+Symptom: the editor "doesn't work" / the `+` does nothing, and the browser console shows a **stale JSX/parse error that contradicts a clean `tsc`** (e.g. an old `</aside>` on a line that is actually `</div>` on disk). This is a wedged Turbopack cache, NOT a real code error. **Fix:** kill the dev server on :3000, `rm -rf web/.next`, restart `npm run dev`. Always do a clean restart after big edits or a machine reboot. (This was almost certainly the client's "+ not working" too.)
+
+### Verification constraint (unchanged)
+The admin is `requireAdmin`-gated; the agent **cannot log in** (entering a password is a prohibited action), so the editor UI is **verified by the client's spot-check**. The block-render/engine path is verified public-side by DB-injecting styled nodes into a published page. `tsc`/eslint/Vitest cover the pure logic.
+
+### Next (roadmap)
+Drag-between-blocks inserter; **true nested containers** (A3.2 — drop widgets into columns; recursive drag/select/edit — note `PageBuilder.updateBlockProp` + `duplicate` must recurse); deeper **A2.2** style controls (typography/border/shadow/gradient/hover/motion/custom-CSS); **A2.3** ResponsiveField + device toggle (TRAP: `needsBox` is one boolean applied as fixed inline `display:contents` — must move into per-breakpoint CSS when a box can be set at only tablet/mobile). Full A2/A3 trap list in the git-ignored `.superpowers/sdd/progress.md`.
+
+## Session update — 2026-07-19 (Live Editor A1 foundation + scroll-scrub hero + homepage drift/drag)
+
+**Branch `feature/admin-v1-client-ready` (NOT pushed to origin). `npx tsc --noEmit` clean; 35 Vitest tests pass; homepage verified live in-browser.** Two threads: (1) started the Elementor/Gutenberg-class **Live Editor** (sub-project A of the A→G roadmap) — **A1 foundation complete**; (2) built the **scroll-scrub hero** + **homepage horizontal-drift sections with manual drag**.
+
+### Live Editor — roadmap A→G (client wants Gutenberg + Elementor-class editing)
+Decomposed into sub-projects: **A** editor core → B widget catalog → C autosave/revisions → D saved patterns → E media upgrade → F onboarding → G settings polish. Full ambition (client picked max on every axis): true nested containers, full style parity, WP-matching catalog, left elements panel + right **Content/Style/Advanced** inspector. Followed superpowers brainstorm→spec→plan→subagent-build.
+- **Spec:** `docs/superpowers/specs/2026-07-19-live-editor-core-design.md`
+- **A1 plan:** `docs/superpowers/plans/2026-07-19-live-editor-core-a1-foundation.md`
+- **Progress ledger (git-ignored):** `.superpowers/sdd/progress.md`
+
+**A1 FOUNDATION — DONE** (commits `b91cbb8..c8cec9b` + doc `77bd2e6`); every task had a per-task review + a final whole-branch review ("ready to merge: YES"). Added:
+- **Vitest** (`web/vitest.config.ts`, `npm test`, node env, `@` alias) — 35 tests.
+- **`web/src/lib/nodes/`** (pure logic): `types.ts` (canonical `Node = {id,type,props,style?,advanced?,children?}`, `Responsive<T>`, `Breakpoint`), `walk.ts`, `normalize.ts` (read-path migration of old flat blocks), `css.ts` (style/advanced → `.n-{id}` scoped CSS: responsive tablet≤1024 / mobile≤767, hover, hide, custom-CSS), `validate.ts` (recursive server validation; caps depth 6 / 300 nodes / 20KB bag).
+- `BlockRenderer.tsx` is now **recursive** (per-node `<style>`, NOT a single collectCss sheet — deliberate, spec §5). Backward-compat: a node with no style/advanced/children renders **byte-identical** (no wrapper). Verified `/our-studio-story` unchanged.
+- `PageBlock` is now an alias of `Node`; `savePage` (`lib/actions/pages.ts`) uses a recursive zod schema + `validateTree`; both read paths run `normalizeTree`. `Page.blocks` is JSON — **no DB migration**.
+
+**A2 IS NEXT — the Content/Style/Advanced tabbed inspector + control library. A2 PRE-WORK TRAPS (recorded here since the ledger is git-ignored):**
+1. **BIGGEST:** the universal wrapper `<div class="n-{id}">` will SHIFT layout of existing shell-centered / full-bleed blocks the moment styling is applied → default the wrapper to `display:contents` until a box-model prop (padding/bg/border) needs a real box; audit full-bleed blocks. (Byte-identical today only because nothing sets style yet.)
+2. `PageBuilder.updateBlockProp` only matches TOP-LEVEL blocks by id → make it recurse into `children` for nested inline edits.
+3. `PageBuilder.duplicate()` drops style/advanced and needs child-id regeneration for cloned subtrees.
+4. `nodeSchema` style/advanced/children are `.optional()` (reject explicit `null`) → omit them or use `.nullish()` when the style panel initializes a node.
+5. Custom-CSS `selector` substitution is a naive `/selector/g` → needs token-aware replace + `</style>` escaping + user docs when the Custom CSS control ships (zero exposure now — no UI).
+6. Add a render-level byte-identical test once a React component-test harness exists.
+
+### Scroll-scrub hero (replaces the slider hero on `/`)
+- **`web/src/components/home/HeroScrub.tsx`** — Apple-style `<canvas>` scrub via GSAP ScrollTrigger over a **sticky 3.5-screen track (NO gsap pin → Lenis-safe)**, progressive frame preload (nearest-loaded fallback, no blank flashes), reduced-motion = single static frame, restrained bottom-anchored text lockup (client feedback: footage must lead, not big text). Picks mobile vs desktop frame set at mount via `matchMedia`.
+- **Frames** built by **`web/scripts/build-hero-frames.mjs`** (uses **sharp**): raw 340×4K 16-bit PNGs (**6.9GB, git-ignored `Homepage_ref/`**) → desktop **300 @1920px WebP q92 = 57MB** (`public/media/hero-seq/`) + mobile **150 @1080px = 9.7MB** (`public/media/hero-seq-mobile/`) — **both committed**. Re-run: `node scripts/build-hero-frames.mjs [desktop|mobile]`. NOTE: lossless WebP measured **424MB** (rejected); q92 lossy is visually identical — never use lossless for photographic/CGI frames. Commits `15621ea` (desktop) + `9cadcc8` (mobile).
+- Old slider `home/Hero.tsx` was **DELETED** (orphaned). `home-2` still uses `VideoHero`; `hero/Hero3D.tsx` + `HomeHero.tsx` remain unused.
+
+### Homepage horizontal-drift sections + manual drag (commits `bedf680` + `6439586`)
+- **`web/src/components/Parallax.tsx` → new `ParallaxX`**: scroll-linked horizontal drift (full-overflow reveal, opposite directions) **+ manual pointer drag** (applied position = scroll `baseX` + drag `dragX`, clamped to overflow, rAF-smoothed). Grab cursor, click-suppression after a real drag (card links don't fire on drag), `touch-action: pan-y` (vertical page-scroll preserved), reduced-motion → native horizontal scroll.
+- **Services** (`Sections.tsx` `ServicesSlider`): kept the **BIG cards**, now scroll-driven **drift LEFT** + drag (replaced the button carousel).
+- **Inside/Outside** (`Featured`): **two rows drift OPPOSITE** each other (rowA left / rowB right) + drag; **added 2 project cards** (leafy-precinct, riverside-warehouse → 6 total, 3/row). NOTE: `home.featured` is **DB-backed** — items were updated in BOTH `content/defaults.ts` AND the live DB block (fresh seed uses defaults; the running DB was patched directly via a one-off script).
+
+### Run / verify this session's work
+- `cd web && npm run db:start` (project MySQL on 3307) → `npm run dev` (http://localhost:3000). `npm test` (Vitest, 35). `npx tsc --noEmit` clean.
+- The dev MySQL + dev server die with the session — restart with `db:start` then `dev`.
 
 ## Session update — 2026-07-17 (LATEST 2: WordPress-style admin + block editor + plugins)
 **`npm run build` CLEAN. All flows verified live in-browser.** The admin now mirrors WordPress so a non-technical client feels at home — same anatomy, Studiodota's colors/fonts (charcoal + bronze, Archivo).
@@ -93,7 +257,7 @@ Marketing/portfolio website for **Studiodota — a real architecture & design pr
 ## Repo / Git
 - Root: `D:\Studiodota.net` (git). App: `web/`.
 - Remote `origin` → `https://github.com/muradwp99/Studiodota.net` , branch `master`.
-- Last push: commit `e82f7b1` "Build Studiodota architecture & design studio site" — everything is pushed.
+- Last push to `origin/master`: `e82f7b1`. Since then there is **extensive UNPUSHED work** on branch **`feature/admin-v1-client-ready`** (custom CMS/admin + Live Editor A1 + scroll-scrub hero + homepage drift/drag). Latest local commit `6439586`. Nothing has been pushed — say the word to push.
 - Root `.gitignore` excludes `.claude/`, `.agents/`, `node_modules/`, `.next/`.
 
 ## Run / build

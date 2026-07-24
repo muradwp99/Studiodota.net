@@ -35,7 +35,7 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">Dashboard</h1>
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <Widget title="At a Glance">
           <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5">
             {glance.map((g) => (
