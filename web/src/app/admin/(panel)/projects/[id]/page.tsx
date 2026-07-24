@@ -9,15 +9,19 @@ const EMPTY: ProjectInput = {
   slug: "",
   title: "",
   summary: "",
-  category: "residential",
-  sector: "Residential",
+  category: "single-family",
+  sector: "Single Family Residence",
   location: "",
-  year: `${new Date().getFullYear()}`,
+  year: "",
   services: [],
   heroImage: "",
   interiorImage: "",
+  gallery: [],
   published: true,
   sort: 0,
+  seoTitle: "",
+  seoDescription: "",
+  noindex: false,
 };
 
 export default async function AdminProjectEdit({ params }: { params: Promise<{ id: string }> }) {
@@ -38,8 +42,12 @@ export default async function AdminProjectEdit({ params }: { params: Promise<{ i
         services: Array.isArray(project.services) ? (project.services as string[]) : [],
         heroImage: project.heroImage,
         interiorImage: project.interiorImage,
+        gallery: Array.isArray(project.gallery) ? (project.gallery as string[]) : [],
         published: project.published,
         sort: project.sort,
+        seoTitle: project.seoTitle,
+        seoDescription: project.seoDescription,
+        noindex: project.noindex,
       }
     : EMPTY;
 

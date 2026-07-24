@@ -64,6 +64,7 @@ function buildItems(unread: number): Item[] {
       label: "Appearance", href: "/admin/appearance/themes", icon: icons.appearance,
       children: [
         { label: "Themes", href: "/admin/appearance/themes" },
+        { label: "Homepage layout", href: "/admin/appearance/homepage" },
         { label: "Customize", href: "/admin/appearance/customize" },
         { label: "Menus", href: "/admin/appearance/menus" },
       ],

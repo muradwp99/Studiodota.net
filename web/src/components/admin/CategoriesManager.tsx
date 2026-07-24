@@ -25,7 +25,7 @@ export default function CategoriesManager({ categories, counts }: { categories: 
     });
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[300px_1fr]">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[300px_1fr]">
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
         <h2 className="text-sm font-bold">Add New Category</h2>
         <div className="mt-4">

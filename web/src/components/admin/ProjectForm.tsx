@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveProject, deleteProject, type ActionState } from "@/lib/actions/collections";
 import MediaPicker from "@/components/admin/MediaPicker";
+import { SeoFields } from "@/components/admin/SeoFields";
 import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
 
 export type ProjectInput = {
@@ -17,17 +18,24 @@ export type ProjectInput = {
   services: string[];
   heroImage: string;
   interiorImage: string;
+  gallery: string[];
   published: boolean;
   sort: number;
+  seoTitle: string;
+  seoDescription: string;
+  noindex: boolean;
 };
 
-const CATEGORIES = ["residential", "commercial", "institutional", "masterplan"];
+const CATEGORIES = [
+  "single-family", "multifamily", "affordable-housing", "mixed-use",
+  "commercial", "office", "senior-living",
+];
 
 export default function ProjectForm({ id, initial }: { id: string | null; initial: ProjectInput }) {
   const [data, setData] = useState(initial);
   const [state, setState] = useState<ActionState | null>(null);
   const [pending, startTransition] = useTransition();
-  const [picker, setPicker] = useState<"heroImage" | "interiorImage" | null>(null);
+  const [picker, setPicker] = useState<"heroImage" | "interiorImage" | "gallery" | null>(null);
   const router = useRouter();
 
   const set = <K extends keyof ProjectInput>(k: K, v: ProjectInput[K]) => {
@@ -68,7 +76,7 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
 
   return (
     <div className="space-y-5 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="title" className={labelCls}>Title</label>
           <input id="title" className={inputCls} value={data.title} onChange={(e) => set("title", e.target.value)} />
@@ -108,6 +116,32 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
       </div>
       {imageField("heroImage", "Hero image")}
       {imageField("interiorImage", "Interior / detail image (optional)")}
+      <div>
+        <span className={labelCls}>Gallery <span className="normal-case text-[var(--muted)]">(shown on the project page, in order)</span></span>
+        <div className="space-y-2">
+          {data.gallery.map((path, i) => (
+            <div key={`${path}-${i}`} className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={path} alt="" className="h-12 w-16 shrink-0 rounded-md border border-[var(--line)] object-cover" />
+              <input
+                aria-label={`Gallery image ${i + 1}`}
+                className={`${inputCls} order-last w-full min-w-0 font-mono text-xs sm:order-none sm:w-auto sm:flex-1`}
+                value={path}
+                onChange={(e) => set("gallery", data.gallery.map((g, j) => (j === i ? e.target.value : g)))}
+              />
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+                <button type="button" className={btnGhostCls} disabled={i === 0} aria-label="Move up"
+                  onClick={() => { const g = [...data.gallery]; [g[i - 1], g[i]] = [g[i], g[i - 1]]; set("gallery", g); }}>↑</button>
+                <button type="button" className={btnGhostCls} disabled={i === data.gallery.length - 1} aria-label="Move down"
+                  onClick={() => { const g = [...data.gallery]; [g[i + 1], g[i]] = [g[i], g[i + 1]]; set("gallery", g); }}>↓</button>
+                <button type="button" className={btnDangerCls} aria-label="Remove"
+                  onClick={() => set("gallery", data.gallery.filter((_, j) => j !== i))}>✕</button>
+              </div>
+            </div>
+          ))}
+          <button type="button" className={btnGhostCls} onClick={() => setPicker("gallery")}>+ Add image</button>
+        </div>
+      </div>
       <div className="flex flex-wrap items-center gap-6">
         <label className="flex items-center gap-2.5 text-sm">
           <input type="checkbox" className="h-4 w-4 accent-[var(--gold)]" checked={data.published} onChange={(e) => set("published", e.target.checked)} />
@@ -118,6 +152,13 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
           <input id="sort" type="number" className={`${inputCls} w-24`} value={data.sort} onChange={(e) => set("sort", Number(e.target.value) || 0)} />
         </div>
       </div>
+      <SeoFields
+        seoTitle={data.seoTitle}
+        seoDescription={data.seoDescription}
+        noindex={data.noindex}
+        fallbackTitle={data.title}
+        onChange={(patch) => setData((d) => ({ ...d, ...patch }))}
+      />
       <Notice state={state} />
       <div className="flex items-center justify-between gap-4 border-t border-[var(--line)] pt-5">
         <button type="button" onClick={save} disabled={pending} className={btnPrimaryCls}>
@@ -132,7 +173,10 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
       <MediaPicker
         open={picker !== null}
         onClose={() => setPicker(null)}
-        onSelect={(p) => picker && set(picker, p)}
+        onSelect={(p) => {
+          if (picker === "gallery") set("gallery", [...data.gallery, p]);
+          else if (picker) set(picker, p);
+        }}
       />
     </div>
   );

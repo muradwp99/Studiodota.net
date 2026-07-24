@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
+import LineMask from "@/components/motion/LineMask";
+import ImageReveal from "@/components/motion/ImageReveal";
 import { getProject, getProjects } from "@/lib/content";
 
 export async function generateStaticParams() {
@@ -18,7 +19,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = await getProject(slug);
   if (!project) return { title: "Project not found" };
-  return { title: project.title, description: project.summary };
+  return {
+    title: project.seoTitle || project.title,
+    description: project.seoDescription || project.summary,
+    ...(project.noindex ? { robots: { index: false, follow: false } } : {}),
+  };
 }
 
 export default async function ProjectDetail({
@@ -34,7 +39,13 @@ export default async function ProjectDetail({
   const idx = projects.findIndex((p) => p.slug === slug);
   const next = projects[(idx + 1) % projects.length] ?? project;
   const services = Array.isArray(project.services) ? (project.services as string[]) : [];
-  const detailImage = project.interiorImage || project.heroImage;
+  const gallery = (Array.isArray(project.gallery) ? (project.gallery as string[]) : []).filter(
+    (g) => g && g !== project.heroImage,
+  );
+  // Legacy rows without a gallery still get their pair of detail views.
+  const fallbackPair = gallery.length
+    ? []
+    : [project.interiorImage || project.heroImage, project.heroImage];
 
   return (
     <article>
@@ -44,52 +55,56 @@ export default async function ProjectDetail({
             ← All work
           </Link>
         </Reveal>
-        <Reveal delay={70}>
-          <h1 className="display-l mt-6 max-w-[20ch]">{project.title}</h1>
-        </Reveal>
-        <Reveal delay={130}>
+        <LineMask text={project.title} tag="h1" className="display-xl mt-6 max-w-[16ch]" delay={0.08} />
+        <Reveal delay={200}>
           <p className="lede mt-6 max-w-[54ch]">{project.summary}</p>
         </Reveal>
       </header>
 
       <div className="shell">
-        <Reveal>
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[var(--line)]">
-            <Image
-              src={project.heroImage}
-              alt={`${project.title} — hero view`}
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
-          </div>
-        </Reveal>
+        <ImageReveal
+          src={project.heroImage}
+          alt={`${project.title} — hero view`}
+          sizes="100vw"
+          priority
+          className="aspect-[16/9] w-full rounded-2xl border border-[var(--line)]"
+          curtain="var(--ink)"
+        />
 
-        <div className="grid gap-10 border-y border-[var(--line)] py-10 md:grid-cols-4">
+        {/* largo info rows: CATEGORY / LOCATION / SERVICES */}
+        <div className="mt-10 grid gap-10 border-y border-[var(--line)] py-10 md:grid-cols-4">
           <Meta label="Sector" value={project.sector} />
-          <Meta label="Year" value={project.year} />
+          {project.year && <Meta label="Year" value={project.year} />}
           {project.location && <Meta label="Location" value={project.location} />}
-          <Meta label="Services" value={services.join(", ") || "Architecture"} />
+          <Meta label="Services" value={services.join(", ") || "Architectural Design"} />
         </div>
 
+        {/* Every render delivered for the project — full-width beat every third image */}
         <div className="section grid gap-6 pt-14 md:grid-cols-2">
-          {[
-            { src: detailImage, pos: "center top" },
-            { src: project.heroImage, pos: "center bottom" },
-          ].map((img, n) => (
-            <Reveal key={n} delay={n * 80}>
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[var(--line)]">
-                <Image
-                  src={img.src}
-                  alt={`${project.title} — detail view`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                  style={{ objectPosition: img.pos }}
-                />
-              </div>
-            </Reveal>
+          {gallery.map((src, n) => {
+            const wide = n % 3 === 2;
+            return (
+              <ImageReveal
+                key={src}
+                src={src}
+                alt={`${project.title} — view ${n + 2}`}
+                sizes={wide ? "100vw" : "(max-width:768px) 100vw, 50vw"}
+                className={`w-full rounded-2xl border border-[var(--line)] ${wide ? "aspect-[16/9] md:col-span-2" : "aspect-[4/3]"}`}
+                curtain="var(--ink)"
+                delay={wide ? 0 : (n % 3) * 0.08}
+              />
+            );
+          })}
+          {fallbackPair.map((src, n) => (
+            <ImageReveal
+              key={`${src}-${n}`}
+              src={src}
+              alt={`${project.title} — detail view`}
+              sizes="(max-width:768px) 100vw, 50vw"
+              className="aspect-[4/3] w-full rounded-2xl border border-[var(--line)]"
+              curtain="var(--ink)"
+              delay={n * 0.08}
+            />
           ))}
         </div>
       </div>
@@ -97,8 +112,9 @@ export default async function ProjectDetail({
       <section className="section border-t border-[var(--line)]">
         <div className="shell flex flex-col items-center gap-6 text-center">
           <span className="eyebrow eyebrow-muted">Next project</span>
-          <Link href={`/projects/${next.slug}`} className="display-m link-underline">
-            {next.title}
+          <Link href={`/projects/${next.slug}`} className="group inline-flex items-baseline gap-4">
+            <span className="display-m link-underline">{next.title}</span>
+            <span aria-hidden="true" className="text-2xl text-[var(--gold-ink)] transition-transform duration-500 group-hover:translate-x-2">→</span>
           </Link>
           <Link href="/contact" className="btn btn-primary mt-4">
             Start a project like this

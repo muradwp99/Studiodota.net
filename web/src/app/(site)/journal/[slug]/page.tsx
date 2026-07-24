@@ -17,7 +17,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await getPost(slug);
   if (!post) return { title: "Article not found" };
-  return { title: post.title, description: post.excerpt };
+  return {
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
+    ...(post.noindex ? { robots: { index: false, follow: false } } : {}),
+  };
 }
 
 type PostSection = { id: string; heading: string; body: string[] };

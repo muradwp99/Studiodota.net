@@ -7,7 +7,7 @@ import { useSectionTone } from "@/lib/useSectionTone";
 
 export type NavbarProps = {
   siteName: string;
-  nav: { getStartedLabel: string };
+  nav: { getStartedLabel: string; getStartedHref: string };
   /** Primary menu from Appearance → Menus. Known hrefs keep their mega panels. */
   menuItems: { label: string; href: string }[];
   services: { t: string; d: string; href: string }[];
@@ -152,7 +152,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             <button onClick={toggleTheme} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
               {dark ? <Sun /> : <Moon />}
             </button>
-            <Link href="/contact" className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
+            <Link href={nav.getStartedHref} className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
             <button className="grid h-9 w-9 place-items-center lg:hidden" aria-label={open ? "Close" : "Menu"} onClick={() => setOpen((v) => !v)}>
               <div className="flex flex-col gap-[5px]">
                 <span className={`h-px w-5 bg-[var(--nav-fg)] transition-transform duration-500 ${open ? "translate-y-[6px] rotate-45" : ""}`} />
@@ -184,19 +184,21 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             </div>
           )}
           {active === "Gallery" && (
-            <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
-              <div>
-                <div className="eyebrow mb-3">Videos</div>
-                <div className="grid grid-cols-2 gap-3">
-                  {galleryVideos.map((v) => (
-                    <Link key={v.img} href="/gallery" onClick={() => setActive(null)} className="group relative aspect-video overflow-hidden rounded-xl">
-                      <Image src={v.img} alt={v.t} fill sizes="260px" className="img-zoom object-cover" />
-                      <span className="absolute left-1/2 top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.2)] text-xs text-white backdrop-blur">▶</span>
-                      <span className="absolute bottom-2 left-3 text-xs font-medium text-white">{v.t}</span>
-                    </Link>
-                  ))}
+            <div className={`grid gap-6 ${galleryVideos.length ? "md:grid-cols-[1.2fr_1fr]" : ""}`}>
+              {galleryVideos.length > 0 && (
+                <div>
+                  <div className="eyebrow mb-3">Videos</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {galleryVideos.map((v) => (
+                      <Link key={v.img} href="/gallery" onClick={() => setActive(null)} className="group relative aspect-video overflow-hidden rounded-xl">
+                        <Image src={v.img} alt={v.t} fill sizes="260px" className="img-zoom object-cover" />
+                        <span className="absolute left-1/2 top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.2)] text-xs text-white backdrop-blur">▶</span>
+                        <span className="absolute bottom-2 left-3 text-xs font-medium text-white">{v.t}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <div className="eyebrow mb-3">Photos</div>
                 <div className="grid grid-cols-4 gap-2">
@@ -231,7 +233,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             {menuItems.map((item, i) => (
               <Link key={item.label + item.href} href={item.href} onClick={() => setOpen(false)} className="text-4xl font-extrabold transition-all duration-500" style={{ transitionDelay: open ? `${120 + i * 60}ms` : "0ms", opacity: open ? 1 : 0, transform: open ? "none" : "translateY(20px)" }}>{item.label}</Link>
             ))}
-            <Link href="/contact" onClick={() => setOpen(false)} className="btn btn-primary mt-6 w-max">{nav.getStartedLabel}</Link>
+            <Link href={nav.getStartedHref} onClick={() => setOpen(false)} className="btn btn-primary mt-6 w-max">{nav.getStartedLabel}</Link>
           </div>
         </div>
       </div>

@@ -3,7 +3,8 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import ScrollHighlightText from "@/components/ScrollHighlightText";
-import { ParallaxImage } from "@/components/Parallax";
+import LineMask from "@/components/motion/LineMask";
+import ImageReveal from "@/components/motion/ImageReveal";
 import { getBlock } from "@/lib/content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,56 +27,57 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      {d.items.map((s, i) => {
-        const imgLeft = i % 2 === 0;
-        return (
-          <section
-            key={s.id}
-            id={s.id}
-            className="scroll-mt-28 border-t border-[var(--line)] py-[clamp(3.5rem,8vw,7rem)]"
-          >
-            <div className="shell grid items-center gap-10 md:grid-cols-2 lg:gap-16">
-              <Reveal className={imgLeft ? "" : "md:order-2"}>
-                <ParallaxImage
-                  src={s.image}
-                  alt={`${s.title} — example project`}
-                  sizes="(max-width:768px) 100vw, 48vw"
-                  range={8}
-                  className="aspect-[4/3] w-full rounded-2xl"
-                />
+      {/* Five phases — ghost numerals, masked titles, ruled scope lists */}
+      {d.items.map((s) => (
+        <section key={s.id} id={s.id} className="scroll-mt-28 border-t border-[var(--line)]">
+          <div className="shell grid gap-x-16 gap-y-10 py-[clamp(3.5rem,8vw,7rem)] lg:grid-cols-[0.45fr_0.55fr]">
+            <div>
+              <Reveal>
+                <span aria-hidden="true" className="font-display block text-[clamp(4.5rem,9vw,8rem)] font-extrabold leading-none tracking-[-0.04em] text-[var(--line-strong)]">
+                  {s.num}
+                </span>
               </Reveal>
-              <Reveal delay={90} className={imgLeft ? "" : "md:order-1"}>
-                <div>
-                  <h3 className="display-m">{s.title}</h3>
-                  <p className="mt-5 max-w-[46ch] text-[var(--bone-dim)]">{s.detail}</p>
-                  <p className="mt-3 max-w-[46ch] text-sm text-[var(--muted)]">{s.blurb}</p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    {s.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-2 text-xs uppercase tracking-[0.08em] text-[var(--bone-dim)]"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                  <Link href="/contact" className="btn btn-ghost mt-8">
-                    Enquire about {s.title.toLowerCase()}
-                    <span className="btn-icon" aria-hidden="true">→</span>
-                  </Link>
-                </div>
+              <LineMask text={s.title} tag="h3" className="display-m mt-4 max-w-[14ch]" />
+              <Reveal delay={120}>
+                <p className="mt-5 max-w-[42ch] text-[var(--bone-dim)]">{s.blurb}</p>
+              </Reveal>
+              <ImageReveal
+                src={s.image}
+                alt={`${s.title} — project example`}
+                sizes="(max-width:1024px) 100vw, 42vw"
+                className="mt-10 aspect-[4/3] rounded-2xl"
+                curtain="var(--ink)"
+              />
+            </div>
+            <div className="lg:pt-6">
+              <Reveal>
+                <span className="eyebrow eyebrow-muted">What&apos;s included</span>
+              </Reveal>
+              <ul className="mt-6 grid gap-x-10 sm:grid-cols-2">
+                {s.tags.map((t, i) => (
+                  <Reveal key={t} delay={Math.min(i * 40, 320)}>
+                    <li className="flex items-baseline gap-3 border-b border-[var(--line)] py-3.5 text-sm text-[var(--bone-dim)]">
+                      <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 translate-y-[-1px] rounded-full bg-[var(--gold)]" />
+                      {t}
+                    </li>
+                  </Reveal>
+                ))}
+              </ul>
+              <Reveal delay={160}>
+                <Link href="/contact" className="btn btn-ghost mt-9">
+                  Enquire about {s.title.toLowerCase()}
+                  <span className="btn-icon" aria-hidden="true">→</span>
+                </Link>
               </Reveal>
             </div>
-          </section>
-        );
-      })}
+          </div>
+        </section>
+      ))}
 
-      <section className="section">
+      <section className="section border-t border-[var(--line)]">
         <div className="shell text-center">
-          <Reveal>
-            <h2 className="display-l mx-auto max-w-[18ch]">{d.ctaTitle}</h2>
-          </Reveal>
-          <Reveal delay={90}>
+          <LineMask text={d.ctaTitle} tag="h2" className="display-l mx-auto max-w-[22ch]" />
+          <Reveal delay={120}>
             <Link href="/contact" className="btn btn-primary mt-8">
               {d.ctaLabel}
               <span className="btn-icon" aria-hidden="true">→</span>

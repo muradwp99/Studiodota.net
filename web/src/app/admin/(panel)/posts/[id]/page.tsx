@@ -20,6 +20,9 @@ const EMPTY: PostInput = {
   intro: "",
   sections: [{ id: "", heading: "", body: [""] }],
   published: true,
+  seoTitle: "",
+  seoDescription: "",
+  noindex: false,
 };
 
 export default async function AdminPostEdit({ params }: { params: Promise<{ id: string }> }) {
@@ -46,6 +49,9 @@ export default async function AdminPostEdit({ params }: { params: Promise<{ id: 
         intro: post.intro,
         sections: (Array.isArray(post.sections) ? post.sections : []) as PostSectionInput[],
         published: post.published,
+        seoTitle: post.seoTitle,
+        seoDescription: post.seoDescription,
+        noindex: post.noindex,
       }
     : EMPTY;
 

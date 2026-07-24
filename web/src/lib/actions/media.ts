@@ -61,6 +61,17 @@ export async function listMedia() {
   return db.media.findMany({ where: { deletedAt: null }, orderBy: { createdAt: "desc" }, take: 300 });
 }
 
+export async function updateMediaAlt(id: string, alt: string): Promise<MediaState> {
+  await requireAdmin();
+  try {
+    await db.media.update({ where: { id }, data: { alt: alt.trim().slice(0, 300) } });
+    revalidatePath("/admin/media");
+    return { ok: true };
+  } catch {
+    return { error: "Could not update the description." };
+  }
+}
+
 export async function deleteMedia(id: string): Promise<MediaState> {
   await requireAdmin();
   try {

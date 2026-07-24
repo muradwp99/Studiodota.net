@@ -28,12 +28,13 @@ export const getProjects = cache(async () => {
       orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
     });
   } catch {
-    return SEED_PROJECTS.map((p, i) => ({
+    return SEED_PROJECTS.filter((p) => p.published).map((p, i) => ({
       id: `seed-${i}`,
-      interiorImage: "",
-      published: true,
       createdAt: new Date(),
       updatedAt: new Date(),
+      seoTitle: "",
+      seoDescription: "",
+      noindex: false,
       ...p,
     }));
   }
@@ -43,8 +44,8 @@ export const getProject = cache(async (slug: string) => {
   try {
     return await db.project.findFirst({ where: { slug, published: true, deletedAt: null } });
   } catch {
-    const p = SEED_PROJECTS.find((x) => x.slug === slug);
-    return p ? { id: slug, interiorImage: "", published: true, createdAt: new Date(), updatedAt: new Date(), ...p } : null;
+    const p = SEED_PROJECTS.find((x) => x.slug === slug && x.published);
+    return p ? { id: slug, createdAt: new Date(), updatedAt: new Date(), seoTitle: "", seoDescription: "", noindex: false, ...p } : null;
   }
 });
 

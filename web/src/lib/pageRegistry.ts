@@ -23,7 +23,7 @@ const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, l
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
 
 const statItem = [num("end", "Number"), t("suffix", "Suffix"), t("label", "Label"), ta("desc", "Description", 2)];
-const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company")];
+const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company"), img("image", "Portrait")];
 
 export const BLOCK_SPECS: BlockSpec[] = [
   {
@@ -50,7 +50,7 @@ export const BLOCK_SPECS: BlockSpec[] = [
     key: "nav",
     title: "Navigation",
     description: "Menu items are managed under Appearance → Menus.",
-    fields: [t("getStartedLabel", "Get Started button")],
+    fields: [t("getStartedLabel", "Get Started — label"), t("getStartedHref", "Get Started — link")],
   },
   {
     key: "integrations",
@@ -221,18 +221,20 @@ export const BLOCK_SPECS: BlockSpec[] = [
       t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image"),
       ta("statement", "Scroll statement", 3),
       {
-        kind: "list", key: "items", label: "Service blocks", addable: true,
-        item: [t("id", "Anchor id"), t("title", "Title"), ta("detail", "Detail", 3), ta("blurb", "Blurb", 2), img("image", "Image"), { kind: "stringList", key: "tags", label: "Tags" }],
+        kind: "list", key: "items", label: "Service phases", addable: true,
+        item: [t("id", "Anchor id"), t("num", "Phase number"), t("title", "Title"), ta("blurb", "Blurb", 2), img("image", "Image"), { kind: "stringList", key: "tags", label: "Line items" }],
       },
       t("ctaTitle", "Bottom CTA title"), t("ctaLabel", "Bottom CTA button"),
     ],
   },
   {
     key: "page.about",
-    title: "Studio (about) page",
+    title: "Who we are page",
     fields: [
       t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"),
-      t("whyLabel", "Why-we-exist label"), ta("why1", "Paragraph 1", 3), ta("why2", "Paragraph 2", 3),
+      t("whyLabel", "Story label"), ta("why1", "Story paragraph 1", 4), ta("why2", "Story paragraph 2", 4),
+      img("storyImage", "Story image"),
+      t("quoteLabel", "Quote label"), ta("quote", "Founder quote", 4), t("quoteName", "Quote name"), t("quoteRole", "Quote role"),
       { kind: "list", key: "stats", label: "Stats", item: [t("value", "Value"), t("suffix", "Suffix"), t("label", "Label")] },
       t("processTitle", "Process heading"),
       { kind: "list", key: "process", label: "Process steps", addable: true, item: [t("step", "Number"), t("title", "Title"), ta("body", "Body", 2)] },
@@ -293,7 +295,8 @@ export const BLOCK_SPECS: BlockSpec[] = [
   {
     key: "appearance",
     title: "Appearance",
-    fields: [t("activeTheme", "Active theme id")],
+    description: "Edited under Appearance → Themes.",
+    fields: [t("accent", "Brand accent (hex)")],
   },
 ];
 
@@ -307,8 +310,8 @@ export const PAGES: { slug: string; title: string; blurb: string; blocks: BlockK
     blurb: "Hero, every section, and the contact CTA.",
     blocks: ["home.hero", "home.about", "home.services", "home.whyChoose", "home.featured", "home.showreel", "home.process", "home.timeline", "home.testimonials", "home.clients", "home.statement", "home.faq", "home.journals", "home.cta"],
   },
-  { slug: "services", title: "Services", blurb: "Hero, statement, and the six service blocks.", blocks: ["page.services"] },
-  { slug: "about", title: "Studio", blurb: "Hero, philosophy, stats, and process.", blocks: ["page.about"] },
+  { slug: "services", title: "Services", blurb: "Hero, statement, and the five service phases.", blocks: ["page.services"] },
+  { slug: "about", title: "Who we are", blurb: "Story, founder quote, stats, and process.", blocks: ["page.about"] },
   { slug: "projects", title: "Projects", blurb: "Hero copy for the work index.", blocks: ["page.projects"] },
   { slug: "gallery", title: "Gallery", blurb: "Hero copy for the gallery.", blocks: ["page.gallery"] },
   { slug: "journal", title: "Journal", blurb: "Hero copy and the bottom banner.", blocks: ["page.journal"] },

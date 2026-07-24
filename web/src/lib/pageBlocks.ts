@@ -26,7 +26,7 @@ const sel = (key: string, label: string, options: { value: string; label: string
 
 export const RESERVED_SLUGS = [
   "", "about", "services", "projects", "journal", "gallery", "contact", "privacy",
-  "admin", "api", "home-2", "uploads", "media", "_next", "login", "favicon.ico",
+  "admin", "api", "uploads", "media", "_next", "login", "favicon.ico",
 ];
 
 export const BLOCK_TYPES: BlockType[] = [

@@ -40,6 +40,10 @@
   --ease-lux: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.83, 0, 0.17, 1);
+  /* largo.studio-traced easings (see src/lib/motion.ts) */
+  --ease-largo: cubic-bezier(0.37, 0.16, 0.12, 1);
+  --ease-curtain: cubic-bezier(0.52, 0.08, 0.18, 1);
+  --ease-panel: cubic-bezier(0.72, 0.04, 0.5, 1.07);
 
   /* Rhythm */
   --nav-h: 76px;
@@ -633,5 +637,199 @@ html.lenis body {
   .geo-shape-2,
   .geo-shape-3 {
     animation: none;
+  }
+}
+
+/* ============================================================
+   largo-style geometric loading + page transitions
+   (Preloader.tsx / PageTransition.tsx — ink cover, gold arc
+   geometry, pulsing dots, upward wipe)
+   ============================================================ */
+.sd-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  background: #17191c;
+  transition: transform 0.95s var(--ease-panel);
+  will-change: transform;
+}
+.sd-preloader--exit {
+  transform: translateY(-101%);
+}
+.sd-preloader-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  animation: sd-fade-up 0.7s var(--ease-largo) both;
+  transition: opacity 0.45s var(--ease-largo), transform 0.8s var(--ease-largo);
+}
+.sd-preloader--exit .sd-preloader-core {
+  opacity: 0;
+  transform: scale(1.16);
+}
+.sd-arcs-pos {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  line-height: 0;
+  opacity: 0.5;
+}
+.sd-arcs {
+  animation: sd-spin 18s linear infinite;
+}
+.sd-arc {
+  animation-name: sd-arc-draw;
+  animation-duration: 1.5s;
+  animation-timing-function: var(--ease-largo);
+  animation-fill-mode: forwards;
+}
+.sd-preloader-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.sd-preloader-big {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3em;
+  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-size: clamp(2.4rem, 8vw, 6.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #f5f5f3;
+}
+/* Each brand word arrives through a geometric clip wipe from a different edge. */
+.sd-bigword {
+  display: inline-block;
+  clip-path: inset(0 100% 0 0);
+  transform: translateY(0.16em) scale(0.98);
+  animation: sd-word-appear 0.85s var(--ease-largo) forwards;
+}
+.sd-bigword:nth-child(2) {
+  color: var(--gold);
+  clip-path: inset(0 0 100% 0);
+}
+.sd-bigword:nth-child(3) {
+  clip-path: inset(100% 0 0 0);
+}
+@keyframes sd-word-appear {
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0) scale(1);
+  }
+}
+.sd-preloader-word {
+  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em; /* optically recenter the tracked-out caps */
+  color: var(--gold-media);
+}
+.sd-preloader-dots {
+  display: inline-flex;
+  gap: 7px;
+  line-height: 0;
+}
+.sd-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold-media);
+  display: inline-block;
+  animation: sd-dot-loop 2s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
+}
+.sd-dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.sd-dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.sd-page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  background: #17191c;
+  transform: translateY(101%);
+  pointer-events: none;
+  will-change: transform;
+}
+.sd-page-transition .sd-preloader-dots {
+  opacity: 0;
+}
+.sd-pt--cover {
+  transform: translateY(0);
+  transition: transform 0.48s var(--ease-panel);
+  pointer-events: auto;
+}
+.sd-pt--cover .sd-preloader-dots {
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-largo) 0.45s;
+}
+.sd-pt--reveal {
+  transform: translateY(-101%);
+  transition: transform 0.7s var(--ease-panel) 0.04s;
+}
+.sd-pt--idle {
+  transition: none;
+}
+
+@keyframes sd-arc-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes sd-dot-loop {
+  0%,
+  20%,
+  100% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.12;
+  }
+}
+@keyframes sd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-preloader {
+    transition-duration: 0.25s;
+  }
+  .sd-preloader-core,
+  .sd-arcs,
+  .sd-arc,
+  .sd-dot,
+  .sd-bigword {
+    animation: none;
+  }
+  .sd-arc {
+    stroke-dashoffset: 0 !important;
+  }
+  .sd-bigword {
+    clip-path: none;
+    transform: none;
   }
 }

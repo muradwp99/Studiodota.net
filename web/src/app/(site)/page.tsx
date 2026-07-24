@@ -5,7 +5,7 @@ import { getBlock, getPosts } from "@/lib/content";
 export default async function Home() {
   const [
     hero, about, services, whyChoose, featured, showreel, process, timeline,
-    testimonials, clients, statement, faq, journals, cta, site, allPosts,
+    testimonials, clients, statement, faq, journals, cta, site, layout, allPosts,
   ] = await Promise.all([
     getBlock("home.hero"),
     getBlock("home.about"),
@@ -22,6 +22,7 @@ export default async function Home() {
     getBlock("home.journals"),
     getBlock("home.cta"),
     getBlock("site"),
+    getBlock("home.layout"),
     getPosts(),
   ]);
 
@@ -43,7 +44,7 @@ export default async function Home() {
   return (
     <>
       <HeroScrub d={hero} />
-      <Sections data={data} posts={posts} contact={{ email: site.email, phone: site.phone }} />
+      <Sections data={data} posts={posts} contact={{ email: site.email, phone: site.phone }} layout={layout.sections} />
     </>
   );
 }

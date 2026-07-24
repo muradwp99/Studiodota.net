@@ -1,13 +1,21 @@
+import { getBlock } from "@/lib/content";
+import ThemeAccentEditor from "@/components/admin/ThemeAccentEditor";
+
 export const metadata = { title: "Themes" };
 
-export default function AdminThemes() {
+export default async function AdminThemes() {
+  const appearance = await getBlock("appearance");
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold">Themes</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">The site&rsquo;s visual identity — colors, fonts, and finish.</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">The site&rsquo;s visual identity — colour, fonts, and finish.</p>
       </div>
-      <div className="grid gap-6 sm:grid-cols-2">
+
+      <ThemeAccentEditor initial={appearance.accent} />
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <figure className="overflow-hidden rounded-2xl border-2 border-[var(--gold)] bg-[var(--surface)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/media/renders/hero.jpg" alt="Studiodota theme preview" className="aspect-[16/10] w-full object-cover" />
@@ -26,7 +34,7 @@ export default function AdminThemes() {
             <div className="text-3xl text-[var(--muted)]" aria-hidden="true">＋</div>
             <h2 className="mt-2 font-semibold">Add themes</h2>
             <p className="mx-auto mt-2 max-w-[32ch] text-sm text-[var(--muted)]">
-              Themes are colour-and-font packs added as code, just like plugins — ask your developer (or Claude Code) to create one.
+              Full theme packs (colour + fonts + layout) are added as code, like plugins — ask your developer (or Claude Code) to create one.
             </p>
           </div>
         </div>

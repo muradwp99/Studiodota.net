@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import SplitReveal from "@/components/SplitReveal";
-import ProjectIndex from "@/components/home/ProjectIndex";
+import LineMask from "@/components/motion/LineMask";
+import Arcs from "@/components/motion/Arcs";
+import { EASE_CURTAIN } from "@/lib/motion";
 import ImageMaskText from "@/components/ImageMaskText";
 import VideoPlayer from "@/components/VideoPlayer";
 import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
+import { HOME_SECTION_IDS } from "@/lib/homeSections";
 import type { BlockData } from "@/content/defaults";
 
 /* All homepage content arrives as props (CMS blocks) — see app/(site)/page.tsx. */
@@ -42,6 +45,23 @@ export type JournalCard = {
 };
 
 const easeOut = (p: number) => 1 - Math.pow(1 - p, 3);
+
+/** largo-style curtain wipe over a media panel — place last inside a `relative` container. */
+function CurtainOnView({ delay = 0, color = "var(--ink-2)" }: { delay?: number; color?: string }) {
+  const reduced = useReducedMotion();
+  if (reduced) return null;
+  return (
+    <motion.div
+      aria-hidden="true"
+      className="absolute inset-0"
+      style={{ background: color, transformOrigin: "right center", willChange: "transform" }}
+      initial={{ scaleX: 1 }}
+      whileInView={{ scaleX: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.9, ease: EASE_CURTAIN, delay }}
+    />
+  );
+}
 const fmtDate = (date: string) =>
   new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 const initials = (name: string) => name.split(" ").map((w) => w[0]).join("");
@@ -148,7 +168,7 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
                 <span className="text-[var(--gold-ink)]" aria-hidden="true">✦</span>
                 <span className="text-sm font-bold uppercase tracking-[0.2em]">{d.kicker}</span>
               </div>
-              <h2 className="display-l mt-4">{d.title}</h2>
+              <LineMask text={d.title} tag="h2" className="display-l mt-4" />
             </div>
             <Link href="/services" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">
               All services →
@@ -157,23 +177,12 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
         </Reveal>
       </div>
 
-      {/* Service names lead the section; each row keeps the work visible beside it. */}
+      {/* Service names lead the section. Rows replay their entrance in BOTH scroll
+          directions (largo js-scrollShow behavior): rule draws, name rises out of
+          its mask, thumbnail slides in. */}
       <div className="shell mt-12">
-        {d.items.map((s, i) => (
-          <Reveal key={s.title} delay={i * 60}>
-            <Link
-              href="/services"
-              className="group grid grid-cols-[1fr_auto] items-center gap-x-6 border-t border-[var(--line-strong)] py-5 md:py-7"
-            >
-              <span>
-                <span className="display-index block text-[var(--bone)] transition-colors duration-500 group-hover:text-[var(--gold-ink)]">{s.title}</span>
-                <span className="mt-1.5 hidden max-w-[52ch] text-sm text-[var(--muted)] sm:block">{s.sub}</span>
-              </span>
-              <span className="relative hidden h-16 w-28 shrink-0 overflow-hidden rounded-lg sm:block md:h-20 md:w-36">
-                <Image src={s.image} alt="" fill sizes="144px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105" />
-              </span>
-            </Link>
-          </Reveal>
+        {d.items.map((s) => (
+          <ServiceRow key={s.title} s={s} />
         ))}
         <div className="border-t border-[var(--line-strong)]" />
       </div>
@@ -217,27 +226,80 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
   );
 }
 
+/* One "What we do" row — masked name rise + rule draw + thumb slide, replayed
+   whenever the row re-enters the viewport from either direction. */
+function ServiceRow({ s }: { s: HomeData["services"]["items"][number] }) {
+  const reduced = useReducedMotion();
+  if (reduced) {
+    return (
+      <Link href="/services" className="group grid grid-cols-[1fr_auto] items-center gap-x-6 border-t border-[var(--line-strong)] py-5 md:py-7">
+        <span>
+          <span className="display-index block text-[var(--bone)] transition-colors duration-500 group-hover:text-[var(--gold-ink)]">{s.title}</span>
+          <span className="mt-1.5 hidden max-w-[52ch] text-sm text-[var(--muted)] sm:block">{s.sub}</span>
+        </span>
+        <span className="relative hidden h-16 w-28 shrink-0 overflow-hidden rounded-lg sm:block md:h-20 md:w-36">
+          <Image src={s.image} alt="" fill sizes="144px" className="object-cover" />
+        </span>
+      </Link>
+    );
+  }
+  return (
+    <motion.div initial="hidden" whileInView="show" viewport={{ once: false, amount: 0.45 }}>
+      <motion.span
+        aria-hidden="true"
+        className="block h-px w-full origin-left bg-[var(--line-strong)]"
+        variants={{ hidden: { scaleX: 0 }, show: { scaleX: 1, transition: { duration: 0.9, ease: EASE_CURTAIN } } }}
+      />
+      <Link href="/services" className="group grid grid-cols-[1fr_auto] items-center gap-x-6 py-5 md:py-7">
+        <span>
+          <span className="block overflow-hidden">
+            <motion.span
+              className="display-index block will-change-transform text-[var(--bone)] transition-colors duration-500 group-hover:text-[var(--gold-ink)]"
+              variants={{ hidden: { y: "112%" }, show: { y: "0%", transition: { duration: 0.85, ease: EASE_CURTAIN, delay: 0.05 } } }}
+            >
+              {s.title}
+            </motion.span>
+          </span>
+          <motion.span
+            className="mt-1.5 hidden max-w-[52ch] text-sm text-[var(--muted)] sm:block"
+            variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE_CURTAIN, delay: 0.16 } } }}
+          >
+            {s.sub}
+          </motion.span>
+        </span>
+        <motion.span
+          className="relative hidden h-16 w-28 shrink-0 overflow-hidden rounded-lg sm:block md:h-20 md:w-36"
+          variants={{ hidden: { opacity: 0, x: 34 }, show: { opacity: 1, x: 0, transition: { duration: 0.8, ease: EASE_CURTAIN, delay: 0.1 } } }}
+        >
+          <Image src={s.image} alt="" fill sizes="144px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105" />
+        </motion.span>
+      </Link>
+    </motion.div>
+  );
+}
+
 /* ---------------- Why choose us ---------------- */
 function WhyChoose({ d }: { d: HomeData["whyChoose"] }) {
   return (
     <section className="section pattern-dots">
       <div className="shell">
-        <div className="grid gap-10 lg:grid-cols-2">
-          <Reveal>
-            <div className="flex items-center gap-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--gold)]" />
-              <span className="uppercase tracking-[0.16em] text-[var(--bone-dim)]">{d.label}</span>
-            </div>
-          </Reveal>
-          <Reveal delay={80}>
+        <Reveal>
+          <div className="flex items-center gap-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--gold)]" />
+            <span className="uppercase tracking-[0.16em] text-[var(--bone-dim)]">{d.label}</span>
+          </div>
+        </Reveal>
+        {/* Title anchors the left edge; supporting copy + CTA sit beside it. */}
+        <div className="mt-8 grid gap-x-16 gap-y-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+          <LineMask text={d.title} tag="h2" className="display-l max-w-[16ch]" />
+          <Reveal delay={140}>
             <div>
-              <h2 className="display-l max-w-[18ch]">{d.title}</h2>
-              <p className="mt-5 max-w-[46ch] text-[var(--bone-dim)]">{d.body}</p>
-              <div className="mt-7"><Link href="/projects" className="btn btn-primary">{d.ctaLabel}<span className="btn-icon" aria-hidden="true">→</span></Link></div>
+              <p className="max-w-[46ch] text-[var(--bone-dim)]">{d.body}</p>
+              <div className="mt-6"><Link href="/projects" className="btn btn-primary">{d.ctaLabel}<span className="btn-icon" aria-hidden="true">→</span></Link></div>
             </div>
           </Reveal>
         </div>
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <Reveal><StatImageCard img={d.cardLeft.image} prefix={d.cardLeft.prefix} end={d.cardLeft.end} suffix={d.cardLeft.suffix} label={d.cardLeft.label} /></Reveal>
           <Reveal delay={80}>
             <div className="grid h-full gap-5">
@@ -245,35 +307,38 @@ function WhyChoose({ d }: { d: HomeData["whyChoose"] }) {
               <StatDarkCard end={d.cardMidBottom.end} suffix={d.cardMidBottom.suffix} label={d.cardMidBottom.label} />
             </div>
           </Reveal>
-          <Reveal delay={140}><StatImageCard img={d.cardRight.image} end={d.cardRight.end} suffix={d.cardRight.suffix} label={d.cardRight.label} rating /></Reveal>
+          <Reveal delay={140} className="sm:col-span-2 lg:col-span-1"><StatImageCard img={d.cardRight.image} end={d.cardRight.end} suffix={d.cardRight.suffix} label={d.cardRight.label} /></Reveal>
         </div>
       </div>
     </section>
   );
 }
-function StatImageCard({ img, prefix, end, suffix, label, rating }: { img: string; prefix?: string; end: number; suffix: string; label: string; rating?: boolean }) {
+function StatImageCard({ img, prefix, end, suffix, label }: { img: string; prefix?: string; end: number; suffix: string; label: string }) {
   return (
-    <div className="group relative min-h-[420px] overflow-hidden rounded-2xl" style={{ color: "var(--on-media)" }}>
+    <div className="group relative min-h-[420px] overflow-hidden rounded-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5" style={{ color: "var(--on-media)" }}>
       <Image src={img} alt="" fill sizes="(max-width:1024px) 100vw, 33vw" className="img-zoom object-cover" />
       <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(17,19,21,0.92), transparent 55%)" }} />
-      {rating && (<div className="absolute right-5 top-5 text-right text-sm">4.9 / 5<div className="text-[var(--gold-hi)]">★★★★★</div></div>)}
       <div className="absolute inset-x-0 bottom-0 p-7">
         <div className="text-4xl font-extrabold"><CountUp end={end} prefix={prefix} suffix={suffix} /></div>
         <p className="mt-2 max-w-[30ch] text-sm" style={{ color: "var(--on-media-dim)" }}>{label}</p>
       </div>
+      <span aria-hidden="true" className="absolute bottom-0 left-0 h-[3px] w-0 bg-[var(--gold)] transition-all duration-500 group-hover:w-full" />
+      <CurtainOnView />
     </div>
   );
 }
 function StatDarkCard({ end, suffix, label }: { end: number; suffix: string; label: string }) {
   return (
-    <div className="hover-lift flex min-h-[200px] flex-col justify-end rounded-2xl bg-[#1b1d20] p-7" style={{ color: "var(--on-media)" }}>
-      <div className="text-4xl font-extrabold"><CountUp end={end} suffix={suffix} /></div>
+    <div className="group hover-lift relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-2xl bg-[#1b1d20] p-7" style={{ color: "var(--on-media)" }}>
+      <div className="text-4xl font-extrabold transition-colors duration-500 group-hover:text-[var(--gold-media)]"><CountUp end={end} suffix={suffix} /></div>
       <p className="mt-2 max-w-[34ch] text-sm" style={{ color: "var(--on-media-dim)" }}>{label}</p>
+      <span aria-hidden="true" className="absolute left-0 top-0 h-[3px] w-0 bg-[var(--gold)] transition-all duration-500 group-hover:w-full" />
+      <CurtainOnView delay={0.1} />
     </div>
   );
 }
 
-/* ---------------- Featured: Inside, Outside (typographic project index) ---------------- */
+/* ---------------- Featured: image-led covers (largo home-teaser anatomy) ---------------- */
 function Featured({ d }: { d: HomeData["featured"] }) {
   return (
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,11vw,9rem)]" style={{ color: "var(--on-media)" }}>
@@ -281,9 +346,56 @@ function Featured({ d }: { d: HomeData["featured"] }) {
         <Reveal><span className="font-mono text-xs tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>{d.kicker}</span></Reveal>
         <SplitReveal text={`${d.title} ${d.titleMuted}`} tag="h2" className="display-2xl mt-8" />
       </div>
-      {/* Names lead; the work stays visible in a persistent preview panel. */}
-      <div className="shell mt-14">
-        <ProjectIndex items={d.items} linkLabel={d.linkLabel} />
+
+      {/* The work leads: full-bleed covers with masked titles and index numbers.
+          Rhythm: every third card takes the full row. */}
+      <div className="shell mt-14 grid gap-6 md:grid-cols-2">
+        {d.items.map((p, i) => {
+          const wide = i % 3 === 0;
+          return (
+            <Link
+              key={p.slug}
+              href={`/projects/${p.slug}`}
+              className={`group relative block overflow-hidden rounded-2xl ${wide ? "aspect-[4/3] md:col-span-2 md:aspect-[16/8]" : "aspect-[4/3]"}`}
+            >
+              <Image
+                src={p.image}
+                alt={p.title}
+                fill
+                sizes={wide ? "100vw" : "(max-width:768px) 100vw, 50vw"}
+                className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+              />
+              <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.74), transparent 52%)" }} />
+              <span className="absolute left-5 top-5 font-mono text-[0.62rem] tracking-[0.22em]" style={{ color: "var(--on-media-dim)" }}>
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6 md:p-7">
+                <div className="min-w-0">
+                  <LineMask text={p.title} tag="h3" className={wide ? "display-m" : "text-2xl font-semibold"} />
+                  <p className="mt-2 font-mono text-[0.62rem] uppercase tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>
+                    {[p.year, p.location].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <span
+                  aria-hidden="true"
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[rgba(246,245,242,0.14)] backdrop-blur transition-all duration-500 group-hover:translate-x-1 group-hover:bg-[var(--gold)] group-hover:text-[#17191c]"
+                >
+                  →
+                </span>
+              </div>
+              <CurtainOnView color="#111315" delay={wide ? 0 : (i % 3) * 0.07} />
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="shell mt-12">
+        <Reveal>
+          <Link href="/projects" className="btn btn-ghost" style={{ borderColor: "rgba(246,245,242,0.25)", color: "var(--on-media)" }}>
+            {d.linkLabel.replace(/\s*→\s*$/, "")}
+            <span className="btn-icon" aria-hidden="true">→</span>
+          </Link>
+        </Reveal>
       </div>
     </section>
   );
@@ -387,6 +499,7 @@ function Process({ d }: { d: HomeData["process"] }) {
             <h4 className="mt-1 text-xl font-semibold">{step.title}</h4>
             <p className="mt-2 max-w-[46ch] text-sm" style={{ color: "var(--on-media-dim)" }}>{step.body}</p>
           </div>
+          <CurtainOnView />
         </div>
         <div>
           <Reveal><span className="eyebrow">{d.label}</span></Reveal>
@@ -441,14 +554,13 @@ function Timeline({ d }: { d: HomeData["timeline"] }) {
           </div>
           <div className="mt-12 space-y-12 border-t border-[var(--line)] pt-12">
             {timeline.map((t) => (
-              <div key={t.year} className="grid items-center gap-8 md:grid-cols-[1fr_1.1fr]">
+              <div key={t.n} className="grid items-center gap-8 md:grid-cols-[1fr_1.1fr]">
                 <div>
                   <div className="font-mono text-sm text-[var(--gold-ink)]">{t.year}</div>
                   <div className="display-m mt-3">{t.pre} <span className="text-[var(--gold-ink)]">{t.accent}</span> {t.post}</div>
-                  <p className="mt-3 text-[var(--bone-dim)]">Delivered {t.year} — one of the projects that shaped our practice.</p>
                 </div>
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
-                  <Image src={t.image} alt={t.post} fill sizes="(max-width:768px) 100vw, 45vw" className="object-cover" />
+                  <Image src={t.image} alt={`${t.pre} ${t.accent} ${t.post}`} fill sizes="(max-width:768px) 100vw, 45vw" className="object-cover" />
                 </div>
               </div>
             ))}
@@ -459,52 +571,68 @@ function Timeline({ d }: { d: HomeData["timeline"] }) {
   }
 
   return (
-    <section ref={wrap} className="relative" style={{ height: `${timeline.length * 42}vh` }}>
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="shell w-full">
-          <div className="flex items-center gap-6">
-            <h2 className="text-2xl font-extrabold uppercase tracking-[0.06em] md:text-4xl">{d.title}</h2>
-            <span className="hidden h-px flex-1 bg-[var(--line)] sm:block" />
+    <section ref={wrap} className="relative" style={{ height: `${timeline.length * 55 + 40}vh` }}>
+      {/* Full-bleed scrub theater: media crossfades + settles, titles swap with a
+          rise/exit, ghost index numeral, progress rail (largo ProjectsDetailCover). */}
+      <div data-nav-tone="dark" className="sticky top-0 h-screen overflow-hidden bg-[#0d0e10]" style={{ color: "var(--on-media)" }}>
+        {timeline.map((t, i) => (
+          <div
+            key={t.image + i}
+            className="absolute inset-0 transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.52,0.08,0.18,1)]"
+            style={{ opacity: i === idx ? 1 : 0, transform: `scale(${i === idx ? 1 : 1.06})` }}
+          >
+            <Image src={t.image} alt={`${t.pre} ${t.accent} ${t.post}`} fill sizes="100vw" className="object-cover" />
           </div>
-          <div className="mt-10 grid gap-10 lg:grid-cols-[120px_1fr]">
-            <div className="relative hidden lg:block">
-              <span className="absolute left-[7px] top-3 bottom-3 w-[2px] rounded-full bg-[var(--line-strong)]" />
-              <span className="absolute left-[7px] top-3 w-[2px] rounded-full transition-[height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ height: `${fill}%`, background: "linear-gradient(180deg,#d0aa72,#8f6c39)" }} />
-              <ul className="space-y-9">
-                {timeline.map((t, i) => {
-                  const done = i <= idx;
-                  const on = i === idx;
-                  return (
-                    <li key={t.year + i} className="flex items-center gap-5">
-                      <span
-                        className="h-4 w-4 rounded-full border transition-all duration-500"
-                        style={{
-                          borderColor: done ? "var(--gold)" : "var(--line-strong)",
-                          background: done ? "var(--gold)" : "var(--ink)",
-                          boxShadow: on ? "0 0 0 5px rgba(176,137,78,0.22)" : "none",
-                          transform: on ? "scale(1.15)" : "scale(1)",
-                        }}
-                      />
-                      <span className={`font-mono text-sm transition-colors duration-500 ${on ? "font-bold text-[var(--bone)]" : "text-[var(--muted)]"}`}>{t.year}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-            <div className="grid items-center gap-8 md:grid-cols-[1fr_1.1fr]">
-              <div>
-                <motion.div key={cur.n} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                  <div className="text-6xl font-extrabold text-[var(--surface-2)]">{cur.n}</div>
-                  <div className="display-m mt-4">{cur.pre} <span className="text-[var(--gold)]">{cur.accent}</span> {cur.post}</div>
-                  <p className="mt-4 text-[var(--bone-dim)]">Delivered {cur.year} — one of the projects that shaped our practice.</p>
-                  <Link href="/projects" className="btn btn-ghost mt-7">View full portfolio<span className="btn-icon" aria-hidden="true">→</span></Link>
-                </motion.div>
+        ))}
+        <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(9,10,12,0.88), rgba(9,10,12,0.15) 45%, rgba(9,10,12,0.45))" }} />
+
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={`n-${idx}`}
+            aria-hidden="true"
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.04 }}
+            transition={{ duration: 0.5, ease: EASE_CURTAIN }}
+            className="pointer-events-none absolute right-[3vw] top-1/2 -translate-y-1/2 font-extrabold leading-none"
+            style={{ fontSize: "clamp(9rem, 24vw, 22rem)", color: "rgba(246,245,242,0.07)" }}
+          >
+            {cur.n}
+          </motion.span>
+        </AnimatePresence>
+
+        <div className="absolute inset-x-0 top-0 pt-28 md:pt-32">
+          <div className="shell flex items-center justify-between gap-6">
+            <h2 className="text-xl font-extrabold uppercase tracking-[0.06em] md:text-2xl">{d.title}</h2>
+            <span className="font-mono text-sm" style={{ color: "var(--on-media-dim)" }}>
+              {String(idx + 1).padStart(2, "0")} / {String(timeline.length).padStart(2, "0")}
+            </span>
+          </div>
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 pb-12 md:pb-16">
+          <div className="shell">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`t-${idx}`}
+                initial={{ opacity: 0, y: 36 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -26 }}
+                transition={{ duration: 0.45, ease: EASE_CURTAIN }}
+              >
+                <span className="font-mono text-xs uppercase tracking-[0.25em]" style={{ color: "var(--gold-media)" }}>{cur.year}</span>
+                <div className="mt-3 max-w-[16ch] font-extrabold leading-[0.98] tracking-[-0.03em]" style={{ fontSize: "clamp(2.2rem, 6vw, 5.2rem)" }}>
+                  {cur.pre} <span style={{ color: "var(--gold-media)" }}>{cur.accent}</span> {cur.post}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            <div className="mt-8 flex items-center gap-6">
+              <div className="h-px flex-1 overflow-hidden rounded-full" style={{ background: "rgba(246,245,242,0.22)" }}>
+                <div className="h-px bg-[var(--gold)] transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${fill}%` }} />
               </div>
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
-                {timeline.map((t, i) => (
-                  <Image key={t.image + i} src={t.image} alt={t.post} fill sizes="(max-width:768px) 100vw, 45vw" className="object-cover transition-opacity duration-700" style={{ opacity: i === idx ? 1 : 0 }} />
-                ))}
-              </div>
+              <Link href="/projects" className="link-underline shrink-0 text-sm font-semibold" style={{ color: "var(--gold-media)" }}>
+                View full portfolio →
+              </Link>
             </div>
           </div>
         </div>
@@ -513,39 +641,158 @@ function Timeline({ d }: { d: HomeData["timeline"] }) {
   );
 }
 
-/* ---------------- Testimonials ---------------- */
+/* ---------------- Testimonials (rotating quote theater) ----------------
+   One voice on stage at a time: the portrait wipes in through a geometric
+   clip, the quote rises word-by-word out of masks, and on rotation the whole
+   figure lifts out the top (AnimatePresence exit) as the next enters. */
 function Testimonials({ d }: { d: HomeData["testimonials"] }) {
+  const reduced = useReducedMotion();
+  const all = useMemo(() => [d.featured, ...d.quotes], [d]);
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (reduced || paused || all.length < 2) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % all.length), 6000);
+    return () => clearInterval(t);
+  }, [reduced, paused, all.length]);
+
+  const cur = all[Math.min(idx, all.length - 1)];
+  if (!cur) return null;
+  const words = cur.quote.split(/\s+/).filter(Boolean);
+
+  if (reduced) {
+    return (
+      <section className="section grad-mesh">
+        <div className="shell">
+          <span className="eyebrow">{d.label}</span>
+          <h2 className="display-l mt-5 max-w-[13ch]">{d.title}</h2>
+          <div className="mt-12 space-y-10">
+            {all.map((t) => (
+              <figure key={t.name} className="flex items-start gap-6 border-t border-[var(--line)] pt-8">
+                <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-[var(--surface-2)]">
+                  {t.image ? <Image src={t.image} alt="" fill sizes="64px" className="object-cover" /> : <span className="grid h-full w-full place-items-center font-bold text-[var(--gold)]">{initials(t.name)}</span>}
+                </span>
+                <div>
+                  <blockquote className="max-w-[52ch] text-lg text-[var(--bone)]">&ldquo;{t.quote}&rdquo;</blockquote>
+                  <figcaption className="mt-3"><span className="font-semibold">{t.name}</span><div className="text-sm text-[var(--muted)]">{t.role}</div></figcaption>
+                </div>
+              </figure>
+            ))}
+          </div>
+          <CTA href="/contact" label={d.ctaLabel} variant="ghost" />
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="section grad-mesh">
+    <section className="section grad-mesh" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="shell relative">
         <div className="absolute left-0 top-0 hidden h-full lg:block" style={{ writingMode: "vertical-rl" }}>
           <span className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">06 / Testimonials</span>
         </div>
-        <div className="grid gap-14 lg:grid-cols-2 lg:pl-16">
-          <div>
-            <Reveal><span className="eyebrow">{d.label}</span></Reveal>
-            <Reveal delay={70}><h2 className="display-l mt-5 max-w-[13ch]">{d.title}</h2></Reveal>
-            <Reveal delay={130}>
-              <figure className="mt-14">
-                <span className="text-5xl leading-none text-[var(--gold)]">&ldquo;</span>
-                <blockquote className="mt-3 max-w-[40ch] text-xl text-[var(--bone)]">{d.featured.quote}</blockquote>
-                <figcaption className="mt-6"><span className="font-semibold">{d.featured.name}</span><div className="text-sm text-[var(--muted)]">{d.featured.role}</div></figcaption>
-              </figure>
+        <div className="lg:pl-16">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <Reveal><span className="eyebrow">{d.label}</span></Reveal>
+              <LineMask text={d.title} tag="h2" className="display-l mt-5 max-w-[15ch]" />
+            </div>
+            <Reveal delay={140}>
+              <div className="flex items-center gap-3 pb-2">
+                {all.map((t, i) => (
+                  <button
+                    key={t.name}
+                    onClick={() => setIdx(i)}
+                    aria-label={`Show quote from ${t.name}`}
+                    aria-pressed={i === idx}
+                    className="grid h-9 w-9 place-items-center rounded-full border text-xs font-bold transition-all duration-400"
+                    style={{
+                      borderColor: i === idx ? "var(--gold)" : "var(--line-strong)",
+                      background: i === idx ? "var(--gold)" : "transparent",
+                      color: i === idx ? "#17191c" : "var(--muted)",
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </button>
+                ))}
+              </div>
             </Reveal>
-            <Reveal delay={180}><CTA href="/contact" label={d.ctaLabel} variant="ghost" /></Reveal>
           </div>
-          <div className="flex flex-col justify-center divide-y divide-[var(--line)] lg:border-l lg:border-[var(--line)] lg:pl-12">
-            {d.quotes.map((t, i) => (
-              <Reveal key={t.name + i} delay={i * 90}>
-                <div className="flex items-start gap-6 py-8 first:pt-0">
-                  <div className="flex-1">
-                    <blockquote className="text-lg text-[var(--bone)]">&ldquo;{t.quote}&rdquo;</blockquote>
-                    <div className="mt-4"><span className="font-semibold">{t.name}</span><div className="text-sm text-[var(--muted)]">{t.role}</div></div>
-                  </div>
-                  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-[var(--surface-2)] font-bold text-[var(--gold)]">{initials(t.name)}</span>
-                </div>
-              </Reveal>
-            ))}
+
+          <div className="mt-14 grid items-center gap-12 lg:grid-cols-[0.38fr_0.62fr] lg:gap-20">
+            {/* Portrait: geometric clip wipe in, lift out */}
+            <div className="relative mx-auto w-full max-w-[340px]">
+              <Arcs className="absolute -left-14 -top-14 w-[125%]" />
+              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[var(--line)]">
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={idx}
+                    className="absolute inset-0"
+                    initial={{ clipPath: "inset(0 0 100% 0)", scale: 1.08 }}
+                    animate={{ clipPath: "inset(0 0 0% 0)", scale: 1 }}
+                    exit={{ clipPath: "inset(100% 0 0 0)", opacity: 0.4 }}
+                    transition={{ duration: 0.75, ease: EASE_CURTAIN }}
+                  >
+                    {cur.image ? (
+                      <Image src={cur.image} alt={`${cur.name} — portrait`} fill sizes="340px" className="object-cover" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center bg-[var(--surface-2)] text-4xl font-bold text-[var(--gold)]">{initials(cur.name)}</span>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Quote: word-mask cascade in, lift + fade out */}
+            <div className="relative">
+              <span aria-hidden="true" className="pointer-events-none absolute -left-4 -top-16 select-none text-[9rem] font-extrabold leading-none text-[var(--gold)] opacity-[0.13]">&ldquo;</span>
+              <AnimatePresence mode="wait">
+                <motion.figure key={idx} exit={{ y: -34, opacity: 0, transition: { duration: 0.35, ease: EASE_CURTAIN } }}>
+                  <motion.blockquote
+                    aria-label={cur.quote}
+                    className="max-w-[44ch] text-xl leading-normal text-[var(--bone)] md:text-2xl"
+                    initial="hidden"
+                    animate="show"
+                    variants={{ show: { transition: { staggerChildren: 0.028, delayChildren: 0.15 } } }}
+                  >
+                    {words.map((w, i) => (
+                      <span key={i} className="inline-flex overflow-hidden py-[0.09em] -my-[0.09em] align-bottom">
+                        <motion.span
+                          aria-hidden="true"
+                          className="inline-block will-change-transform"
+                          variants={{ hidden: { y: "115%" }, show: { y: "0%", transition: { duration: 0.7, ease: EASE_CURTAIN } } }}
+                        >
+                          {w}
+                        </motion.span>
+                        {i < words.length - 1 ? <span aria-hidden="true">&nbsp;</span> : null}
+                      </span>
+                    ))}
+                  </motion.blockquote>
+                  <motion.figcaption
+                    className="mt-8"
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_CURTAIN, delay: 0.5 } }}
+                  >
+                    <span className="font-semibold">{cur.name}</span>
+                    <div className="text-sm text-[var(--muted)]">{cur.role}</div>
+                  </motion.figcaption>
+                </motion.figure>
+              </AnimatePresence>
+              {/* per-quote progress */}
+              <div className="mt-10 h-px w-full max-w-[320px] overflow-hidden rounded-full bg-[var(--line)]">
+                {!paused && (
+                  <motion.div
+                    key={`p-${idx}`}
+                    className="h-px origin-left bg-[var(--gold)]"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 6, ease: "linear" }}
+                  />
+                )}
+              </div>
+              <Reveal delay={100}><CTA href="/contact" label={d.ctaLabel} variant="ghost" /></Reveal>
+            </div>
           </div>
         </div>
       </div>
@@ -553,26 +800,51 @@ function Testimonials({ d }: { d: HomeData["testimonials"] }) {
   );
 }
 
-/* ---------------- Clients (dual marquee) ---------------- */
-function MarqueeRow({ items, rev }: { items: string[]; rev?: boolean }) {
-  const doubled = [...items, ...items];
-  return (
-    <div className="marquee-wrap">
-      <div className={`marquee-track ${rev ? "rev" : ""}`}>
-        {doubled.map((c, i) => (
-          <span key={i} className="mx-10 shrink-0 whitespace-nowrap text-2xl font-bold text-[var(--bone-dim)] opacity-90 transition-opacity duration-300 hover:opacity-100">{c}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
+/* ---------------- Clients (ruled grid wall) ----------------
+   Wordmarks sit in a hairline grid; cells cascade in on scroll, a gold
+   highlight roams the wall on an interval, and hover claims it instantly. */
 function Clients({ d }: { d: HomeData["clients"] }) {
+  const names = useMemo(() => [...d.rowA, ...d.rowB], [d.rowA, d.rowB]);
+  const [hot, setHot] = useState(-1);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    if (reduced || names.length === 0) return;
+    const t = setInterval(() => setHot(Math.floor(Math.random() * names.length)), 1500);
+    return () => clearInterval(t);
+  }, [reduced, names.length]);
+
   return (
     <section className="section grad-soft">
-      <div className="text-center"><Reveal><span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--muted)]">{d.label}</span></Reveal></div>
-      <div className="mt-14 flex flex-col gap-8">
-        <MarqueeRow items={d.rowA} />
-        <MarqueeRow items={d.rowB} rev />
+      <div className="shell">
+        <div className="flex items-center justify-between gap-6">
+          <Reveal><span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--muted)]">{d.label}</span></Reveal>
+          <Reveal delay={80}><span className="font-mono text-xs text-[var(--muted)]">{String(names.length).padStart(2, "0")} — and counting</span></Reveal>
+        </div>
+        <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3 lg:grid-cols-4">
+          {names.map((c, i) => {
+            const on = hot === i;
+            return (
+              <motion.div
+                key={c + i}
+                initial={reduced ? false : { opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6, ease: EASE_CURTAIN, delay: reduced ? 0 : (i % 4) * 0.07 + Math.floor(i / 4) * 0.05 }}
+                onMouseEnter={() => setHot(i)}
+                className="grid min-h-[104px] place-items-center px-6 py-8 transition-colors duration-500"
+                style={{ background: on ? "var(--surface-2)" : "var(--ink)" }}
+              >
+                <span
+                  className="text-xl font-bold transition-all duration-500"
+                  style={{ color: on ? "var(--gold-ink)" : "var(--bone-dim)", transform: on ? "translateY(-2px)" : "none" }}
+                >
+                  {c}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -585,7 +857,7 @@ function StatementBand({ d }: { d: HomeData["statement"] }) {
       <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(rgba(246,245,242,0.6) 1px, transparent 1px)", backgroundSize: "26px 26px" }} aria-hidden="true" />
       <div className="shell relative text-center">
         <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span>
-        <h2 className="mt-6 font-extrabold leading-[0.84] tracking-[-0.04em]" style={{ fontSize: "clamp(3.2rem, 15vw, 13rem)" }}>
+        <h2 className="mt-6 font-extrabold leading-[0.84] tracking-[-0.04em] text-[clamp(2.7rem,13vw,12.5rem)]">
           <ImageMaskText text={d.word} image={d.image} />
         </h2>
         <p className="mx-auto mt-8 max-w-[52ch]" style={{ color: "var(--on-media-dim)" }}>
@@ -774,22 +1046,48 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
   );
 }
 
-export default function Sections({ data, posts, contact }: { data: HomeData; posts: JournalCard[]; contact: { email: string; phone: string } }) {
+export type HomeLayoutItem = { id: string; enabled: boolean };
+
+export default function Sections({
+  data,
+  posts,
+  contact,
+  layout,
+}: {
+  data: HomeData;
+  posts: JournalCard[];
+  contact: { email: string; phone: string };
+  layout?: HomeLayoutItem[];
+}) {
+  // id → section element. Order/visibility comes from the CMS `home.layout`
+  // block; when it's absent every section renders in the canonical order.
+  const renderers: Record<string, React.ReactNode> = {
+    about: <About d={data.about} chips={data.featured.items.slice(0, 2)} />,
+    services: <ServicesSlider d={data.services} />,
+    whyChoose: <WhyChoose d={data.whyChoose} />,
+    featured: <Featured d={data.featured} />,
+    showreel: <Showreel d={data.showreel} />,
+    process: <Process d={data.process} />,
+    timeline: <Timeline d={data.timeline} />,
+    testimonials: <Testimonials d={data.testimonials} />,
+    clients: <Clients d={data.clients} />,
+    statement: <StatementBand d={data.statement} />,
+    faq: <FAQ d={data.faq} />,
+    journals: <Journals d={data.journals} posts={posts} />,
+    cta: <FinalCTA d={data.cta} contact={contact} />,
+  };
+
+  const order = layout && layout.length ? layout : HOME_SECTION_IDS.map((id) => ({ id, enabled: true }));
+  const seen = new Set(order.map((s) => s.id));
+  // Any section in code but missing from a saved layout (e.g. added later)
+  // renders at the end so nothing silently disappears.
+  const tail = HOME_SECTION_IDS.filter((id) => !seen.has(id)).map((id) => ({ id, enabled: true }));
+
   return (
     <>
-      <About d={data.about} chips={data.featured.items.slice(0, 2)} />
-      <ServicesSlider d={data.services} />
-      <WhyChoose d={data.whyChoose} />
-      <Featured d={data.featured} />
-      <Showreel d={data.showreel} />
-      <Process d={data.process} />
-      <Timeline d={data.timeline} />
-      <Testimonials d={data.testimonials} />
-      <Clients d={data.clients} />
-      <StatementBand d={data.statement} />
-      <FAQ d={data.faq} />
-      <Journals d={data.journals} posts={posts} />
-      <FinalCTA d={data.cta} contact={contact} />
+      {[...order, ...tail].map(({ id, enabled }) =>
+        enabled && renderers[id] ? <Fragment key={id}>{renderers[id]}</Fragment> : null,
+      )}
     </>
   );
 }

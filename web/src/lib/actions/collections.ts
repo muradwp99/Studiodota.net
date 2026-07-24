@@ -17,15 +17,24 @@ const projectSchema = z.object({
   slug,
   title: z.string().trim().min(1).max(160),
   summary: z.string().trim().min(1).max(1200),
-  category: z.enum(["residential", "commercial", "institutional", "masterplan"]),
+  category: z.enum([
+    "single-family", "multifamily", "affordable-housing", "mixed-use",
+    "commercial", "office", "senior-living",
+    // legacy values kept so older rows still validate
+    "residential", "institutional", "masterplan",
+  ]),
   sector: z.string().trim().min(1).max(80),
   location: z.string().trim().max(120).default(""),
-  year: z.string().trim().min(2).max(12),
+  year: z.string().trim().max(12).default(""),
   services: z.array(z.string().trim().min(1).max(60)).max(8),
   heroImage: imagePath.refine((v) => v !== "", "Hero image is required"),
   interiorImage: imagePath.default(""),
+  gallery: z.array(imagePath).max(24).default([]),
   published: z.boolean().default(true),
   sort: z.number().int().min(-1000).max(1000).default(0),
+  seoTitle: z.string().trim().max(200).default(""),
+  seoDescription: z.string().trim().max(320).default(""),
+  noindex: z.boolean().default(false),
 });
 
 function fieldErrors(err: z.ZodError): string {
@@ -84,6 +93,9 @@ const postSchema = z.object({
     .min(1)
     .max(14),
   published: z.boolean().default(true),
+  seoTitle: z.string().trim().max(200).default(""),
+  seoDescription: z.string().trim().max(320).default(""),
+  noindex: z.boolean().default(false),
 });
 
 export async function savePost(id: string | null, data: unknown): Promise<ActionState> {
