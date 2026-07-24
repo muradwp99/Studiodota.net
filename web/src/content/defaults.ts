@@ -11,6 +11,8 @@ const R = (n: string) => `/media/renders/${n}.jpg`;
 /** Imported client project renders (see scripts/optimize-project-images.mjs). */
 const P = (slug: string, n: number) => `/projects/${slug}/${String(n).padStart(2, "0")}.webp`;
 const PLACEHOLDER = "/projects/placeholder.webp";
+/** Per-page SEO overrides — spread into every page.* block. Empty = use defaults. */
+const seoDefaults = { seoTitle: "", seoDescription: "", ogImage: "", noindex: false };
 
 export const BLOCK_DEFAULTS = {
   site: {
@@ -263,6 +265,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.services": {
+    ...seoDefaults,
     eyebrow: "Services",
     title: "Every phase, from first study to final approval.",
     lede: "A full-service Architecture + Engineering practice — pre-design through construction documentation, with visualization and entitlement support along the way.",
@@ -360,6 +363,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.about": {
+    ...seoDefaults,
     eyebrow: "Who we are",
     title: "Simplifying complexity in design.",
     lede: "Studiodot A is a pioneering Architecture + Engineering firm, founded with a vision to simplify complexity in design — delivering innovative architecture and interior design across a diverse spectrum of projects since 2021.",
@@ -389,6 +393,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.projects": {
+    ...seoDefaults,
     eyebrow: "The work",
     title: "Projects across Southern California.",
     lede: "From single-family homes and fire rebuilds to 150-unit communities — architecture and engineering delivered across Southern California.",
@@ -396,6 +401,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.gallery": {
+    ...seoDefaults,
     eyebrow: "Gallery",
     title: "A closer look at the work.",
     lede: "Renderings and studies from across the practice — filter by discipline, or take in everything at once.",
@@ -403,6 +409,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.journal": {
+    ...seoDefaults,
     eyebrow: "Journal",
     title: "Notes from the studio.",
     lede: "Craft, process, and ideas — on daylight, materials, sustainability, and the discipline of building well.",
@@ -412,6 +419,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "page.contact": {
+    ...seoDefaults,
     eyebrow: "Start with a vision",
     title: "Tell us about your project.",
     lede: "Share your brief, site details, drawings, or references. We'll turn them into a considered design — guided from first concept through to construction.",
@@ -464,7 +472,18 @@ export const BLOCK_DEFAULTS = {
     accent: "#a87f3f",
   },
 
+  /** Global SEO defaults. Per-page overrides live on each page/project/post. */
+  seo: {
+    defaultDescription: "",
+    defaultOgImage: "",
+    twitterCard: "summary_large_image",
+    twitterSite: "",
+    organizationSchema: true,
+    noindexSite: false,
+  },
+
   "page.privacy": {
+    ...seoDefaults,
     eyebrow: "Legal",
     title: "Privacy policy",
     lede: "Plain-English summary of what we collect when you contact us, why, and how long we keep it.",

@@ -6,10 +6,11 @@ import ScrollHighlightText from "@/components/ScrollHighlightText";
 import LineMask from "@/components/motion/LineMask";
 import ImageReveal from "@/components/motion/ImageReveal";
 import { getBlock } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.services");
-  return { title: "Services", description: d.lede };
+  return pageMetadata({ title: d.seoTitle || "Services", description: d.seoDescription || d.lede, image: d.ogImage, path: "/services", noindex: d.noindex });
 }
 
 export default async function ServicesPage() {

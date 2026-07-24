@@ -21,6 +21,15 @@ const t = (key: string, label: string): FieldSpec => ({ kind: "text", key, label
 const ta = (key: string, label: string, rows = 3): FieldSpec => ({ kind: "textarea", key, label, rows });
 const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, label });
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
+const tog = (key: string, label: string): FieldSpec => ({ kind: "toggle", key, label });
+
+/** Per-page SEO panel — spread into every page.* spec (RankMath-style). */
+const seoFields: FieldSpec[] = [
+  t("seoTitle", "SEO title — search & social"),
+  ta("seoDescription", "SEO description", 2),
+  img("ogImage", "Social share image"),
+  tog("noindex", "Hide this page from search engines"),
+];
 
 const statItem = [num("end", "Number"), t("suffix", "Suffix"), t("label", "Label"), ta("desc", "Description", 2)];
 const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company"), img("image", "Portrait")];
@@ -298,7 +307,28 @@ export const BLOCK_SPECS: BlockSpec[] = [
     description: "Edited under Appearance → Themes.",
     fields: [t("accent", "Brand accent (hex)")],
   },
+  {
+    key: "seo",
+    title: "SEO defaults",
+    description: "Site-wide search & social defaults. Each page can override them.",
+    fields: [
+      ta("defaultDescription", "Default meta description", 2),
+      img("defaultOgImage", "Default social share image"),
+      { kind: "select", key: "twitterCard", label: "Twitter card", options: [
+        { value: "summary_large_image", label: "Large image" },
+        { value: "summary", label: "Summary" },
+      ] },
+      t("twitterSite", "Twitter @site handle"),
+      tog("organizationSchema", "Emit Organization structured data (JSON-LD)"),
+      tog("noindexSite", "Hide the WHOLE site from search engines (staging)"),
+    ],
+  },
 ];
+
+// Give every built-in page a per-page SEO panel without repeating the fields.
+for (const s of BLOCK_SPECS) {
+  if (s.key.startsWith("page.")) s.fields.push(...seoFields);
+}
 
 export const specFor = (key: string) => BLOCK_SPECS.find((s) => s.key === key);
 

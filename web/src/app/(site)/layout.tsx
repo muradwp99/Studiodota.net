@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import PluginSlot from "@/components/PluginSlot";
 import SiteScripts from "@/components/SiteScripts";
 import AppearanceStyle from "@/components/AppearanceStyle";
+import CookieConsent from "@/components/CookieConsent";
 import Preloader from "@/components/motion/Preloader";
 import PageTransition from "@/components/motion/PageTransition";
 import { getBlock, getGalleryItems, getProjects } from "@/lib/content";
@@ -12,7 +13,7 @@ import { getBlock, getGalleryItems, getProjects } from "@/lib/content";
 const SITE_URL = "https://studiodota.net";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [site, nav, menus, servicesPage, galleryItems, projects, integrations, appearance] = await Promise.all([
+  const [site, nav, menus, servicesPage, galleryItems, projects, integrations, appearance, seo] = await Promise.all([
     getBlock("site"),
     getBlock("nav"),
     getBlock("menus"),
@@ -21,6 +22,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     getProjects(),
     getBlock("integrations"),
     getBlock("appearance"),
+    getBlock("seo"),
   ]);
 
   const orgLd = {
@@ -53,9 +55,12 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <>
+      <a href="#main" className="skip-link">Skip to content</a>
       <SiteScripts d={integrations} />
       <AppearanceStyle accent={appearance.accent} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }} />
+      {seo.organizationSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }} />
+      )}
       <Preloader />
       <PageTransition />
       <div className="grain" aria-hidden="true" />
@@ -70,10 +75,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         galleryPhotos={galleryPhotos}
         projects={megaProjects}
       />
-      <main>{children}</main>
+      <main id="main">{children}</main>
       <PluginSlot name="site.beforeFooter" />
       <Footer site={site} pages={menus.footerPages} />
       <PluginSlot name="site.floating" />
+      <CookieConsent />
     </>
   );
 }

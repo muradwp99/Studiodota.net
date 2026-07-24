@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import GalleryClient from "@/components/gallery/GalleryClient";
 import { getBlock, getGalleryItems } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.gallery");
-  return { title: "Gallery", description: d.lede };
+  return pageMetadata({ title: d.seoTitle || "Gallery", description: d.seoDescription || d.lede, image: d.ogImage, path: "/gallery", noindex: d.noindex });
 }
 
 export default async function GalleryPage() {

@@ -113,6 +113,24 @@ html.lenis body {
   color: #fff;
 }
 
+/* Accessibility: skip-to-content link, visible only on keyboard focus. */
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 200;
+  background: var(--gold);
+  color: #17191c;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 10px;
+  transition: top 0.2s var(--ease-out);
+}
+.skip-link:focus {
+  top: 12px;
+  outline: 2px solid #17191c;
+}
+
 /* In the base layer so Tailwind text-color utilities can override it —
    unlayered rules beat ALL layered utilities in the v4 cascade. */
 @layer base {

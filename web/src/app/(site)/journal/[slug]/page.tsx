@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPost, getPosts } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateStaticParams() {
   const posts = await getPosts();
@@ -17,11 +18,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await getPost(slug);
   if (!post) return { title: "Article not found" };
-  return {
+  return pageMetadata({
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt,
-    ...(post.noindex ? { robots: { index: false, follow: false } } : {}),
-  };
+    image: post.image,
+    path: `/journal/${slug}`,
+    noindex: post.noindex,
+    type: "article",
+  });
 }
 
 type PostSection = { id: string; heading: string; body: string[] };
@@ -43,8 +47,20 @@ export default async function PostPage({
   const related = all.filter((p) => p.slug !== post.slug).slice(0, 3);
   const sections = (Array.isArray(post.sections) ? post.sections : []) as PostSection[];
 
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    image: `https://studiodota.net${post.image}`,
+    datePublished: post.date,
+    author: { "@type": "Person", name: post.authorName },
+    articleSection: post.category,
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       {/* Featured image header */}
       <header data-nav-tone="dark" className="relative flex min-h-[64vh] items-end overflow-hidden">
         <Image src={post.image} alt={post.title} fill priority sizes="100vw" className="object-cover" />

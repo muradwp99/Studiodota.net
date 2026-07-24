@@ -6,10 +6,11 @@ import LineMask from "@/components/motion/LineMask";
 import ImageReveal from "@/components/motion/ImageReveal";
 import Arcs from "@/components/motion/Arcs";
 import { getBlock } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.about");
-  return { title: "Who we are", description: d.lede };
+  return pageMetadata({ title: d.seoTitle || "Who we are", description: d.seoDescription || d.lede, image: d.ogImage, path: "/about", noindex: d.noindex });
 }
 
 export default async function AboutPage() {

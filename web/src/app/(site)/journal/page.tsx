@@ -5,10 +5,11 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import JournalClient from "@/components/journal/JournalClient";
 import { getBlock, getPosts } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.journal");
-  return { title: "Journal", description: d.lede };
+  return pageMetadata({ title: d.seoTitle || "Journal", description: d.seoDescription || d.lede, image: d.ogImage, path: "/journal", noindex: d.noindex });
 }
 
 export default async function JournalPage() {

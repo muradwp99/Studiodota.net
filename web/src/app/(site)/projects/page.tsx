@@ -4,10 +4,11 @@ import LineMask from "@/components/motion/LineMask";
 import Arcs from "@/components/motion/Arcs";
 import ProjectsClient from "@/components/projects/ProjectsClient";
 import { getBlock, getProjects } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.projects");
-  return { title: "Work", description: d.lede };
+  return pageMetadata({ title: d.seoTitle || "Work", description: d.seoDescription || d.lede, image: d.ogImage, path: "/projects", noindex: d.noindex });
 }
 
 export default async function ProjectsPage({
