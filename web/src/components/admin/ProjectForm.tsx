@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveProject, deleteProject, type ActionState } from "@/lib/actions/collections";
 import MediaPicker from "@/components/admin/MediaPicker";
-import { SeoFields } from "@/components/admin/SeoFields";
+import SeoPanel from "@/components/admin/SeoPanel";
+import type { SeoBlob } from "@/lib/seoScore";
 import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
 
 export type ProjectInput = {
@@ -21,9 +22,7 @@ export type ProjectInput = {
   gallery: string[];
   published: boolean;
   sort: number;
-  seoTitle: string;
-  seoDescription: string;
-  noindex: boolean;
+  seo: SeoBlob;
 };
 
 const CATEGORIES = [
@@ -152,13 +151,14 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
           <input id="sort" type="number" className={`${inputCls} w-24`} value={data.sort} onChange={(e) => set("sort", Number(e.target.value) || 0)} />
         </div>
       </div>
-      <SeoFields
-        seoTitle={data.seoTitle}
-        seoDescription={data.seoDescription}
-        noindex={data.noindex}
-        fallbackTitle={data.title}
-        onChange={(patch) => setData((d) => ({ ...d, ...patch }))}
-      />
+      <div>
+        <span className={labelCls}>SEO</span>
+        <SeoPanel
+          value={data.seo}
+          onChange={(seo) => set("seo", seo)}
+          ctx={{ baseTitle: data.title, slug: data.slug, content: data.summary, path: data.slug ? `/projects/${data.slug}` : undefined, fallbackImage: data.heroImage }}
+        />
+      </div>
       <Notice state={state} />
       <div className="flex items-center justify-between gap-4 border-t border-[var(--line)] pt-5">
         <button type="button" onClick={save} disabled={pending} className={btnPrimaryCls}>

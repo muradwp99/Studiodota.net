@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.privacy");
-  return pageMetadata({ title: d.seoTitle || d.title, description: d.seoDescription || d.lede, image: d.ogImage, path: "/privacy", noindex: d.noindex });
+  return pageMetadata({ seo: d.seo, title: d.title, description: d.lede, path: "/privacy" });
 }
 
 export default async function PrivacyPage() {

@@ -9,7 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.journal");
-  return pageMetadata({ title: d.seoTitle || "Journal", description: d.seoDescription || d.lede, image: d.ogImage, path: "/journal", noindex: d.noindex });
+  return pageMetadata({ seo: d.seo, title: "Journal", description: d.lede, path: "/journal" });
 }
 
 export default async function JournalPage() {

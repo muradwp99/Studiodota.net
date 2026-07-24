@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { sanitizeSeo } from "@/lib/seoScore";
 
 export type ActionState = { ok?: boolean; error?: string; savedAt?: number };
 
@@ -32,9 +34,7 @@ const projectSchema = z.object({
   gallery: z.array(imagePath).max(24).default([]),
   published: z.boolean().default(true),
   sort: z.number().int().min(-1000).max(1000).default(0),
-  seoTitle: z.string().trim().max(200).default(""),
-  seoDescription: z.string().trim().max(320).default(""),
-  noindex: z.boolean().default(false),
+  seo: z.unknown().transform((v) => sanitizeSeo(v)),
 });
 
 function fieldErrors(err: z.ZodError): string {
@@ -49,9 +49,9 @@ export async function saveProject(id: string | null, data: unknown): Promise<Act
     const clash = await db.project.findUnique({ where: { slug: parsed.data.slug } });
     if (clash && clash.id !== id) return { error: `Slug "${parsed.data.slug}" is already used by "${clash.title}".` };
     if (id) {
-      await db.project.update({ where: { id }, data: parsed.data });
+      await db.project.update({ where: { id }, data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     } else {
-      await db.project.create({ data: parsed.data });
+      await db.project.create({ data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     }
     revalidatePath("/", "layout");
     return { ok: true, savedAt: Date.now() };
@@ -93,9 +93,7 @@ const postSchema = z.object({
     .min(1)
     .max(14),
   published: z.boolean().default(true),
-  seoTitle: z.string().trim().max(200).default(""),
-  seoDescription: z.string().trim().max(320).default(""),
-  noindex: z.boolean().default(false),
+  seo: z.unknown().transform((v) => sanitizeSeo(v)),
 });
 
 export async function savePost(id: string | null, data: unknown): Promise<ActionState> {
@@ -106,9 +104,9 @@ export async function savePost(id: string | null, data: unknown): Promise<Action
     const clash = await db.post.findUnique({ where: { slug: parsed.data.slug } });
     if (clash && clash.id !== id) return { error: `Slug "${parsed.data.slug}" is already used by "${clash.title}".` };
     if (id) {
-      await db.post.update({ where: { id }, data: parsed.data });
+      await db.post.update({ where: { id }, data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     } else {
-      await db.post.create({ data: parsed.data });
+      await db.post.create({ data: { ...parsed.data, seo: parsed.data.seo as Prisma.InputJsonValue } });
     }
     revalidatePath("/", "layout");
     return { ok: true, savedAt: Date.now() };

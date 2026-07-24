@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getBlock } from "@/lib/content";
 import PostForm, { type PostInput, type PostSectionInput } from "@/components/admin/PostForm";
+import type { SeoBlob } from "@/lib/seoScore";
 
 export const metadata = { title: "Edit article" };
 
@@ -20,9 +21,7 @@ const EMPTY: PostInput = {
   intro: "",
   sections: [{ id: "", heading: "", body: [""] }],
   published: true,
-  seoTitle: "",
-  seoDescription: "",
-  noindex: false,
+  seo: {},
 };
 
 export default async function AdminPostEdit({ params }: { params: Promise<{ id: string }> }) {
@@ -49,9 +48,7 @@ export default async function AdminPostEdit({ params }: { params: Promise<{ id: 
         intro: post.intro,
         sections: (Array.isArray(post.sections) ? post.sections : []) as PostSectionInput[],
         published: post.published,
-        seoTitle: post.seoTitle,
-        seoDescription: post.seoDescription,
-        noindex: post.noindex,
+        seo: (post.seo && typeof post.seo === "object" ? post.seo : {}) as SeoBlob,
       }
     : EMPTY;
 

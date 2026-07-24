@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import ProjectForm, { type ProjectInput } from "@/components/admin/ProjectForm";
+import type { SeoBlob } from "@/lib/seoScore";
 
 export const metadata = { title: "Edit project" };
 
@@ -19,9 +20,7 @@ const EMPTY: ProjectInput = {
   gallery: [],
   published: true,
   sort: 0,
-  seoTitle: "",
-  seoDescription: "",
-  noindex: false,
+  seo: {},
 };
 
 export default async function AdminProjectEdit({ params }: { params: Promise<{ id: string }> }) {
@@ -45,9 +44,7 @@ export default async function AdminProjectEdit({ params }: { params: Promise<{ i
         gallery: Array.isArray(project.gallery) ? (project.gallery as string[]) : [],
         published: project.published,
         sort: project.sort,
-        seoTitle: project.seoTitle,
-        seoDescription: project.seoDescription,
-        noindex: project.noindex,
+        seo: (project.seo && typeof project.seo === "object" ? project.seo : {}) as SeoBlob,
       }
     : EMPTY;
 

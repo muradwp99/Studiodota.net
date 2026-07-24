@@ -5,7 +5,7 @@ import Reveal from "@/components/Reveal";
 import LineMask from "@/components/motion/LineMask";
 import ImageReveal from "@/components/motion/ImageReveal";
 import { getProject, getProjects } from "@/lib/content";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, type SeoBlob } from "@/lib/seo";
 
 export async function generateStaticParams() {
   const projects = await getProjects();
@@ -21,11 +21,11 @@ export async function generateMetadata({
   const project = await getProject(slug);
   if (!project) return { title: "Project not found" };
   return pageMetadata({
-    title: project.seoTitle || project.title,
-    description: project.seoDescription || project.summary,
+    seo: project.seo as SeoBlob,
+    title: project.title,
+    description: project.summary,
     image: project.heroImage,
     path: `/projects/${slug}`,
-    noindex: project.noindex,
   });
 }
 

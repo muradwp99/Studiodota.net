@@ -52,9 +52,7 @@ model Project {
   gallery       Json     @default("[]")
   published     Boolean   @default(true)
   sort          Int       @default(0)
-  seoTitle       String    @default("")
-  seoDescription String    @default("")
-  noindex        Boolean   @default(false)
+  seo           Json      @default("{}")
   snapshot      Json?
   snapshotAt    DateTime?
   deletedAt     DateTime?
@@ -79,9 +77,7 @@ model Post {
   intro       String    @db.Text
   sections    Json
   published   Boolean   @default(true)
-  seoTitle       String    @default("")
-  seoDescription String    @default("")
-  noindex        Boolean   @default(false)
+  seo         Json      @default("{}")
   snapshot    Json?
   snapshotAt  DateTime?
   deletedAt   DateTime?

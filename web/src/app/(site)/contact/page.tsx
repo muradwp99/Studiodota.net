@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.contact");
-  return pageMetadata({ title: d.seoTitle || "Contact", description: d.seoDescription || d.lede, image: d.ogImage, path: "/contact", noindex: d.noindex });
+  return pageMetadata({ seo: d.seo, title: "Contact", description: d.lede, path: "/contact" });
 }
 
 export default async function ContactPage() {

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPost, getPosts } from "@/lib/content";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, type SeoBlob } from "@/lib/seo";
 
 export async function generateStaticParams() {
   const posts = await getPosts();
@@ -19,11 +19,11 @@ export async function generateMetadata({
   const post = await getPost(slug);
   if (!post) return { title: "Article not found" };
   return pageMetadata({
-    title: post.seoTitle || post.title,
-    description: post.seoDescription || post.excerpt,
+    seo: post.seo as SeoBlob,
+    title: post.title,
+    description: post.excerpt,
     image: post.image,
     path: `/journal/${slug}`,
-    noindex: post.noindex,
     type: "article",
   });
 }

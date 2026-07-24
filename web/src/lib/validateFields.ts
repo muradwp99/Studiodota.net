@@ -1,4 +1,5 @@
 import type { FieldSpec } from "@/lib/pageRegistry";
+import { sanitizeSeo } from "@/lib/seoScore";
 
 /** Shared server-side validator for spec-driven JSON (blocks, plugin settings,
  *  page-builder block props). Coerces types, drops unknown keys, falls back to
@@ -42,6 +43,9 @@ export function validateFields(fields: FieldSpec[], input: unknown, defaults: un
       }
       case "toggle":
         out[f.key] = typeof raw === "boolean" ? raw : Boolean(dRaw);
+        break;
+      case "seo":
+        out[f.key] = sanitizeSeo(raw);
         break;
       case "select": {
         const allowed = f.options.map((o) => o.value);

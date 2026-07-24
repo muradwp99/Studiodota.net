@@ -11,8 +11,16 @@ const R = (n: string) => `/media/renders/${n}.jpg`;
 /** Imported client project renders (see scripts/optimize-project-images.mjs). */
 const P = (slug: string, n: number) => `/projects/${slug}/${String(n).padStart(2, "0")}.webp`;
 const PLACEHOLDER = "/projects/placeholder.webp";
-/** Per-page SEO overrides — spread into every page.* block. Empty = use defaults. */
-const seoDefaults = { seoTitle: "", seoDescription: "", ogImage: "", noindex: false };
+/** Per-entity SEO blob (RankMath-style) — spread into every page.* block and
+ *  mirrored on Project/Post rows. Empty values fall back to the global defaults. */
+const emptySeo = {
+  title: "", description: "", focusKeyword: "", canonical: "",
+  ogTitle: "", ogDescription: "", ogImage: "",
+  twitterTitle: "", twitterDescription: "", twitterImage: "",
+  noindex: false, nofollow: false, noarchive: false,
+};
+const seoDefaults = { seo: emptySeo };
+export const EMPTY_SEO = emptySeo;
 
 export const BLOCK_DEFAULTS = {
   site: {

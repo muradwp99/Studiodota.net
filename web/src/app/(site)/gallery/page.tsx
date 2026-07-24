@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.gallery");
-  return pageMetadata({ title: d.seoTitle || "Gallery", description: d.seoDescription || d.lede, image: d.ogImage, path: "/gallery", noindex: d.noindex });
+  return pageMetadata({ seo: d.seo, title: "Gallery", description: d.lede, path: "/gallery" });
 }
 
 export default async function GalleryPage() {

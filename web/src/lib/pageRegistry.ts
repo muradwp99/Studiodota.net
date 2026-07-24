@@ -12,6 +12,7 @@ export type FieldSpec =
   | { kind: "image"; key: string; label: string; help?: string }
   | { kind: "select"; key: string; label: string; options: { value: string; label: string }[]; help?: string }
   | { kind: "stringList"; key: string; label: string; help?: string }
+  | { kind: "seo"; key: string; label: string; help?: string }
   | { kind: "group"; key: string; label: string; fields: FieldSpec[] }
   | { kind: "list"; key: string; label: string; item: FieldSpec[]; addable?: boolean; help?: string };
 
@@ -22,14 +23,6 @@ const ta = (key: string, label: string, rows = 3): FieldSpec => ({ kind: "textar
 const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, label });
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
 const tog = (key: string, label: string): FieldSpec => ({ kind: "toggle", key, label });
-
-/** Per-page SEO panel — spread into every page.* spec (RankMath-style). */
-const seoFields: FieldSpec[] = [
-  t("seoTitle", "SEO title — search & social"),
-  ta("seoDescription", "SEO description", 2),
-  img("ogImage", "Social share image"),
-  tog("noindex", "Hide this page from search engines"),
-];
 
 const statItem = [num("end", "Number"), t("suffix", "Suffix"), t("label", "Label"), ta("desc", "Description", 2)];
 const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company"), img("image", "Portrait")];
@@ -325,9 +318,9 @@ export const BLOCK_SPECS: BlockSpec[] = [
   },
 ];
 
-// Give every built-in page a per-page SEO panel without repeating the fields.
+// Give every built-in page the full RankMath-style SEO panel.
 for (const s of BLOCK_SPECS) {
-  if (s.key.startsWith("page.")) s.fields.push(...seoFields);
+  if (s.key.startsWith("page.")) s.fields.push({ kind: "seo", key: "seo", label: "SEO" });
 }
 
 export const specFor = (key: string) => BLOCK_SPECS.find((s) => s.key === key);

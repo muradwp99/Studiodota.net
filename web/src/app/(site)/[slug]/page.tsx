@@ -20,10 +20,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const page = await db.page.findUnique({ where: { slug } }).catch(() => null);
   if (!page) return { title: "Page not found" };
   return pageMetadata({
-    title: page.seoTitle || page.title,
-    description: page.seoDescription || undefined,
+    seo: { title: page.seoTitle, description: page.seoDescription, noindex: page.status !== "published" },
+    title: page.title,
     path: `/${slug}`,
-    noindex: page.status !== "published",
   });
 }
 
