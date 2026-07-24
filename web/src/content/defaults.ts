@@ -488,6 +488,7 @@ export const BLOCK_DEFAULTS = {
     twitterSite: "",
     organizationSchema: true,
     noindexSite: false,
+    robotsTxt: "",
   },
 
   "page.privacy": {

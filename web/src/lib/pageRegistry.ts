@@ -314,6 +314,7 @@ export const BLOCK_SPECS: BlockSpec[] = [
       t("twitterSite", "Twitter @site handle"),
       tog("organizationSchema", "Emit Organization structured data (JSON-LD)"),
       tog("noindexSite", "Hide the WHOLE site from search engines (staging)"),
+      ta("robotsTxt", "Custom robots.txt — leave blank to use the default", 6),
     ],
   },
 ];
