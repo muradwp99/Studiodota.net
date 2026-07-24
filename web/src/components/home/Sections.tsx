@@ -435,7 +435,7 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
             <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">{d.linkLabel}</Link>
           </div>
           <div className="relative mt-8">
-            <div className="flex h-[64vh] min-h-[380px] items-stretch gap-3">
+            <div className="flex h-[64vh] min-h-[380px] flex-col items-stretch gap-3 sm:flex-row">
             {reel.map((r, i) => {
               const isActive = i === active;
               return (
