@@ -139,6 +139,15 @@ model Media {
   @@index([deletedAt])
 }
 
+/// URL redirects applied by src/proxy.ts (301/308 or 302/307).
+model Redirect {
+  id        String   @id @default(cuid())
+  from      String   @unique
+  to        String
+  permanent Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
 model ContactMessage {
   id        String    @id @default(cuid())
   name      String

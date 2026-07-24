@@ -79,6 +79,7 @@ function buildItems(unread: number): Item[] {
       children: [
         { label: "General", href: "/admin/settings/general" },
         { label: "SEO", href: "/admin/settings/seo" },
+        { label: "Redirects", href: "/admin/settings/redirects" },
         { label: "Integrations", href: "/admin/settings/integrations" },
       ],
     },
