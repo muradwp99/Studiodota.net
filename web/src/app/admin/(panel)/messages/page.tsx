@@ -19,8 +19,17 @@ export default async function AdminMessages({ searchParams }: { searchParams: Pr
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">Messages</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">Enquiries from the contact page and the homepage form.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold">Messages</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">Enquiries from the contact page and the homepage form.</p>
+        </div>
+        {allCount > 0 && (
+          <a href="/admin/messages/export" download className="rounded-full border border-[var(--line-strong)] px-4 py-2 text-sm font-medium text-[var(--bone)] transition-colors hover:border-[var(--gold)] hover:text-[var(--gold-ink)]">
+            Download CSV
+          </a>
+        )}
+      </div>
 
       <div className="mt-5">
         <TrashBar basePath="/admin/messages" view={isTrash ? "trash" : "all"} allCount={allCount} trashCount={trashCount} />

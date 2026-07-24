@@ -53,6 +53,17 @@ export async function submitContact(input: unknown): Promise<ContactState> {
       bucket.count += 1;
     }
 
+    // Honour the 180-day retention promised in the privacy policy — opportunistic
+    // purge on each new enquiry, so it needs no scheduler.
+    // ponytail: deletes everything past 180d; the policy's "active project"
+    // exception can't be honoured without a project-link flag on the message.
+    try {
+      const cutoff = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+      await db.contactMessage.deleteMany({ where: { createdAt: { lt: cutoff } } });
+    } catch (e) {
+      console.error("retention purge", e);
+    }
+
     // Notify the studio — never let a mail hiccup fail the enquiry.
     try {
       const [site, integrations] = await Promise.all([getBlock("site"), getBlock("integrations")]);
