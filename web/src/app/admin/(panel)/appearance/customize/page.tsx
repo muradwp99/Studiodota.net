@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { specFor } from "@/lib/pageRegistry";
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import BlockEditor from "@/components/admin/BlockEditor";
 
 export const metadata = { title: "Customize" };
 
 export default async function AdminCustomize() {
+  await requireOwner();
   const site = await getBlock("site");
   const spec = specFor("site")!;
 

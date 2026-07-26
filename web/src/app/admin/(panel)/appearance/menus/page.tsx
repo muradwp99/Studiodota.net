@@ -1,10 +1,12 @@
 import { specFor } from "@/lib/pageRegistry";
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import BlockEditor from "@/components/admin/BlockEditor";
 
 export const metadata = { title: "Menus" };
 
 export default async function AdminMenus() {
+  await requireOwner();
   const menus = await getBlock("menus");
   const spec = specFor("menus")!;
 

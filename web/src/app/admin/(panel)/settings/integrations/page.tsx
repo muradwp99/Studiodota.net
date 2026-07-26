@@ -1,10 +1,12 @@
 import { specFor } from "@/lib/pageRegistry";
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import BlockEditor from "@/components/admin/BlockEditor";
 
 export const metadata = { title: "Integrations" };
 
 export default async function AdminIntegrations() {
+  await requireOwner();
   const data = await getBlock("integrations");
   const spec = specFor("integrations")!;
 

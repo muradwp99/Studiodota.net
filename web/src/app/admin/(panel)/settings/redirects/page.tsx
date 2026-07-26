@@ -1,9 +1,11 @@
 import { db } from "@/lib/db";
+import { requireOwner } from "@/lib/auth";
 import RedirectsManager from "@/components/admin/RedirectsManager";
 
 export const metadata = { title: "Redirects" };
 
 export default async function AdminRedirects() {
+  await requireOwner();
   const rows = await db.redirect.findMany({ orderBy: { createdAt: "desc" } }).catch(() => []);
 
   return (

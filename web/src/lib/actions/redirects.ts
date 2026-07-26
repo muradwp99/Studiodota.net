@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireOwner } from "@/lib/auth";
 
 export type RedirectState = { ok?: boolean; error?: string };
 
@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 export async function saveRedirect(data: unknown): Promise<RedirectState> {
-  await requireAdmin();
+  await requireOwner();
   const p = schema.safeParse(data);
   if (!p.success) return { error: p.error.issues[0]?.message ?? "Invalid redirect." };
   const from = p.data.from.replace(/\/+$/, "") || "/";
@@ -33,7 +33,7 @@ export async function saveRedirect(data: unknown): Promise<RedirectState> {
 }
 
 export async function deleteRedirect(id: string): Promise<RedirectState> {
-  await requireAdmin();
+  await requireOwner();
   try {
     await db.redirect.delete({ where: { id } });
     revalidatePath("/admin/settings/redirects");

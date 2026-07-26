@@ -1,10 +1,12 @@
 import { specFor } from "@/lib/pageRegistry";
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import BlockEditor from "@/components/admin/BlockEditor";
 
 export const metadata = { title: "Settings" };
 
 export default async function AdminSettings() {
+  await requireOwner();
   const site = await getBlock("site");
   const nav = await getBlock("nav");
 

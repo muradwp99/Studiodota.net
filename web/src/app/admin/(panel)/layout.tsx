@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminBar siteName={site.name} userName={user.name} />
       <div className="flex min-h-[calc(100vh-2.25rem)]">
         <aside className="sticky top-9 hidden h-[calc(100vh-2.25rem)] w-44 shrink-0 overflow-y-auto bg-[#1d2023] md:block">
-          <AdminNav unread={unread} />
+          <AdminNav unread={unread} role={user.role} />
         </aside>
         {/* Mobile: horizontal section nav */}
         <div className="min-w-0 flex-1">

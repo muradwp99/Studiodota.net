@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireOwner } from "@/lib/auth";
 import { getPlugin } from "@/plugins/registry";
 import { getBlock } from "@/lib/content";
 import { validateFields, ValidationError } from "@/lib/validateFields";
@@ -19,7 +19,7 @@ async function writeStates(states: PluginState[]) {
 }
 
 export async function setPluginActive(id: string, active: boolean): Promise<PluginActionState> {
-  await requireAdmin();
+  await requireOwner();
   const plugin = getPlugin(id);
   if (!plugin) return { error: `Unknown plugin "${id}".` };
   try {
@@ -38,7 +38,7 @@ export async function setPluginActive(id: string, active: boolean): Promise<Plug
 }
 
 export async function savePluginSettings(id: string, input: unknown): Promise<PluginActionState> {
-  await requireAdmin();
+  await requireOwner();
   const plugin = getPlugin(id);
   if (!plugin) return { error: `Unknown plugin "${id}".` };
   try {

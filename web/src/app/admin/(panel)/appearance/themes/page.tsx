@@ -1,9 +1,11 @@
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import ThemeAccentEditor from "@/components/admin/ThemeAccentEditor";
 
 export const metadata = { title: "Themes" };
 
 export default async function AdminThemes() {
+  await requireOwner();
   const appearance = await getBlock("appearance");
 
   return (
