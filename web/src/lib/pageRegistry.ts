@@ -280,19 +280,38 @@ export const BLOCK_SPECS: BlockSpec[] = [
     ],
   },
   {
+    key: "page.terms",
+    title: "Terms page",
+    fields: [
+      t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"),
+      { kind: "list", key: "sections", label: "Sections", addable: true, item: [t("heading", "Heading"), ta("body", "Body", 4)] },
+    ],
+  },
+  {
     key: "menus",
     title: "Menus",
     description: "The header navigation and the footer Pages column. Services/Gallery/Projects keep their dropdown panels automatically.",
     fields: [
-      { kind: "list", key: "primary", label: "Primary menu (header)", addable: true, item: [t("label", "Label"), t("href", "Link")] },
+      {
+        kind: "list", key: "primary", label: "Primary menu (header)", addable: true,
+        item: [
+          t("label", "Label"),
+          t("href", "Link"),
+          { kind: "list", key: "children", label: "Sub-menu items", item: [t("label", "Label"), t("href", "Link")], addable: true },
+        ],
+      },
       { kind: "list", key: "footerPages", label: "Footer — Pages column", addable: true, item: [t("label", "Label"), t("href", "Link")] },
     ],
   },
   {
     key: "taxonomies",
     title: "Categories",
-    description: "Categories available when writing posts.",
-    fields: [{ kind: "stringList", key: "postCategories", label: "Post categories" }],
+    description: "Categories available when writing posts, projects, and gallery items.",
+    fields: [
+      { kind: "stringList", key: "postCategories", label: "Post categories" },
+      { kind: "stringList", key: "projectCategories", label: "Project categories" },
+      { kind: "stringList", key: "galleryCategories", label: "Gallery categories" },
+    ],
   },
   {
     key: "appearance",
@@ -341,4 +360,5 @@ export const PAGES: { slug: string; title: string; blurb: string; blocks: BlockK
   { slug: "journal", title: "Journal", blurb: "Hero copy and the bottom banner.", blocks: ["page.journal"] },
   { slug: "contact", title: "Contact", blurb: "Hero, form copy, and the aside.", blocks: ["page.contact"] },
   { slug: "privacy", title: "Privacy", blurb: "Policy sections.", blocks: ["page.privacy"] },
+  { slug: "terms", title: "Terms", blurb: "Policy sections.", blocks: ["page.terms"] },
 ];

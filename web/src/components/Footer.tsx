@@ -94,8 +94,8 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
         <div className="flex flex-col gap-4 border-t border-[var(--line)] py-8 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.name}. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-[var(--bone)]">Privacy Policy</Link>
-            <Link href="#" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>
+            <Link href="/privacy" className="hover:text-[var(--bone)]">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>
           </div>
         </div>
       </div>

@@ -1,11 +1,13 @@
 import { specFor } from "@/lib/pageRegistry";
-import { getBlock } from "@/lib/content";
+import { getBlockAdmin } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import BlockEditor from "@/components/admin/BlockEditor";
 
 export const metadata = { title: "SEO" };
 
 export default async function AdminSeo() {
-  const data = await getBlock("seo");
+  await requireOwner();
+  const { data, draft, snapshotAt, updatedAt } = await getBlockAdmin("seo");
   const spec = specFor("seo")!;
 
   return (
@@ -17,7 +19,16 @@ export default async function AdminSeo() {
           title, description, and share image in its own editor.
         </p>
       </div>
-      <BlockEditor blockKey="seo" title={spec.title} description={spec.description} fields={spec.fields} initial={data as Record<string, unknown>} />
+      <BlockEditor
+        blockKey="seo"
+        title={spec.title}
+        description={spec.description}
+        fields={spec.fields}
+        initial={data as Record<string, unknown>}
+        draft={draft as Record<string, unknown> | null}
+        snapshotAt={snapshotAt}
+        updatedAt={updatedAt}
+      />
     </div>
   );
 }

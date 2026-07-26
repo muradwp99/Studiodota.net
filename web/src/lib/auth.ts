@@ -88,6 +88,16 @@ export async function requireAdmin() {
   return user;
 }
 
+/**
+ * Guard for owner-only pages/actions (Users, Settings, Plugins, Appearance).
+ * Same as requireAdmin(), but editors are bounced to the dashboard instead of let through.
+ */
+export async function requireOwner() {
+  const user = await requireAdmin();
+  if (user.role !== "admin") redirect("/admin");
+  return user;
+}
+
 export async function destroySession() {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;

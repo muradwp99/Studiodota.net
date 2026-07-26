@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getBlock } from "@/lib/content";
 import GalleryManager, { type GalleryInput } from "@/components/admin/GalleryManager";
 import { TrashBar, TrashRowActions } from "@/components/admin/TrashActions";
 
@@ -7,10 +8,11 @@ export const metadata = { title: "Gallery" };
 export default async function AdminGallery({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const { view } = await searchParams;
   const isTrash = view === "trash";
-  const [rows, allCount, trashCount] = await Promise.all([
+  const [rows, allCount, trashCount, { galleryCategories }] = await Promise.all([
     db.galleryItem.findMany({ where: { deletedAt: isTrash ? { not: null } : null }, orderBy: { sort: "asc" } }),
     db.galleryItem.count({ where: { deletedAt: null } }),
     db.galleryItem.count({ where: { deletedAt: { not: null } } }),
+    getBlock("taxonomies"),
   ]);
 
   const items: GalleryInput[] = rows.map((r) => ({
@@ -24,6 +26,7 @@ export default async function AdminGallery({ searchParams }: { searchParams: Pro
     tall: r.tall,
     published: r.published,
     sort: r.sort,
+    snapshotAt: r.snapshotAt,
   }));
 
   return (
@@ -50,7 +53,7 @@ export default async function AdminGallery({ searchParams }: { searchParams: Pro
           {rows.length === 0 && <li className="px-5 py-8 text-center text-sm text-[var(--muted)]">Trash is empty.</li>}
         </ul>
       ) : (
-        <GalleryManager items={items} />
+        <GalleryManager items={items} categories={galleryCategories} />
       )}
     </div>
   );

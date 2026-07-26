@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 
 /**
@@ -28,9 +28,23 @@ async function rules(): Promise<Map<string, Rule>> {
   return map;
 }
 
-export async function proxy(req: NextRequest) {
-  const hit = (await rules()).get(norm(req.nextUrl.pathname));
+export async function proxy(req: NextRequest, event: NextFetchEvent) {
+  const path = norm(req.nextUrl.pathname);
+  const hit = (await rules()).get(path);
+
+  // No redirect — let it fall through to Next's router (page or 404). A true
+  // 404 is logged client-side (see NotFoundLogger), not here, so this stays a
+  // plain passthrough and every static route can still prerender.
   if (!hit) return NextResponse.next();
+
+  // Don't let hit-tracking slow down the redirect: not awaited, and the
+  // rejection is caught so a DB hiccup can't surface as a request error.
+  event.waitUntil(
+    db.redirect
+      .updateMany({ where: { from: path }, data: { hits: { increment: 1 }, lastHitAt: new Date() } })
+      .catch((err) => console.error("[proxy] redirect hit-tracking failed:", err))
+  );
+
   const dest = hit.to.startsWith("http") ? hit.to : new URL(hit.to, req.nextUrl.origin).toString();
   return NextResponse.redirect(dest, hit.permanent ? 308 : 307);
 }

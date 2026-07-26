@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import HomeLayoutManager from "@/components/admin/HomeLayoutManager";
 
 export const metadata = { title: "Homepage layout" };
 
 export default async function AdminHomepageLayout() {
+  await requireOwner();
   const layout = await getBlock("home.layout");
 
   return (

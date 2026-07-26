@@ -1,10 +1,12 @@
 import { getBlock } from "@/lib/content";
+import { requireOwner } from "@/lib/auth";
 import { INSTALLED_PLUGINS } from "@/plugins/registry";
 import PluginsManager, { type PluginRow } from "@/components/admin/PluginsManager";
 
 export const metadata = { title: "Plugins" };
 
 export default async function AdminPlugins() {
+  await requireOwner();
   const { states } = await getBlock("plugins");
   const plugins: PluginRow[] = INSTALLED_PLUGINS.map((p) => {
     const state = states.find((s) => s.id === p.id);

@@ -21,6 +21,31 @@ export const getBlock = cache(async <K extends BlockKey>(key: K): Promise<BlockD
   return fallback;
 });
 
+/**
+ * Admin-only: the merged live value plus the raw draft/snapshot metadata, for
+ * the Save Draft / Publish / Revert UI in BlockEditor. Bypasses the public
+ * cache since admin pages always want the freshest state.
+ */
+export async function getBlockAdmin<K extends BlockKey>(key: K) {
+  const data = await getBlock(key);
+  try {
+    const row = await db.block.findUnique({ where: { key }, select: { draft: true, snapshotAt: true, updatedAt: true } });
+    const fallback = structuredClone(BLOCK_DEFAULTS[key]) as unknown as BlockData[K];
+    const draft =
+      row?.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
+        ? ({ ...fallback, ...(row.draft as object) } as BlockData[K])
+        : null;
+    return {
+      data,
+      draft,
+      snapshotAt: row?.snapshotAt ? row.snapshotAt.toISOString() : null,
+      updatedAt: row?.updatedAt ? row.updatedAt.toISOString() : null,
+    };
+  } catch {
+    return { data, draft: null, snapshotAt: null, updatedAt: null };
+  }
+}
+
 export const getProjects = cache(async () => {
   try {
     return await db.project.findMany({
@@ -70,3 +95,38 @@ export const getGalleryItems = cache(async () => {
     return SEED_GALLERY.map((g, i) => ({ id: `seed-${i}`, youtubeId: "", tall: false, published: true, ...g }));
   }
 });
+
+/**
+ * Site-wide search across published content. Plain `contains` (no `mode:
+ * "insensitive"` — this DB's collation is case-insensitive already, and the
+ * MySQL Prisma provider doesn't support that option). Capped per type.
+ */
+export async function searchSite(q: string) {
+  const query = q.trim();
+  const empty = { projects: [], posts: [], pages: [] };
+  if (!query) return empty;
+  try {
+    const [projects, posts, pages] = await Promise.all([
+      db.project.findMany({
+        where: { published: true, deletedAt: null, OR: [{ title: { contains: query } }, { summary: { contains: query } }] },
+        orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
+        take: 20,
+        select: { slug: true, title: true, summary: true },
+      }),
+      db.post.findMany({
+        where: { published: true, deletedAt: null, OR: [{ title: { contains: query } }, { excerpt: { contains: query } }] },
+        orderBy: { date: "desc" },
+        take: 20,
+        select: { slug: true, title: true, excerpt: true },
+      }),
+      db.page.findMany({
+        where: { status: "published", deletedAt: null, title: { contains: query } },
+        take: 20,
+        select: { slug: true, title: true },
+      }),
+    ]);
+    return { projects, posts, pages };
+  } catch {
+    return empty;
+  }
+}

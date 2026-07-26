@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveGalleryItem, deleteGalleryItem, type ActionState } from "@/lib/actions/collections";
+import { saveGalleryItem, deleteGalleryItem, reorderGalleryItems, revertGalleryItem, type ActionState } from "@/lib/actions/collections";
 import MediaPicker from "@/components/admin/MediaPicker";
-import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
+import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice, timeAgo } from "@/components/admin/ui";
 
 export type GalleryInput = {
   id: string | null;
@@ -17,13 +17,13 @@ export type GalleryInput = {
   tall: boolean;
   published: boolean;
   sort: number;
+  snapshotAt: Date | null;
 };
 
-const CATS = ["architecture", "residential", "commercial"];
-
-function ItemForm({ item, onDone }: { item: GalleryInput; onDone?: () => void }) {
+function ItemForm({ item, categories, onDone }: { item: GalleryInput; categories: string[]; onDone?: () => void }) {
   const [data, setData] = useState(item);
   const [state, setState] = useState<ActionState | null>(null);
+  const [snapAt, setSnapAt] = useState(item.snapshotAt);
   const [pending, startTransition] = useTransition();
   const [picker, setPicker] = useState(false);
   const router = useRouter();
@@ -51,6 +51,19 @@ function ItemForm({ item, onDone }: { item: GalleryInput; onDone?: () => void })
       const res = await deleteGalleryItem(data.id!);
       if (res.error) setState(res);
       else router.refresh();
+    });
+  };
+
+  const revert = () => {
+    if (!data.id) return;
+    if (!window.confirm("Revert to the last saved version? Any unsaved changes here will be lost.")) return;
+    startTransition(async () => {
+      const res = await revertGalleryItem(data.id!);
+      if (res.error) { setState(res); return; }
+      if (res.data) setData((d) => ({ ...d, ...(res.data as unknown as GalleryInput), id: d.id }));
+      setSnapAt(null);
+      setState({ ok: true, savedAt: Date.now() });
+      router.refresh();
     });
   };
 
@@ -83,7 +96,8 @@ function ItemForm({ item, onDone }: { item: GalleryInput; onDone?: () => void })
         <div>
           <label className={labelCls}>Category</label>
           <select className={inputCls} value={data.category} onChange={(e) => set("category", e.target.value)}>
-            {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+            {!categories.includes(data.category) && <option value={data.category}>{data.category}</option>}
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
@@ -112,6 +126,12 @@ function ItemForm({ item, onDone }: { item: GalleryInput; onDone?: () => void })
           Published
         </label>
       </div>
+      {data.id && snapAt && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)]/40 px-4 py-2.5 text-sm">
+          <button type="button" onClick={revert} disabled={pending} className={btnGhostCls}>Revert to last saved version</button>
+          <span className="text-[var(--muted)]">Saved {timeAgo(snapAt)}</span>
+        </div>
+      )}
       <Notice state={state} />
       <div className="flex items-center justify-between gap-4">
         <button type="button" onClick={save} disabled={pending} className={btnPrimaryCls}>
@@ -126,9 +146,32 @@ function ItemForm({ item, onDone }: { item: GalleryInput; onDone?: () => void })
   );
 }
 
-export default function GalleryManager({ items }: { items: GalleryInput[] }) {
+export default function GalleryManager({ items, categories }: { items: GalleryInput[]; categories: string[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  // Resync local order when the server gives us a fresh `items` array (e.g.
+  // after an add/delete) without clobbering an in-progress drag reorder.
+  const [prevItems, setPrevItems] = useState(items);
+  const [list, setList] = useState(items);
+  if (items !== prevItems) {
+    setPrevItems(items);
+    setList(items);
+  }
+  const [dragId, setDragId] = useState<string | null>(null);
+
+  const reorder = (from: string, to: string) => {
+    if (from === to) return;
+    setList((cur) => {
+      const fi = cur.findIndex((it) => it.id === from);
+      const ti = cur.findIndex((it) => it.id === to);
+      if (fi < 0 || ti < 0) return cur;
+      const next = [...cur];
+      const [moved] = next.splice(fi, 1);
+      next.splice(ti, 0, moved);
+      reorderGalleryItems(next.map((it) => it.id!)).then((res) => { if (res.error) setList(items); });
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -138,33 +181,50 @@ export default function GalleryManager({ items }: { items: GalleryInput[] }) {
       {adding && (
         <div className="rounded-2xl border border-[var(--gold)]/40 bg-[var(--surface)] p-5">
           <ItemForm
-            item={{ id: null, title: "", sector: "", image: "", category: "architecture", type: "photo", youtubeId: "", tall: false, published: true, sort: items.length }}
+            item={{ id: null, title: "", sector: "", image: "", category: categories[0] ?? "", type: "photo", youtubeId: "", tall: false, published: true, sort: list.length, snapshotAt: null }}
+            categories={categories}
             onDone={() => setAdding(false)}
           />
         </div>
       )}
       <ul className="divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
-        {items.map((it) => (
-          <li key={it.id} className="px-5 py-3.5">
-            <button type="button" className="flex w-full items-center gap-4 text-left" onClick={() => setOpenId(openId === it.id ? null : it.id)} aria-expanded={openId === it.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.image} alt="" className="h-11 w-16 shrink-0 rounded-md border border-[var(--line)] object-cover" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{it.title}</span>
-                <span className="font-mono text-[0.65rem] text-[var(--muted)]">
-                  {it.category} · {it.type}{it.type === "video" && it.youtubeId ? ` · ${it.youtubeId}` : ""}{it.tall ? " · tall" : ""}{!it.published ? " · hidden" : ""}
-                </span>
+        {list.map((it) => (
+          <li
+            key={it.id}
+            onDragOver={(e) => { if (dragId && dragId !== it.id) e.preventDefault(); }}
+            onDrop={(e) => { e.preventDefault(); if (dragId) reorder(dragId, it.id!); setDragId(null); }}
+            className={`px-5 py-3.5 ${dragId === it.id ? "opacity-40" : ""}`}
+          >
+            <div className="flex items-center gap-3">
+              <span
+                draggable
+                aria-label="Drag to reorder"
+                onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", it.id!); setDragId(it.id); }}
+                onDragEnd={() => setDragId(null)}
+                className="shrink-0 cursor-grab select-none text-[var(--muted)] active:cursor-grabbing"
+              >
+                ⠿
               </span>
-              <span className="text-[var(--muted)]" aria-hidden="true">{openId === it.id ? "▴" : "▾"}</span>
-            </button>
+              <button type="button" className="flex min-w-0 flex-1 items-center gap-4 text-left" onClick={() => setOpenId(openId === it.id ? null : it.id)} aria-expanded={openId === it.id}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={it.image} alt="" className="h-11 w-16 shrink-0 rounded-md border border-[var(--line)] object-cover" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium">{it.title}</span>
+                  <span className="font-mono text-[0.65rem] text-[var(--muted)]">
+                    {it.category} · {it.type}{it.type === "video" && it.youtubeId ? ` · ${it.youtubeId}` : ""}{it.tall ? " · tall" : ""}{!it.published ? " · hidden" : ""}
+                  </span>
+                </span>
+                <span className="text-[var(--muted)]" aria-hidden="true">{openId === it.id ? "▴" : "▾"}</span>
+              </button>
+            </div>
             {openId === it.id && (
               <div className="mt-4 border-t border-[var(--line)] pt-4">
-                <ItemForm item={it} onDone={() => setOpenId(null)} />
+                <ItemForm item={it} categories={categories} onDone={() => setOpenId(null)} />
               </div>
             )}
           </li>
         ))}
-        {items.length === 0 && <li className="px-5 py-8 text-center text-sm text-[var(--muted)]">The gallery is empty.</li>}
+        {list.length === 0 && <li className="px-5 py-8 text-center text-sm text-[var(--muted)]">The gallery is empty.</li>}
       </ul>
     </div>
   );

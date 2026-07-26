@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getBlock } from "@/lib/content";
 import ProjectForm, { type ProjectInput } from "@/components/admin/ProjectForm";
 import type { SeoBlob } from "@/lib/seoScore";
 
@@ -26,7 +27,10 @@ const EMPTY: ProjectInput = {
 export default async function AdminProjectEdit({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const isNew = id === "new";
-  const project = isNew ? null : await db.project.findUnique({ where: { id } });
+  const [project, { projectCategories }] = await Promise.all([
+    isNew ? Promise.resolve(null) : db.project.findUnique({ where: { id } }),
+    getBlock("taxonomies"),
+  ]);
   if (!isNew && !project) notFound();
 
   const initial: ProjectInput = project
@@ -59,7 +63,7 @@ export default async function AdminProjectEdit({ params }: { params: Promise<{ i
           </Link>
         )}
       </div>
-      <ProjectForm id={isNew ? null : id} initial={initial} />
+      <ProjectForm id={isNew ? null : id} initial={initial} categories={projectCategories} snapshotAt={project?.snapshotAt ?? null} />
     </div>
   );
 }

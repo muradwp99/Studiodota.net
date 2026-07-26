@@ -32,7 +32,7 @@ const icons = {
   settings: I("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-3 2-1.2-2-3.6-2.3.7a7 7 0 0 0-1.7-1L15.6 4h-4.2L11 6.9a7 7 0 0 0-1.7 1l-2.3-.7-2 3.6L7 12l-2 1.2 2 3.6 2.3-.7a7 7 0 0 0 1.7 1l.4 2.9h4.2l.4-2.9a7 7 0 0 0 1.7-1l2.3.7 2-3.6L20 12Z"),
 };
 
-function buildItems(unread: number): Item[] {
+function buildItems(unread: number, isOwner: boolean): Item[] {
   return [
     { label: "Dashboard", href: "/admin", icon: icons.dashboard, separatorAfter: true },
     {
@@ -72,7 +72,13 @@ function buildItems(unread: number): Item[] {
     { label: "Plugins", href: "/admin/plugins", icon: icons.plugins },
     {
       label: "Users", href: "/admin/users/profile", icon: icons.users,
-      children: [{ label: "Profile", href: "/admin/users/profile" }],
+      children: isOwner
+        ? [
+            { label: "All Users", href: "/admin/users" },
+            { label: "Add New", href: "/admin/users/new" },
+            { label: "Profile", href: "/admin/users/profile" },
+          ]
+        : [{ label: "Profile", href: "/admin/users/profile" }],
     },
     {
       label: "Settings", href: "/admin/settings/general", icon: icons.settings,
@@ -91,9 +97,9 @@ function sectionOf(item: Item): string {
   return item.href === "/admin" ? "/admin" : "/admin/" + item.href.split("/")[2];
 }
 
-export default function AdminNav({ unread }: { unread: number }) {
+export default function AdminNav({ unread, role }: { unread: number; role: string }) {
   const pathname = usePathname();
-  const items = buildItems(unread);
+  const items = buildItems(unread, role === "admin");
 
   return (
     <nav aria-label="Admin" className="pb-6 text-[0.82rem]">

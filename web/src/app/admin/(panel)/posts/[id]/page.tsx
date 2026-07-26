@@ -63,7 +63,7 @@ export default async function AdminPostEdit({ params }: { params: Promise<{ id: 
           </Link>
         )}
       </div>
-      <PostForm id={isNew ? null : id} initial={initial} categories={postCategories} />
+      <PostForm id={isNew ? null : id} initial={initial} categories={postCategories} snapshotAt={post?.snapshotAt ?? null} />
     </div>
   );
 }

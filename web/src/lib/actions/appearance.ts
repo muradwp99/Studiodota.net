@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireOwner } from "@/lib/auth";
 import { HOME_SECTION_IDS } from "@/lib/homeSections";
 
 export type SaveState = { ok?: boolean; error?: string; savedAt?: number };
@@ -23,7 +23,7 @@ const appearanceSchema = z.object({
 
 /** Save the brand accent colour (the `appearance` block). */
 export async function saveAppearance(data: unknown): Promise<SaveState> {
-  await requireAdmin();
+  await requireOwner();
   const parsed = appearanceSchema.safeParse(data);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid colour." };
   try {
@@ -43,7 +43,7 @@ export async function saveAppearance(data: unknown): Promise<SaveState> {
 
 /** Save the homepage section order + visibility (the `home.layout` block). */
 export async function saveHomeLayout(data: unknown): Promise<SaveState> {
-  await requireAdmin();
+  await requireOwner();
   const parsed = layoutSchema.safeParse(data);
   if (!parsed.success) return { error: "Invalid layout data." };
 
