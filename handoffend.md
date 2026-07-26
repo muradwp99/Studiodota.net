@@ -1,75 +1,80 @@
 # Studiodota.net — Remaining Work Plan
 
-Written 2026-07-24. This is a forward-looking execution plan, not a session log
-(that's `handoff.md`). Read this to know what's left and in what order.
+Written 2026-07-24, updated 2026-07-26 (Phases 0/2/3/4 shipped via 6 parallel
+subagents + manual integration). This is a forward-looking execution plan,
+not a session log (that's `handoff.md`).
 
 ## Current state
 
-- **`origin/master`** = `03ac7eb` (PR #1 merged: largo redesign, real Studio Dot A
-  portfolio, CMS controls, RankMath-style SEO, cookie consent, redirects).
-- **`feature/admin-v1-client-ready`** is **1 commit ahead**: `e56aa84` (Showreel
-  stacks vertically on mobile). **→ Land this in master first** (see Phase 0).
-- Site is client-presentable now. Everything below is additive.
+- `origin/master` = `03ac7eb` (PR #1: largo redesign, real portfolio, CMS,
+  SEO, cookie consent, redirects).
+- `feature/admin-v1-client-ready` is now well ahead of master — the showreel
+  mobile fix, placeholder-data fill, and ALL of Phases 2–4 below. Not yet
+  merged to master; say the word.
+- Everything shipped this round: `npx tsc --noEmit` clean, project-wide
+  `npx eslint .` clean (down from the pre-existing baseline — see below),
+  full `npm run build` clean with the correct static/dynamic split restored.
 
-## Phase 0 — Housekeeping (do first, ~5 min)
+## What shipped this round (Phases 2–4, via 6 parallel subagents)
 
-1. Merge/PR `e56aa84` (showreel mobile fix) into `master`.
-2. Delete the now-fully-merged remote branch if the client doesn't need it kept
-   around for review, or leave it — harmless either way.
+1. **Draft/publish/revert for Blocks** (homepage sections + all built-in
+   pages) — Save Draft vs Publish, a field-level diff preview, revert to the
+   last published version.
+2. **Revision revert + drag-reorder + editable categories** for
+   Projects/Posts/Gallery — single-level undo everywhere, real drag-to-reorder
+   admin lists, Project/Gallery categories now client-editable (Post
+   categories already were).
+3. **Multi-user roles** (admin/editor) — owner-gated Users/Settings/
+   Appearance/Plugins/Redirects; content editing shared by both roles.
+4. **Nested mega-menu** — any primary nav item can carry simple sub-links,
+   editable via the existing generic form engine (no new UI code needed).
+5. **Redirect hit-count + 404 monitor** — Settings → Redirects now shows hit
+   counts per redirect and a "Recent 404s" panel with one-click "Add
+   redirect →".
+6. **Terms & Conditions page, Journal pagination, site search** (`/search`
+   + `WebSite`/`SearchAction` JSON-LD), plus two pre-existing lint fixes.
 
-## Phase 1 — Content the client must supply (not a dev task, but blocks "real launch")
+## A real regression caught during integration (worth knowing)
 
-Placeholder values were filled with **plausible random data** on 2026-07-24 so the
-site never shows broken/foreign-country info; all editable from the admin, no code
-changes needed to update:
+The 404-monitor agent's `not-found.tsx` read `headers()` directly in the body
+of Next's *shared global* not-found boundary. Since every route can fall back
+to that one boundary, calling a Dynamic API there forced **the entire site**
+to render on every request instead of statically — confirmed by isolating
+the call (every public page flipped `○`→`ƒ` and back with it removed).
+Fixed by decoupling the miss-logging from rendering entirely: `not-found.tsx`
+is now a plain static component; a client-side `NotFoundLogger` reads
+`window.location.pathname` on mount and calls a server action. `proxy.ts` no
+longer needs to stamp a request header for this. Static generation is fully
+restored (`/`, `/about`, `/services`, `/privacy`, `/terms`, `/contact`,
+`/gallery`, `/journal` all back to `○`).
+
+Also hardened both JSON-LD `dangerouslySetInnerHTML` sites (Organization +
+WebSite schemas — both render admin-edited CMS strings) against a value
+containing `</script>` breaking out of the tag. And deleted `Hero3D.tsx`/
+`HomeHero.tsx`, a fully dead, pre-existing, unreferenced 3D-hero chain that
+was the only other source of whole-project lint errors.
+
+## Phase 1 — content the client must still supply (unchanged, not a dev task)
 
 | Item | Where to fix | Current placeholder |
 |---|---|---|
 | Studio phone + address | Settings → General | `+1 (310) 555-0148` / `1420 Sepulveda Blvd, Suite 310, Los Angeles, CA 90025` |
-| Project years | Projects → each project | Random 2021–2025 (weighted toward founding year) |
-| Testimonial names/quotes/portraits | Pages → Homepage → Testimonials | Fictional (Maya Chen etc.); portraits are abstract SVG busts, not photos |
-| Client logo wall | Pages → Homepage → Clients | Generic big-name placeholders (Amazon, Disney, …) — swap for real clients or remove |
-| 13 draft projects | Projects (unpublished) | Waiting on real renders before publishing |
-| SMTP credentials | Server env (`SMTP_HOST`/`SMTP_USER`/`SMTP_PASS`) | Unset — enquiry emails won't send yet (enquiries still save to Messages + CSV export works regardless) |
+| Project years | Projects → each project | Random 2021–2025 (weighted toward founding year) — now correctable per-project with revert-to-previous-version if needed |
+| Testimonial names/quotes/portraits | Pages → Homepage → Testimonials | Fictional; portraits are abstract SVG busts |
+| Client logo wall | Pages → Homepage → Clients | Generic big-name placeholders |
+| 13 draft projects | Projects (unpublished) | Waiting on real renders |
+| SMTP credentials | Server env | Unset — enquiries still save to Messages + CSV export |
 | Social links | Settings → General | All `#` placeholders |
 
-## Phase 2 — High-value admin features (worth building)
+## What's left (genuinely optional now — build on request only)
 
-1. **Draft / preview + revisions** — biggest win. `snapshot`/`draft` JSON columns
-   already exist on `Block`/`Page`/`Project`/`Post`/`GalleryItem` but nothing
-   writes to them; edits go live immediately with no preview/undo.
-   - Add "Save draft" vs "Publish" to `BlockEditor`/`ProjectForm`/`PostForm`.
-   - A shareable `?preview=token` route for draft pages before they're public.
-   - "Revert to previous version" using the existing `snapshot`/`snapshotAt`.
-2. **Breadcrumbs** — trail UI on project/post/inner pages + `BreadcrumbList`
-   JSON-LD (SEO win, pairs naturally with the RankMath-style SEO panel already
-   shipped).
+- Per-content-type SEO title templates; breadcrumb/FAQ schema.
+- Redirect/404 analytics beyond hit-count (e.g. referrer tracking).
+- Deeper roles (more than admin/editor) if the client ever needs them.
+- A dedicated Project/Gallery "Categories" management page (the taxonomies
+  are editable via the block system today, just no bespoke UI like Posts has).
 
-## Phase 3 — CMS niceties (build if the client asks, otherwise skip — YAGNI)
+## Housekeeping
 
-- **Multi-user + roles** — currently single admin, no add-user/permissions.
-- **Drag-reorder for Projects/Gallery** — numeric "Order" field works today;
-  drag infra already exists in the page builder if this gets requested.
-- **Nested / mega-menu builder** — menus are flat `{label, href}`; mega panels
-  auto-build from Services/Gallery/Projects content rather than being
-  structurally editable. Only worth it if the client wants a 4th mega item or
-  sub-menus.
-- **Editable Project/Gallery categories** — fixed code enums today (Post
-  categories already are client-editable, so this would just match that pattern).
-- **Redirect hit-count / 404 monitor** — the redirect manager works; no
-  analytics on what's actually 404ing.
-
-## Phase 4 — Frontend extras (all optional)
-
-- **Terms & Conditions page** — footer link currently points at `/privacy`.
-- **Journal search/pagination** — has category filter; shows everything else.
-- **Site search** + `WebSite`/sitelinks-searchbox schema.
-- Two pre-existing lint warnings (Navbar theme-init `set-state-in-effect`,
-  HeroScrub `useEffect` deps) — cosmetic, left alone deliberately so far.
-
-## Recommendation
-
-Ship Phase 0 now. Phase 1 is the client's job (or hand them the table above
-verbatim). Of Phase 2, **draft/preview+revisions** is the only item I'd build
-proactively — it's the one real gap in an otherwise complete CMS. Phases 3–4
-are genuinely optional; build on request, not speculatively.
+Feature branch is not yet merged to master this round — everything above is
+verified but sitting on `feature/admin-v1-client-ready`, ready for a PR.
