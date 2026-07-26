@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PAGES, specFor } from "@/lib/pageRegistry";
-import { getBlock } from "@/lib/content";
+import { getBlockAdmin } from "@/lib/content";
 import BlockEditor from "@/components/admin/BlockEditor";
 
 export async function generateMetadata({ params }: { params: Promise<{ pageKey: string }> }) {
@@ -16,7 +16,7 @@ export default async function AdminPageEditor({ params }: { params: Promise<{ pa
   if (!page) notFound();
 
   const blocks = await Promise.all(
-    page.blocks.map(async (key) => ({ key, spec: specFor(key)!, data: await getBlock(key) })),
+    page.blocks.map(async (key) => ({ key, spec: specFor(key)!, ...(await getBlockAdmin(key)) })),
   );
   const publicPath = page.slug === "home" ? "/" : `/${page.slug}`;
 
@@ -43,7 +43,7 @@ export default async function AdminPageEditor({ params }: { params: Promise<{ pa
       )}
 
       <div className="space-y-8">
-        {blocks.map(({ key, spec, data }) => (
+        {blocks.map(({ key, spec, data, draft, snapshotAt, updatedAt }) => (
           <BlockEditor
             key={key}
             blockKey={key}
@@ -51,6 +51,9 @@ export default async function AdminPageEditor({ params }: { params: Promise<{ pa
             description={spec.description}
             fields={spec.fields}
             initial={data as Record<string, unknown>}
+            draft={draft as Record<string, unknown> | null}
+            snapshotAt={snapshotAt}
+            updatedAt={updatedAt}
           />
         ))}
       </div>

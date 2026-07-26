@@ -1,5 +1,5 @@
 import { specFor } from "@/lib/pageRegistry";
-import { getBlock } from "@/lib/content";
+import { getBlockAdmin } from "@/lib/content";
 import { requireOwner } from "@/lib/auth";
 import BlockEditor from "@/components/admin/BlockEditor";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Menus" };
 
 export default async function AdminMenus() {
   await requireOwner();
-  const menus = await getBlock("menus");
+  const { data, draft, snapshotAt, updatedAt } = await getBlockAdmin("menus");
   const spec = specFor("menus")!;
 
   return (
@@ -19,7 +19,16 @@ export default async function AdminMenus() {
           dropdown panels automatically — add any other link (like a page you built, e.g. <code className="font-mono">/my-new-page</code>) as a plain menu item.
         </p>
       </div>
-      <BlockEditor blockKey="menus" title={spec.title} description={spec.description} fields={spec.fields} initial={menus as Record<string, unknown>} />
+      <BlockEditor
+        blockKey="menus"
+        title={spec.title}
+        description={spec.description}
+        fields={spec.fields}
+        initial={data as Record<string, unknown>}
+        draft={draft as Record<string, unknown> | null}
+        snapshotAt={snapshotAt}
+        updatedAt={updatedAt}
+      />
     </div>
   );
 }

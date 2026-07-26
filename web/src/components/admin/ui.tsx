@@ -22,7 +22,7 @@ export function timeAgo(date: Date | string): string {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-export function Notice({ state }: { state: { ok?: boolean; error?: string; savedAt?: number } | null }) {
+export function Notice({ state, okMessage }: { state: { ok?: boolean; error?: string; savedAt?: number } | null; okMessage?: string }) {
   if (!state) return null;
   if (state.error) {
     return (
@@ -34,7 +34,7 @@ export function Notice({ state }: { state: { ok?: boolean; error?: string; saved
   if (state.ok) {
     return (
       <p role="status" className="rounded-lg border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-4 py-2.5 text-sm text-[var(--gold-ink)]">
-        Saved — the live site is updated.
+        {okMessage ?? "Saved — the live site is updated."}
       </p>
     );
   }

@@ -21,6 +21,31 @@ export const getBlock = cache(async <K extends BlockKey>(key: K): Promise<BlockD
   return fallback;
 });
 
+/**
+ * Admin-only: the merged live value plus the raw draft/snapshot metadata, for
+ * the Save Draft / Publish / Revert UI in BlockEditor. Bypasses the public
+ * cache since admin pages always want the freshest state.
+ */
+export async function getBlockAdmin<K extends BlockKey>(key: K) {
+  const data = await getBlock(key);
+  try {
+    const row = await db.block.findUnique({ where: { key }, select: { draft: true, snapshotAt: true, updatedAt: true } });
+    const fallback = structuredClone(BLOCK_DEFAULTS[key]) as unknown as BlockData[K];
+    const draft =
+      row?.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
+        ? ({ ...fallback, ...(row.draft as object) } as BlockData[K])
+        : null;
+    return {
+      data,
+      draft,
+      snapshotAt: row?.snapshotAt ? row.snapshotAt.toISOString() : null,
+      updatedAt: row?.updatedAt ? row.updatedAt.toISOString() : null,
+    };
+  } catch {
+    return { data, draft: null, snapshotAt: null, updatedAt: null };
+  }
+}
+
 export const getProjects = cache(async () => {
   try {
     return await db.project.findMany({
