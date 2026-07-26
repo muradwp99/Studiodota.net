@@ -76,5 +76,38 @@ was the only other source of whole-project lint errors.
 
 ## Housekeeping
 
-Feature branch is not yet merged to master this round — everything above is
-verified but sitting on `feature/admin-v1-client-ready`, ready for a PR.
+`feature/admin-v1-client-ready` merged to master via PR #3 (`5370a4d`,
+2026-07-26). Master now has everything above. One real (if inconsequential)
+merge conflict along the way: `Footer.tsx`'s Privacy/Terms links vs master's
+stale `#` placeholders — kept the real links. Also found `content/site.ts`
+is dead code (zero importers anywhere, its git history is leftover from an
+unrelated template this repo was bootstrapped from — commits like "Magnific
+image enrichment", "Blog redesign + 6 SEO posts" that have nothing to do
+with Studio Dot A) sitting on master with the same stale `#` hrefs; kept
+this branch's fixed version since nothing reads the file either way. Worth
+deleting outright on a future pass.
+
+## Vercel deployment — blocked on access, not code
+
+A Vercel project is already linked (`web/.vercel/project.json`: team org
+`team_b9lxcI8d8ITWjTZ4l2AmEsP2`, project `web`, linked 2026-07-21), but:
+
+- **No auto-deploy on push.** Checked GitHub's Deployments/check-runs/commit-status
+  APIs for this repo — all empty. The Vercel GitHub App isn't installed on
+  this repo, so merging to master does not trigger a deployment by itself.
+- **No CLI credentials in this environment.** `vercel` isn't on PATH and no
+  local CLI auth config exists here — deploying requires the client's own
+  `vercel login` (or a `VERCEL_TOKEN`), which only the client can provide.
+- **No production database.** The only `DATABASE_URL` anywhere is
+  `127.0.0.1:3307`, a project-local dev MySQL instance on the dev machine —
+  unreachable from Vercel's serverless functions. Unknown whether a
+  production DB is already configured in the Vercel dashboard's env vars
+  (not visible without CLI/dashboard access).
+- **Media uploads write to local disk.** `lib/actions/media.ts` writes
+  straight to `public/uploads/<month>/...` via `fs/promises` — Vercel's
+  serverless filesystem is read-only outside `/tmp` (ephemeral, not shared
+  across invocations), so uploads would silently break as-is. Needs a real
+  object-storage backend (Vercel Blob, S3, etc.) before going live on Vercel.
+
+None of this is a code defect — it's infra/access that only the client can
+supply or authorize.
