@@ -292,7 +292,14 @@ export const BLOCK_SPECS: BlockSpec[] = [
     title: "Menus",
     description: "The header navigation and the footer Pages column. Services/Gallery/Projects keep their dropdown panels automatically.",
     fields: [
-      { kind: "list", key: "primary", label: "Primary menu (header)", addable: true, item: [t("label", "Label"), t("href", "Link")] },
+      {
+        kind: "list", key: "primary", label: "Primary menu (header)", addable: true,
+        item: [
+          t("label", "Label"),
+          t("href", "Link"),
+          { kind: "list", key: "children", label: "Sub-menu items", item: [t("label", "Label"), t("href", "Link")], addable: true },
+        ],
+      },
       { kind: "list", key: "footerPages", label: "Footer — Pages column", addable: true, item: [t("label", "Label"), t("href", "Link")] },
     ],
   },

@@ -450,14 +450,15 @@ export const BLOCK_DEFAULTS = {
   },
 
   menus: {
+    /** Each item may carry `children` for a simple dropdown (one level, no nesting). */
     primary: [
-      { label: "Who we are", href: "/about" },
-      { label: "Services", href: "/services" },
-      { label: "Gallery", href: "/gallery" },
-      { label: "Projects", href: "/projects" },
-      { label: "Blog", href: "/journal" },
-      { label: "Contact", href: "/contact" },
-    ],
+      { label: "Who we are", href: "/about", children: [] },
+      { label: "Services", href: "/services", children: [] },
+      { label: "Gallery", href: "/gallery", children: [] },
+      { label: "Projects", href: "/projects", children: [] },
+      { label: "Blog", href: "/journal", children: [] },
+      { label: "Contact", href: "/contact", children: [] },
+    ] as { label: string; href: string; children: { label: string; href: string }[] }[],
     footerPages: [
       { label: "Home", href: "/" },
       { label: "Who we are", href: "/about" },
