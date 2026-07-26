@@ -24,7 +24,7 @@ export type NavItem = {
 export const nav: NavItem[] = [
   {
     label: "Work",
-    href: "/projects",
+    href: "#",
     mega: [
       {
         label: "By sector",
@@ -38,8 +38,8 @@ export const nav: NavItem[] = [
       },
     ],
   },
-  { label: "Services", href: "/services" },
-  { label: "Studio", href: "/about" },
+  { label: "Services", href: "#" },
+  { label: "Studio", href: "#" },
   { label: "Journal", href: "/journal" },
   { label: "Contact", href: "/contact" },
 ];

@@ -32,7 +32,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
             <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
               {site.footerServices.map((s) => (
                 <li key={s}>
-                  <Link href="/services" className="hover:text-[var(--bone)]">{s}</Link>
+                  <Link href="#" className="hover:text-[var(--bone)]">{s}</Link>
                 </li>
               ))}
             </ul>
@@ -110,7 +110,7 @@ function FooterCol({ title, items }: { title: string; items: { label: string; hr
       <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
         {items.map((i) => (
           <li key={i.label}>
-            <Link href={i.href} className="hover:text-[var(--bone)]">{i.label}</Link>
+            <Link href={`#${i.label.toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-[var(--bone)]">{i.label}</Link>
           </li>
         ))}
       </ul>
