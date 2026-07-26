@@ -291,8 +291,12 @@ export const BLOCK_SPECS: BlockSpec[] = [
   {
     key: "taxonomies",
     title: "Categories",
-    description: "Categories available when writing posts.",
-    fields: [{ kind: "stringList", key: "postCategories", label: "Post categories" }],
+    description: "Categories available when writing posts, projects, and gallery items.",
+    fields: [
+      { kind: "stringList", key: "postCategories", label: "Post categories" },
+      { kind: "stringList", key: "projectCategories", label: "Project categories" },
+      { kind: "stringList", key: "galleryCategories", label: "Gallery categories" },
+    ],
   },
   {
     key: "appearance",

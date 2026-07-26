@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { TrashBar, RowTrashButton, TrashRowActions } from "@/components/admin/TrashActions";
+import { TrashBar, TrashRowActions } from "@/components/admin/TrashActions";
+import ProjectsList from "@/components/admin/ProjectsList";
 
 export const metadata = { title: "Projects" };
 
@@ -29,29 +30,24 @@ export default async function AdminProjects({ searchParams }: { searchParams: Pr
         <TrashBar basePath="/admin/projects" view={isTrash ? "trash" : "all"} allCount={allCount} trashCount={trashCount} />
       </div>
 
-      <ul className="mt-3 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
-        {projects.map((p) => (
-          <li key={p.id} className="flex items-center gap-4 px-5 py-3.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.heroImage} alt="" className="h-11 w-16 shrink-0 rounded-md border border-[var(--line)] object-cover" />
-            <div className="min-w-0 flex-1">
-              {isTrash ? (
+      {isTrash ? (
+        <ul className="mt-3 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+          {projects.map((p) => (
+            <li key={p.id} className="flex items-center gap-4 px-5 py-3.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.heroImage} alt="" className="h-11 w-16 shrink-0 rounded-md border border-[var(--line)] object-cover" />
+              <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{p.title}</div>
-              ) : (
-                <Link href={`/admin/projects/${p.id}`} className="truncate font-medium transition-colors hover:text-[var(--gold-ink)]">{p.title}</Link>
-              )}
-              <div className="font-mono text-[0.65rem] text-[var(--muted)]">/{p.slug} · {p.sector} · {p.year}</div>
-            </div>
-            {!p.published && !isTrash && <span className="rounded-full border border-[var(--line-strong)] px-2.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-[var(--muted)]">Draft</span>}
-            {isTrash
-              ? <TrashRowActions model="project" id={p.id} title={p.title} />
-              : <RowTrashButton model="project" id={p.id} title={p.title} />}
-          </li>
-        ))}
-        {projects.length === 0 && (
-          <li className="px-5 py-8 text-center text-sm text-[var(--muted)]">{isTrash ? "Trash is empty." : "No projects yet."}</li>
-        )}
-      </ul>
+                <div className="font-mono text-[0.65rem] text-[var(--muted)]">/{p.slug} · {p.sector} · {p.year}</div>
+              </div>
+              <TrashRowActions model="project" id={p.id} title={p.title} />
+            </li>
+          ))}
+          {projects.length === 0 && <li className="px-5 py-8 text-center text-sm text-[var(--muted)]">Trash is empty.</li>}
+        </ul>
+      ) : (
+        <ProjectsList items={projects.map((p) => ({ id: p.id, slug: p.slug, title: p.title, heroImage: p.heroImage, sector: p.sector, year: p.year, published: p.published }))} />
+      )}
     </div>
   );
 }

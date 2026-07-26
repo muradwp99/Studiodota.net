@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { savePost, deletePost, type ActionState } from "@/lib/actions/collections";
+import { savePost, deletePost, revertPost, type ActionState } from "@/lib/actions/collections";
 import MediaPicker from "@/components/admin/MediaPicker";
 import SeoPanel from "@/components/admin/SeoPanel";
 import type { SeoBlob } from "@/lib/seoScore";
-import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
+import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice, timeAgo } from "@/components/admin/ui";
 
 export type PostSectionInput = { id: string; heading: string; body: string[] };
 export type PostInput = {
@@ -29,9 +29,10 @@ export type PostInput = {
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
-export default function PostForm({ id, initial, categories = [] }: { id: string | null; initial: PostInput; categories?: string[] }) {
+export default function PostForm({ id, initial, categories = [], snapshotAt }: { id: string | null; initial: PostInput; categories?: string[]; snapshotAt?: Date | null }) {
   const [data, setData] = useState(initial);
   const [state, setState] = useState<ActionState | null>(null);
+  const [snapAt, setSnapAt] = useState(snapshotAt ?? null);
   const [pending, startTransition] = useTransition();
   const [picker, setPicker] = useState<"image" | "inlineImage" | null>(null);
   const [newCategory, setNewCategory] = useState(!categories.includes(initial.category) && initial.category !== "");
@@ -57,6 +58,7 @@ export default function PostForm({ id, initial, categories = [] }: { id: string 
       const res = await savePost(id, clean);
       setState(res);
       if (res.ok && !id) router.push("/admin/posts");
+      if (res.ok && id) setSnapAt(new Date());
     });
 
   const remove = () => {
@@ -64,6 +66,19 @@ export default function PostForm({ id, initial, categories = [] }: { id: string 
     if (!window.confirm(`Delete "${data.title}"? This can't be undone.`)) return;
     startTransition(async () => {
       await deletePost(id);
+    });
+  };
+
+  const revert = () => {
+    if (!id) return;
+    if (!window.confirm("Revert to the last saved version? Any unsaved changes here will be lost.")) return;
+    startTransition(async () => {
+      const res = await revertPost(id);
+      if (res.error) { setState(res); return; }
+      if (res.data) setData(res.data as unknown as PostInput);
+      setSnapAt(null);
+      setState({ ok: true, savedAt: Date.now() });
+      router.refresh();
     });
   };
 
@@ -200,6 +215,12 @@ export default function PostForm({ id, initial, categories = [] }: { id: string 
           }}
         />
       </div>
+      {id && snapAt && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)]/40 px-4 py-2.5 text-sm">
+          <button type="button" onClick={revert} disabled={pending} className={btnGhostCls}>Revert to last saved version</button>
+          <span className="text-[var(--muted)]">Saved {timeAgo(snapAt)}</span>
+        </div>
+      )}
       <Notice state={state} />
       <div className="flex items-center justify-between gap-4 border-t border-[var(--line)] pt-5">
         <button type="button" onClick={save} disabled={pending} className={btnPrimaryCls}>

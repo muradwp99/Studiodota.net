@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveProject, deleteProject, type ActionState } from "@/lib/actions/collections";
+import { saveProject, deleteProject, revertProject, type ActionState } from "@/lib/actions/collections";
 import MediaPicker from "@/components/admin/MediaPicker";
 import SeoPanel from "@/components/admin/SeoPanel";
 import type { SeoBlob } from "@/lib/seoScore";
-import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice } from "@/components/admin/ui";
+import { inputCls, labelCls, btnPrimaryCls, btnGhostCls, btnDangerCls, Notice, timeAgo } from "@/components/admin/ui";
 
 export type ProjectInput = {
   slug: string;
@@ -25,14 +25,10 @@ export type ProjectInput = {
   seo: SeoBlob;
 };
 
-const CATEGORIES = [
-  "single-family", "multifamily", "affordable-housing", "mixed-use",
-  "commercial", "office", "senior-living",
-];
-
-export default function ProjectForm({ id, initial }: { id: string | null; initial: ProjectInput }) {
+export default function ProjectForm({ id, initial, categories, snapshotAt }: { id: string | null; initial: ProjectInput; categories: string[]; snapshotAt?: Date | null }) {
   const [data, setData] = useState(initial);
   const [state, setState] = useState<ActionState | null>(null);
+  const [snapAt, setSnapAt] = useState(snapshotAt ?? null);
   const [pending, startTransition] = useTransition();
   const [picker, setPicker] = useState<"heroImage" | "interiorImage" | "gallery" | null>(null);
   const router = useRouter();
@@ -47,6 +43,7 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
       const res = await saveProject(id, data);
       setState(res);
       if (res.ok && !id) router.push("/admin/projects");
+      if (res.ok && id) setSnapAt(new Date());
     });
 
   const remove = () => {
@@ -54,6 +51,19 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
     if (!window.confirm(`Delete "${data.title}"? This can't be undone.`)) return;
     startTransition(async () => {
       await deleteProject(id);
+    });
+  };
+
+  const revert = () => {
+    if (!id) return;
+    if (!window.confirm("Revert to the last saved version? Any unsaved changes here will be lost.")) return;
+    startTransition(async () => {
+      const res = await revertProject(id);
+      if (res.error) { setState(res); return; }
+      if (res.data) setData(res.data as unknown as ProjectInput);
+      setSnapAt(null);
+      setState({ ok: true, savedAt: Date.now() });
+      router.refresh();
     });
   };
 
@@ -93,7 +103,8 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
         <div>
           <label htmlFor="category" className={labelCls}>Category</label>
           <select id="category" className={inputCls} value={data.category} onChange={(e) => set("category", e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {!categories.includes(data.category) && <option value={data.category}>{data.category}</option>}
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
@@ -159,6 +170,12 @@ export default function ProjectForm({ id, initial }: { id: string | null; initia
           ctx={{ baseTitle: data.title, slug: data.slug, content: data.summary, path: data.slug ? `/projects/${data.slug}` : undefined, fallbackImage: data.heroImage }}
         />
       </div>
+      {id && snapAt && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)]/40 px-4 py-2.5 text-sm">
+          <button type="button" onClick={revert} disabled={pending} className={btnGhostCls}>Revert to last saved version</button>
+          <span className="text-[var(--muted)]">Saved {timeAgo(snapAt)}</span>
+        </div>
+      )}
       <Notice state={state} />
       <div className="flex items-center justify-between gap-4 border-t border-[var(--line)] pt-5">
         <button type="button" onClick={save} disabled={pending} className={btnPrimaryCls}>

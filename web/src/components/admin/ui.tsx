@@ -11,6 +11,17 @@ export const btnPrimaryCls = `${btnCls} bg-[var(--gold)] text-[#17191c] hover:bg
 export const btnGhostCls = `${btnCls} border border-[var(--line-strong)] text-[var(--bone)] hover:border-[var(--gold)] hover:text-[var(--gold-ink)]`;
 export const btnDangerCls = `${btnCls} border border-transparent text-[#a33] hover:bg-[#a33]/10`;
 
+/** "3 hours ago" — used next to the revert-to-last-saved-version button. */
+export function timeAgo(date: Date | string): string {
+  const mins = Math.round((Date.now() - new Date(date).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
 export function Notice({ state }: { state: { ok?: boolean; error?: string; savedAt?: number } | null }) {
   if (!state) return null;
   if (state.error) {
