@@ -95,3 +95,38 @@ export const getGalleryItems = cache(async () => {
     return SEED_GALLERY.map((g, i) => ({ id: `seed-${i}`, youtubeId: "", tall: false, published: true, ...g }));
   }
 });
+
+/**
+ * Site-wide search across published content. Plain `contains` (no `mode:
+ * "insensitive"` — this DB's collation is case-insensitive already, and the
+ * MySQL Prisma provider doesn't support that option). Capped per type.
+ */
+export async function searchSite(q: string) {
+  const query = q.trim();
+  const empty = { projects: [], posts: [], pages: [] };
+  if (!query) return empty;
+  try {
+    const [projects, posts, pages] = await Promise.all([
+      db.project.findMany({
+        where: { published: true, deletedAt: null, OR: [{ title: { contains: query } }, { summary: { contains: query } }] },
+        orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
+        take: 20,
+        select: { slug: true, title: true, summary: true },
+      }),
+      db.post.findMany({
+        where: { published: true, deletedAt: null, OR: [{ title: { contains: query } }, { excerpt: { contains: query } }] },
+        orderBy: { date: "desc" },
+        take: 20,
+        select: { slug: true, title: true, excerpt: true },
+      }),
+      db.page.findMany({
+        where: { status: "published", deletedAt: null, title: { contains: query } },
+        take: 20,
+        select: { slug: true, title: true },
+      }),
+    ]);
+    return { projects, posts, pages };
+  } catch {
+    return empty;
+  }
+}

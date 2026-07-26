@@ -280,6 +280,14 @@ export const BLOCK_SPECS: BlockSpec[] = [
     ],
   },
   {
+    key: "page.terms",
+    title: "Terms page",
+    fields: [
+      t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"),
+      { kind: "list", key: "sections", label: "Sections", addable: true, item: [t("heading", "Heading"), ta("body", "Body", 4)] },
+    ],
+  },
+  {
     key: "menus",
     title: "Menus",
     description: "The header navigation and the footer Pages column. Services/Gallery/Projects keep their dropdown panels automatically.",
@@ -345,4 +353,5 @@ export const PAGES: { slug: string; title: string; blurb: string; blocks: BlockK
   { slug: "journal", title: "Journal", blurb: "Hero copy and the bottom banner.", blocks: ["page.journal"] },
   { slug: "contact", title: "Contact", blurb: "Hero, form copy, and the aside.", blocks: ["page.contact"] },
   { slug: "privacy", title: "Privacy", blurb: "Policy sections.", blocks: ["page.privacy"] },
+  { slug: "terms", title: "Terms", blurb: "Policy sections.", blocks: ["page.terms"] },
 ];

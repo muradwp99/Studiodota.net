@@ -95,7 +95,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
           <p>© {new Date().getFullYear()} {site.name}. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-[var(--bone)]">Privacy Policy</Link>
-            <Link href="/privacy" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>
+            <Link href="/terms" className="hover:text-[var(--bone)]">Terms &amp; Conditions</Link>
           </div>
         </div>
       </div>

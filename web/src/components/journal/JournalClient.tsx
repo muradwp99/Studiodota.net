@@ -22,6 +22,8 @@ function fmt(date: string) {
   return new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
+const PAGE = 9;
+
 export default function JournalClient({ posts }: { posts: JournalCard[] }) {
   const reduced = useReducedMotion();
   const categories = useMemo(() => {
@@ -30,10 +32,18 @@ export default function JournalClient({ posts }: { posts: JournalCard[] }) {
     return seen;
   }, [posts]);
   const [cat, setCat] = useState<string>("all");
+  const [page, setPage] = useState(0);
+
+  const selectCat = (c: string) => {
+    setCat(c);
+    setPage(0);
+  };
 
   const showFeatured = cat === "all";
   const list = cat === "all" ? posts.slice(1) : posts.filter((p) => p.category === cat);
   const featured = posts[0];
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  const shown = list.slice(page * PAGE, page * PAGE + PAGE);
 
   return (
     <>
@@ -44,7 +54,7 @@ export default function JournalClient({ posts }: { posts: JournalCard[] }) {
             return (
               <button
                 key={f.key}
-                onClick={() => setCat(f.key)}
+                onClick={() => selectCat(f.key)}
                 aria-pressed={on}
                 className={`rounded-full px-4 py-2 text-sm transition-colors duration-300 ${on ? "bg-[var(--bone)] text-[var(--ink)]" : "text-[var(--bone-dim)] hover:bg-[var(--surface-2)] hover:text-[var(--bone)]"}`}
               >
@@ -80,7 +90,7 @@ export default function JournalClient({ posts }: { posts: JournalCard[] }) {
 
       <motion.div layout={!reduced} className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
-          {list.map((post, i) => (
+          {shown.map((post, i) => (
             <motion.article
               key={post.slug}
               layout={!reduced}
@@ -109,6 +119,23 @@ export default function JournalClient({ posts }: { posts: JournalCard[] }) {
 
       {list.length === 0 && (
         <p className="py-16 text-center text-[var(--muted)]">No articles in this category yet.</p>
+      )}
+
+      {pages > 1 && (
+        <div className="mt-12 flex items-center justify-center gap-2">
+          <span className="mr-2 font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]">See</span>
+          {Array.from({ length: pages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setPage(i)}
+              aria-label={`Page ${i + 1}`}
+              aria-current={page === i}
+              className={`h-9 w-9 rounded-full font-mono text-sm transition-colors duration-300 ${page === i ? "bg-[var(--gold)] text-[var(--ink)]" : "text-[var(--bone-dim)] hover:bg-[var(--surface-2)] hover:text-[var(--bone)]"}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
       )}
     </>
   );

@@ -29,6 +29,9 @@ function Sun() {
 function Moon() {
   return (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>);
 }
+function SearchIcon() {
+  return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="11" cy="11" r="7" /><path strokeLinecap="round" d="m21 21-4.3-4.3" /></svg>);
+}
 
 export default function Navbar({ siteName, nav, menuItems, services, galleryVideos, galleryPhotos, projects: megaProjects }: NavbarProps) {
   const [active, setActive] = useState<string | null>(null);
@@ -42,6 +45,8 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
   useEffect(() => {
     const stored = localStorage.getItem("theme");
     const d = stored === "dark";
+    // localStorage is unreadable during SSR, so theme is resolved post-mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(d);
     document.documentElement.dataset.theme = d ? "dark" : "light";
   }, []);
@@ -149,6 +154,9 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
           </ul>
 
           <div className="flex items-center gap-2">
+            <Link href="/search" onMouseEnter={scheduleClose} aria-label="Search" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
+              <SearchIcon />
+            </Link>
             <button onClick={toggleTheme} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
               {dark ? <Sun /> : <Moon />}
             </button>

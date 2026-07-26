@@ -510,6 +510,20 @@ export const BLOCK_DEFAULTS = {
       { heading: "Cookies", body: "This site uses only the essential cookies required to function. We do not run advertising or cross-site tracking cookies." },
     ],
   },
+
+  "page.terms": {
+    ...seoDefaults,
+    eyebrow: "Legal",
+    title: "Terms & conditions",
+    lede: "The general terms that apply when you use this website or get in touch with us about a project.",
+    sections: [
+      { heading: "Use of this site", body: "This website is provided for general information about our studio and our work. You're welcome to browse it and share pages for personal, non-commercial reference. You agree not to misuse the site — including attempting to disrupt it, scrape it at scale, or use it in a way that could damage its content or availability for other visitors." },
+      { heading: "Intellectual property", body: "The architectural designs, renders, photography, text, and branding shown on this site belong to Studiodota, or are used with permission, and are protected by copyright and other intellectual property laws. Nothing on this site grants you a licence to reproduce, distribute, or create derivative works from that material without our prior written consent." },
+      { heading: "No warranty", body: "We take care to keep this site accurate and current, but it is provided \"as is\" without warranties of any kind. We do not guarantee that the site will be uninterrupted or error-free, or that any project, material, or finish shown is available or identical in every application." },
+      { heading: "Limitation of liability", body: "To the fullest extent permitted by law, Studiodota is not liable for any indirect, incidental, or consequential loss arising from your use of this site or reliance on the information it contains. Nothing in these terms excludes liability that cannot be excluded under the laws applicable to our business." },
+      { heading: "Changes to these terms", body: "We may update these terms from time to time to reflect changes to the site or to our practices. The version published here is the one currently in effect, and continued use of the site after an update means you accept the revised terms." },
+    ],
+  },
 } as const;
 
 /* Mutable, tuple-widened block value types for runtime use (CMS data can have

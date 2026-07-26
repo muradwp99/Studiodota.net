@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -38,7 +38,7 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
 
   // Draw frame `i` (cover-fit). If it isn't loaded yet, draw the nearest loaded
   // frame so the canvas never flashes blank while preloading catches up.
-  const draw = (i: number) => {
+  const draw = useCallback((i: number) => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
@@ -65,16 +65,16 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     ctx.clearRect(0, 0, cw, ch);
     ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
     drawnRef.current = i;
-  };
+  }, []);
 
-  const resizeCanvas = () => {
+  const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(canvas.clientWidth * dpr);
     canvas.height = Math.round(canvas.clientHeight * dpr);
     draw(drawnRef.current < 0 ? 0 : drawnRef.current);
-  };
+  }, [draw]);
 
   // Preload frames — picks the mobile or desktop sequence by viewport (once, at mount).
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
       imagesRef.current[i] = img;
     }
     return () => { cancelled = true; };
-  }, []);
+  }, [draw, resizeCanvas]);
 
   // Hero intro — released by the Preloader's exit: the footage settles from a
   // slight over-scale while the headline rises out of line masks, then the
@@ -160,7 +160,7 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
       st.kill();
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [reduced]);
+  }, [reduced, draw, resizeCanvas]);
 
   return (
     <section
