@@ -3,6 +3,7 @@ import { GeistMono } from "geist/font/mono";
 import { sans } from "@/lib/fonts";
 import "./globals.css";
 import { getBlock } from "@/lib/content";
+import { jsonLdScript } from "@/lib/jsonLd";
 
 const SITE_URL = "https://studiodota.net";
 
@@ -54,7 +55,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${GeistMono.variable}`}>
       <body>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteLd) }} />
         {children}
       </body>
     </html>

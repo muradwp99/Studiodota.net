@@ -1,37 +1,19 @@
-import { cache } from "react";
 import Link from "next/link";
-import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { db } from "@/lib/db";
-import { NOT_FOUND_PATH_HEADER } from "@/proxy";
 import Reveal from "@/components/Reveal";
+import NotFoundLogger from "@/components/NotFoundLogger";
 
 export const metadata: Metadata = { title: "Page not found" };
 
-// Resolving the 404 status on a non-streamed response means Next renders this
-// boundary's body more than once per request — cache() (same dedupe pattern as
-// getAdmin() in lib/auth.ts) keeps the upsert to one write per request.
-const logMiss = cache(async (path: string | null) => {
-  // No header means proxy never saw this request (e.g. excluded by its
-  // matcher) — nothing to log, and that's fine.
-  if (!path) return;
-  try {
-    await db.notFoundLog.upsert({
-      where: { path },
-      update: { hits: { increment: 1 }, lastHitAt: new Date() },
-      create: { path },
-    });
-  } catch {
-    // Never let logging break the 404 page itself.
-  }
-});
-
-export default async function NotFound() {
-  const path = (await headers()).get(NOT_FOUND_PATH_HEADER);
-  await logMiss(path);
-
+// Deliberately a plain static component — no headers()/cookies() here. This is
+// Next's single shared fallback for every unmatched URL in the app, so any
+// Dynamic API call in this file forces the ENTIRE site to render on-demand
+// instead of statically. Logging (which needs the real attempted path) happens
+// client-side via NotFoundLogger instead.
+export default function NotFound() {
   return (
     <div className="shell flex min-h-screen flex-col items-start justify-center py-24">
+      <NotFoundLogger />
       <Reveal>
         <span className="eyebrow">404</span>
       </Reveal>

@@ -1,11 +1,6 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 
-// not-found.tsx gets no props and no pathname from Next in this version, so it
-// reads this header back via headers() instead. Set on every pass-through
-// request since we don't know yet whether the router will 404 it.
-export const NOT_FOUND_PATH_HEADER = "x-notfound-path";
-
 /**
  * Applies admin-managed URL redirects (Settings → Redirects) before routing.
  * v16 proxy runs on the Node runtime, so Prisma works here. Rules are cached
@@ -37,12 +32,10 @@ export async function proxy(req: NextRequest, event: NextFetchEvent) {
   const path = norm(req.nextUrl.pathname);
   const hit = (await rules()).get(path);
 
-  if (!hit) {
-    // No redirect — let it fall through to Next's router (page or 404).
-    const requestHeaders = new Headers(req.headers);
-    requestHeaders.set(NOT_FOUND_PATH_HEADER, req.nextUrl.pathname);
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  }
+  // No redirect — let it fall through to Next's router (page or 404). A true
+  // 404 is logged client-side (see NotFoundLogger), not here, so this stays a
+  // plain passthrough and every static route can still prerender.
+  if (!hit) return NextResponse.next();
 
   // Don't let hit-tracking slow down the redirect: not awaited, and the
   // rejection is caught so a DB hiccup can't surface as a request error.

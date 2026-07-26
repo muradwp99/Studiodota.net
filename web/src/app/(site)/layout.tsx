@@ -9,6 +9,7 @@ import CookieConsent from "@/components/CookieConsent";
 import Preloader from "@/components/motion/Preloader";
 import PageTransition from "@/components/motion/PageTransition";
 import { getBlock, getGalleryItems, getProjects } from "@/lib/content";
+import { jsonLdScript } from "@/lib/jsonLd";
 
 const SITE_URL = "https://studiodota.net";
 
@@ -59,7 +60,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <SiteScripts d={integrations} />
       <AppearanceStyle accent={appearance.accent} />
       {seo.organizationSchema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(orgLd) }} />
       )}
       <Preloader />
       <PageTransition />
