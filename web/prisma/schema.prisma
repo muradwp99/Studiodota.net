@@ -12,6 +12,9 @@ model User {
   email        String    @unique
   passwordHash String
   name         String    @default("Admin")
+  /// "admin" (full access incl. Users/Settings/Plugins/Redirects) or "editor"
+  /// (content only: Posts/Pages/Projects/Gallery/Media/Messages).
+  role         String    @default("admin")
   createdAt    DateTime  @default(now())
   sessions     Session[]
 }
@@ -137,11 +140,25 @@ model Media {
 
 /// URL redirects applied by src/proxy.ts (301/308 or 302/307).
 model Redirect {
-  id        String   @id @default(cuid())
-  from      String   @unique
+  id        String    @id @default(cuid())
+  from      String    @unique
   to        String
-  permanent Boolean  @default(true)
+  permanent Boolean   @default(true)
+  hits      Int       @default(0)
+  lastHitAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+/// Real 404s the proxy saw with no matching redirect — lets the admin see
+/// what's broken and one-click turn it into a Redirect.
+model NotFoundLog {
+  id        String   @id @default(cuid())
+  path      String
+  hits      Int      @default(1)
+  lastHitAt DateTime @default(now())
   createdAt DateTime @default(now())
+
+  @@unique([path])
 }
 
 model ContactMessage {
