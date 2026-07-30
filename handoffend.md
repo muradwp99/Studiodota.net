@@ -5,13 +5,75 @@ execution plan, not a session log.
 
 ## Current state
 
-- `origin/master` = `46a02f8`. Everything below "shipped" is live on master.
-- Deployed to Vercel production (`https://studiodota.vercel.app`) — the build
-  succeeds, but see "Vercel deployment" below: it's running in a degraded
-  fallback mode, not as a real CMS-backed site, until a production database
-  is connected.
+- `origin/master` = `ca894c4`. Everything below "shipped" is live on master.
+- **Live in production on Hostinger**: `https://studiodota.net`, deployed via
+  hPanel's Node.js app (Business/Cloud hosting, GitHub-connected — redeploy
+  by triggering it again in hPanel, it pulls from `muradwp99/Studiodota.net`).
+  Real MySQL database (`u781705420_dota` on `srv1859.hstgr.io`), schema
+  pushed, fully seeded, confirmed working end-to-end (Journal posts render,
+  project SEO renders, admin login works).
+- Also deployed to Vercel (`https://studiodota.vercel.app`) earlier in the
+  session, but that one has **no production database connected** (zero env
+  vars in Vercel's dashboard) — it runs in a degraded fallback mode. Hostinger
+  is the real, working deployment; Vercel is effectively stale/parked unless
+  someone wants to finish wiring a database there too.
 - `npx tsc --noEmit` clean, project-wide `npx eslint .` clean (down to the
   same small pre-existing baseline noted below), `npm run build` clean.
+- Two build-only gotchas fixed along the way, worth knowing if a future
+  deploy fails mysteriously: (1) `@tailwindcss/postcss`/`typescript`/`@types/*`/
+  `prisma` had to move from `devDependencies` to `dependencies` — Hostinger's
+  (and potentially other platforms') production install skips devDependencies,
+  but Next's build itself needs these. (2) `vitest.config.ts` and all
+  `**/*.test.ts` files under `src/` are excluded from the app's `tsconfig.json`
+  — they import from `vitest`, intentionally still a devDependency.
+
+## Admin↔frontend wiring audit (2026-07-30)
+
+Systematically compared every content field that renders on the public site
+against what the admin's form system actually exposes for editing — all 13
+home.* blocks, all 8 page.* blocks, site-wide blocks, Projects, Posts, and
+every other admin section (Settings/Users/Redirects/Appearance/Menus/Plugins).
+
+**Two real bugs found and fixed** (both verified end-to-end through the real
+admin UI + a direct DB query afterward, not just type-checked):
+
+1. `home.faq`'s `description`/`supportLabel`/`supportBody`/`supportCta`
+   (added earlier this session) were never registered in `pageRegistry.ts`.
+   Worse than just "not editable" — the save action drops any unregistered
+   key and replaces the whole block, so the next Save Draft/Publish on FAQ
+   would have **silently and permanently wiped those 4 fields** back to the
+   hardcoded defaults, with no error. Fixed and verified.
+2. `writeCategories()` (add/rename/delete post category) wrote a bare
+   `{ postCategories }` into the shared `taxonomies` block, silently
+   discarding `projectCategories`/`galleryCategories` on every save. Fixed
+   to merge instead of replace. Verified by adding a category from a fresh
+   (no DB row yet) state and confirming both other lists survived.
+
+Also fixed: `home.about`'s stats list was missing `addable: true` — could
+delete stat cards down to zero but not add a 5th without deleting all
+existing ones first.
+
+**Everything else checked out clean** — the other 12 home.* blocks, all 8
+page.* blocks (SEO panel confirmed present on all of them), and the
+Project/Post edit forms (every Prisma column covered, SEO panel present with
+full context on both) all have complete, correct admin coverage.
+
+**Known gaps, not bugs, build on request:**
+- No admin UI exists to add/rename/delete **project or gallery categories**
+  (only post categories have one, at `/admin/posts/categories`) — this was
+  already on the optional-backlog list below; the audit just confirmed
+  exactly what's missing and fixed the data-loss risk hiding under it.
+- The SEO panel on page.* blocks (Services/Projects/Gallery/etc.) gets less
+  context than the one on Projects/Posts — missing `slug`/`path`/`content`,
+  so the Google preview shows no path and the keyword-in-content/keyword-
+  density checks are silently skipped. Data still saves correctly; the score
+  is just weaker than it could be.
+- SMTP credentials are server-env-only by design, no admin field (expected).
+- Redirects' "convert 404 to redirect" only pre-fills the "From" field, not
+  fully one-click as a code comment implies — cosmetic.
+- Admin can change another user's role or remove them, but not edit their
+  name/email or force-reset their password — possibly intentional, stood out
+  during the audit.
 
 ## What shipped this round
 
