@@ -9,7 +9,11 @@ import { getBlock } from "@/lib/content";
 export type TaxonomyState = { ok?: boolean; error?: string };
 
 async function writeCategories(postCategories: string[]): Promise<void> {
-  const data = { postCategories } as unknown as Prisma.InputJsonValue;
+  // Merge over the current row — this block also holds projectCategories/
+  // galleryCategories, and a bare { postCategories } write would silently
+  // wipe them back to the hardcoded defaults on every post-category edit.
+  const existing = await getBlock("taxonomies");
+  const data = { ...existing, postCategories } as unknown as Prisma.InputJsonValue;
   await db.block.upsert({ where: { key: "taxonomies" }, update: { data }, create: { key: "taxonomies", data } });
   revalidatePath("/", "layout");
 }

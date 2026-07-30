@@ -91,7 +91,7 @@ export const BLOCK_SPECS: BlockSpec[] = [
       ta("paragraph1", "Paragraph 1", 4),
       ta("paragraph2", "Paragraph 2", 4),
       t("ctaLabel", "Link label"),
-      { kind: "list", key: "stats", label: "Stats", item: statItem },
+      { kind: "list", key: "stats", label: "Stats", addable: true, item: statItem },
     ],
   },
   {
@@ -192,10 +192,14 @@ export const BLOCK_SPECS: BlockSpec[] = [
     fields: [
       t("label", "Label"),
       t("title", "Heading"),
+      ta("description", "Intro description", 2),
       t("cardInitials", "Card — initials"),
       t("cardTitle", "Card — title"),
       ta("cardBody", "Card — body", 2),
       t("cardCta", "Card — button label"),
+      t("supportLabel", "Support row — headline"),
+      ta("supportBody", "Support row — body", 2),
+      t("supportCta", "Support row — button label"),
       { kind: "list", key: "items", label: "Questions", addable: true, item: [t("q", "Question"), ta("a", "Answer", 3)] },
     ],
   },
