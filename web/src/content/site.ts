@@ -1,5 +1,5 @@
 /**
- * Typed content layer. Studiodota — architecture & design practice.
+ * Typed content layer. Studiodota - architecture & design practice.
  */
 
 export const site = {
@@ -57,7 +57,7 @@ export const services: Service[] = [
     title: "Architectural Design",
     blurb: "Full-service design from first concept to a completed building.",
     detail:
-      "We lead projects end to end — brief, concept, planning, technical design, and construction — resolving form, structure, and detail into buildings built to last.",
+      "We lead projects end to end - brief, concept, planning, technical design, and construction - resolving form, structure, and detail into buildings built to last.",
   },
   {
     id: "interior",
@@ -92,7 +92,7 @@ export const services: Service[] = [
     title: "Sustainability",
     blurb: "Low-carbon, high-performance buildings by design.",
     detail:
-      "Passive design, embodied-carbon thinking, and building performance embedded from the first sketch — never bolted on.",
+      "Passive design, embodied-carbon thinking, and building performance embedded from the first sketch - never bolted on.",
   },
 ];
 
@@ -105,7 +105,7 @@ export const outcomes = [
   {
     no: "02",
     title: "Buildings people want to use",
-    body: "We design for daily life, not just the drawing — spaces that keep working long after handover.",
+    body: "We design for daily life, not just the drawing - spaces that keep working long after handover.",
   },
   {
     no: "03",
@@ -220,7 +220,7 @@ export const process = [
   {
     step: "01",
     title: "Brief & feasibility",
-    body: "We define goals, site, budget, and constraints — then test what's genuinely possible.",
+    body: "We define goals, site, budget, and constraints - then test what's genuinely possible.",
   },
   {
     step: "02",
@@ -266,7 +266,7 @@ export const posts: Post[] = [
     inlineImage: "atelier-house",
     author: { name: "Elena Marsh", role: "Principal Architect" },
     intro:
-      "Daylight is the cheapest and most powerful material in architecture — and the easiest to waste. Get it right and a modest room feels generous; get it wrong and no finish will rescue it. Here is how we design for light from the first sketch.",
+      "Daylight is the cheapest and most powerful material in architecture - and the easiest to waste. Get it right and a modest room feels generous; get it wrong and no finish will rescue it. Here is how we design for light from the first sketch.",
     sections: [
       {
         id: "start-with-the-sun",
@@ -286,7 +286,7 @@ export const posts: Post[] = [
         id: "glazing-with-intent",
         heading: "Glazing with intent",
         body: [
-          "More glass is not more light — it is more glare, more heat, and more energy to manage. We size and place openings to their orientation, then shade them with the building's own geometry: deep reveals, overhangs, and screens that let winter sun in and keep summer sun out. The goal is even, usable light, not a wall of glass.",
+          "More glass is not more light - it is more glare, more heat, and more energy to manage. We size and place openings to their orientation, then shade them with the building's own geometry: deep reveals, overhangs, and screens that let winter sun in and keep summer sun out. The goal is even, usable light, not a wall of glass.",
         ],
       },
       {
@@ -309,7 +309,7 @@ export const posts: Post[] = [
     inlineImage: "atelier-house",
     author: { name: "Tomas Reyes", role: "Associate, Detailing" },
     intro:
-      "We let concrete, timber, and stone read as themselves rather than dressing them up. Honest materials age with grace and quietly tell the truth about how a building is made — and that honesty is what makes a space feel calm and enduring.",
+      "We let concrete, timber, and stone read as themselves rather than dressing them up. Honest materials age with grace and quietly tell the truth about how a building is made - and that honesty is what makes a space feel calm and enduring.",
     sections: [
       {
         id: "what-it-means",
@@ -322,7 +322,7 @@ export const posts: Post[] = [
         id: "detailing-the-join",
         heading: "Detailing the join",
         body: [
-          "Honesty lives in the junctions. Where two materials meet, we resolve the join rather than hide it behind trim — a shadow gap, a clean reveal, a considered edge. Good detailing is what separates a surface that feels intentional from one that feels merely covered.",
+          "Honesty lives in the junctions. Where two materials meet, we resolve the join rather than hide it behind trim - a shadow gap, a clean reveal, a considered edge. Good detailing is what separates a surface that feels intentional from one that feels merely covered.",
         ],
       },
       {
@@ -352,34 +352,34 @@ export const posts: Post[] = [
     inlineImage: "leafy-precinct",
     author: { name: "Priya Nair", role: "Head of Urbanism" },
     intro:
-      "A masterplan is not a mosaic of plots to be filled — it is a framework for daily life. We plan for movement, gathering, and the slow accretion of community, then let the buildings follow.",
+      "A masterplan is not a mosaic of plots to be filled - it is a framework for daily life. We plan for movement, gathering, and the slow accretion of community, then let the buildings follow.",
     sections: [
       {
         id: "start-with-the-walk",
         heading: "Start with the walk",
         body: [
-          "The first thing we design in any precinct is the walk: the routes people take to the shop, the school, the station. Get the network of streets and paths right and everything else — density, frontage, street life — becomes easier. Get it wrong and no amount of good architecture will fix it.",
+          "The first thing we design in any precinct is the walk: the routes people take to the shop, the school, the station. Get the network of streets and paths right and everything else - density, frontage, street life - becomes easier. Get it wrong and no amount of good architecture will fix it.",
         ],
       },
       {
         id: "public-rooms",
         heading: "Public rooms, not leftover space",
         body: [
-          "The best public realm is designed as deliberately as any interior. Squares, courtyards, and edges are 'public rooms' with a clear shape, orientation, and reason to linger — not the space left over once the buildings are placed.",
+          "The best public realm is designed as deliberately as any interior. Squares, courtyards, and edges are 'public rooms' with a clear shape, orientation, and reason to linger - not the space left over once the buildings are placed.",
         ],
       },
       {
         id: "phasing-for-real-life",
         heading: "Phasing for real life",
         body: [
-          "Precincts are built over years, not overnight. We phase so that each stage feels complete and lived-in on its own — a place people want to be even while the next stage is still a building site.",
+          "Precincts are built over years, not overnight. We phase so that each stage feels complete and lived-in on its own - a place people want to be even while the next stage is still a building site.",
         ],
       },
       {
         id: "the-plan-you-cant-draw",
         heading: "Designing for the plan you can't draw",
         body: [
-          "A masterplan has to absorb decades of change no drawing can predict. We build in generous bones — robust streets, adaptable blocks, mixed uses — so the place can evolve without being redesigned.",
+          "A masterplan has to absorb decades of change no drawing can predict. We build in generous bones - robust streets, adaptable blocks, mixed uses - so the place can evolve without being redesigned.",
         ],
       },
     ],
@@ -387,7 +387,7 @@ export const posts: Post[] = [
   {
     slug: "low-carbon-by-design",
     title: "Low-carbon by design, not by add-on",
-    excerpt: "Cutting carbon starts with the first sketch — through form, structure, and what you choose not to build.",
+    excerpt: "Cutting carbon starts with the first sketch - through form, structure, and what you choose not to build.",
     category: "Sustainability",
     date: "2026-02-11",
     readingTime: 6,
@@ -395,27 +395,27 @@ export const posts: Post[] = [
     inlineImage: "meridian-sports",
     author: { name: "Elena Marsh", role: "Principal Architect" },
     intro:
-      "Sustainability is not a package of gadgets bolted on at the end. The decisions that matter most for a building's carbon footprint are made in the first week — orientation, structure, and whether to build at all.",
+      "Sustainability is not a package of gadgets bolted on at the end. The decisions that matter most for a building's carbon footprint are made in the first week - orientation, structure, and whether to build at all.",
     sections: [
       {
         id: "build-less",
         heading: "Build less, reuse more",
         body: [
-          "The greenest square metre is the one you don't build. We test whether an existing structure can be kept, adapted, or extended before proposing anything new — retention is almost always the lower-carbon answer, and often the more characterful one.",
+          "The greenest square metre is the one you don't build. We test whether an existing structure can be kept, adapted, or extended before proposing anything new - retention is almost always the lower-carbon answer, and often the more characterful one.",
         ],
       },
       {
         id: "embodied-carbon",
         heading: "Embodied carbon is a design decision",
         body: [
-          "The structure and materials of a building lock in carbon before anyone switches on a light. Choosing timber over concrete where we can, right-sizing structure, and specifying low-carbon mixes are design decisions, not procurement footnotes — so we make them early and deliberately.",
+          "The structure and materials of a building lock in carbon before anyone switches on a light. Choosing timber over concrete where we can, right-sizing structure, and specifying low-carbon mixes are design decisions, not procurement footnotes - so we make them early and deliberately.",
         ],
       },
       {
         id: "passive-first",
         heading: "Passive before active",
         body: [
-          "A well-oriented, well-insulated, well-shaded building needs far less mechanical help. We exhaust passive strategies — form, fabric, daylight, natural ventilation — before adding systems, so the technology has less work to do and less to go wrong.",
+          "A well-oriented, well-insulated, well-shaded building needs far less mechanical help. We exhaust passive strategies - form, fabric, daylight, natural ventilation - before adding systems, so the technology has less work to do and less to go wrong.",
         ],
       },
       {
@@ -438,7 +438,7 @@ export const posts: Post[] = [
     inlineImage: "urban-oasis",
     author: { name: "Sofia Lindqvist", role: "Head of Interior Architecture" },
     intro:
-      "The interiors people love rarely shout. They resolve light, material, and flow into something that simply feels right to be in — and keeps feeling that way years after the trends that surrounded them have passed.",
+      "The interiors people love rarely shout. They resolve light, material, and flow into something that simply feels right to be in - and keeps feeling that way years after the trends that surrounded them have passed.",
     sections: [
       {
         id: "flow-first",
@@ -458,14 +458,14 @@ export const posts: Post[] = [
         id: "light-in-layers",
         heading: "Light in layers",
         body: [
-          "Great interior lighting is layered — daylight, ambient, task, and accent — and mostly invisible. We design the lighting with the architecture so the fittings disappear and only the effect remains.",
+          "Great interior lighting is layered - daylight, ambient, task, and accent - and mostly invisible. We design the lighting with the architecture so the fittings disappear and only the effect remains.",
         ],
       },
       {
         id: "felt-not-noticed",
         heading: "Detailing you feel but don't notice",
         body: [
-          "The comfort of a good interior comes from details most people never consciously see: the height of a sill, the reveal around a door, the warmth of a handle. We resolve them so the space feels effortless — which is the hardest effect to achieve.",
+          "The comfort of a good interior comes from details most people never consciously see: the height of a sill, the reveal around a door, the warmth of a handle. We resolve them so the space feels effortless - which is the hardest effect to achieve.",
         ],
       },
     ],
@@ -473,7 +473,7 @@ export const posts: Post[] = [
   {
     slug: "reading-a-site",
     title: "Reading a site before drawing a line",
-    excerpt: "Every good building starts by listening to its site — long before a line is drawn.",
+    excerpt: "Every good building starts by listening to its site - long before a line is drawn.",
     category: "Process",
     date: "2025-12-08",
     readingTime: 5,
@@ -481,34 +481,34 @@ export const posts: Post[] = [
     inlineImage: "harbour-masterplan",
     author: { name: "Tomas Reyes", role: "Associate" },
     intro:
-      "Before we design anything, we read the site — its light, its edges, its history, and the way people already move through it. The best moves are usually already there, waiting to be found rather than invented.",
+      "Before we design anything, we read the site - its light, its edges, its history, and the way people already move through it. The best moves are usually already there, waiting to be found rather than invented.",
     sections: [
       {
         id: "walk-it",
         heading: "Walk it, in every season",
         body: [
-          "Drawings and surveys only go so far. We walk a site at different times of day and, where we can, across seasons — noticing where the sun lands, where the wind funnels, where the views open and where they should be closed. Much of the brief is written by the site itself.",
+          "Drawings and surveys only go so far. We walk a site at different times of day and, where we can, across seasons - noticing where the sun lands, where the wind funnels, where the views open and where they should be closed. Much of the brief is written by the site itself.",
         ],
       },
       {
         id: "constraints-are-the-brief",
         heading: "Constraints are the brief",
         body: [
-          "A tight boundary, a level change, a protected tree — the constraints that look like problems are usually the source of a building's character. We treat them as the starting point of the design rather than obstacles to be flattened.",
+          "A tight boundary, a level change, a protected tree - the constraints that look like problems are usually the source of a building's character. We treat them as the starting point of the design rather than obstacles to be flattened.",
         ],
       },
       {
         id: "context-without-pastiche",
         heading: "Context without pastiche",
         body: [
-          "Responding to context does not mean copying the neighbours. We take cues from scale, material, and rhythm, then answer them in a contemporary language — a building that belongs without pretending to be older than it is.",
+          "Responding to context does not mean copying the neighbours. We take cues from scale, material, and rhythm, then answer them in a contemporary language - a building that belongs without pretending to be older than it is.",
         ],
       },
       {
         id: "first-move",
         heading: "From reading to first move",
         body: [
-          "Only once the site is understood do we make the first move — usually a single, clear idea that organises everything after it. A design grounded in its site needs fewer gestures to feel inevitable.",
+          "Only once the site is understood do we make the first move - usually a single, clear idea that organises everything after it. A design grounded in its site needs fewer gestures to feel inevitable.",
         ],
       },
     ],
