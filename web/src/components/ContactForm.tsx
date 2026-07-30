@@ -68,7 +68,7 @@ export default function ContactForm({ serviceOptions }: { serviceOptions: string
       <div className="bezel">
         <div className="bezel-core flex flex-col items-start gap-4 p-10">
           <span className="eyebrow">Enquiry received</span>
-          <h3 className="display-m">Thank you — we&rsquo;ll be in touch.</h3>
+          <h3 className="display-m">Thank you - we&rsquo;ll be in touch.</h3>
           <p className="text-[var(--bone-dim)]">
             We&rsquo;ve got your details and will reply within one business day
             with next steps and an initial quote.
@@ -169,7 +169,7 @@ export default function ContactForm({ serviceOptions }: { serviceOptions: string
           rows={5}
           maxLength={5000}
           className={field}
-          placeholder="Plans, elevations, references, timeline — anything that helps us understand the project."
+          placeholder="Plans, elevations, references, timeline - anything that helps us understand the project."
         />
         {errors.message && (
           <p className={errCls} role="alert">

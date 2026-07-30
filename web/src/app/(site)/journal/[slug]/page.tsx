@@ -92,7 +92,7 @@ export default async function PostPage({
                 {i === 1 && post.inlineImage && (
                   <figure className="mt-10">
                     <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
-                      <Image src={post.inlineImage} alt={`${post.title} — related project`} fill sizes="(max-width:1024px) 100vw, 60vw" className="object-cover" />
+                      <Image src={post.inlineImage} alt={`${post.title} - related project`} fill sizes="(max-width:1024px) 100vw, 60vw" className="object-cover" />
                     </div>
                   </figure>
                 )}

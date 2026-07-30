@@ -101,12 +101,12 @@ export default function GalleryClient({ items }: { items: GalleryItemData[] }) {
                 <div className="group relative h-full w-full overflow-hidden rounded-2xl">
                   {it.type === "video" ? (
                     <div className="absolute inset-0">
-                      <VideoPlayer youtubeId={it.youtubeId} poster={it.image} className="h-full w-full" rounded="" title={`${it.title} — ${it.sector}`} mode="ambient" />
+                      <VideoPlayer youtubeId={it.youtubeId} poster={it.image} className="h-full w-full" rounded="" title={`${it.title} - ${it.sector}`} mode="ambient" />
                     </div>
                   ) : (
                     <Image
                       src={it.image}
-                      alt={`${it.title} — ${it.sector}`}
+                      alt={`${it.title} - ${it.sector}`}
                       fill
                       sizes="(max-width:768px) 100vw, 50vw"
                       className={`object-cover ${reduced ? "" : "transition-transform duration-700 group-hover:scale-105"}`}
@@ -178,9 +178,9 @@ export default function GalleryClient({ items }: { items: GalleryItemData[] }) {
             >
               <div className="relative aspect-video w-full overflow-hidden bg-black">
                 {active.type === "video" ? (
-                  <VideoPlayer youtubeId={active.youtubeId} poster={active.image} className="h-full w-full" rounded="" title={`${active.title} — ${active.sector}`} mode="cinema" />
+                  <VideoPlayer youtubeId={active.youtubeId} poster={active.image} className="h-full w-full" rounded="" title={`${active.title} - ${active.sector}`} mode="cinema" />
                 ) : (
-                  <Image src={active.image} alt={`${active.title} — ${active.sector}`} fill sizes="90vw" className="object-cover" />
+                  <Image src={active.image} alt={`${active.title} - ${active.sector}`} fill sizes="90vw" className="object-cover" />
                 )}
               </div>
               <div className="flex items-center justify-between gap-4 p-5">

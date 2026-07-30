@@ -37,7 +37,7 @@ export default async function AboutPage() {
             <Reveal><span className="eyebrow eyebrow-muted">{d.whyLabel}</span></Reveal>
             <ImageReveal
               src={d.storyImage}
-              alt="Studiodot A — residential design study"
+              alt="Studiodot A - residential design study"
               sizes="(max-width:1024px) 100vw, 38vw"
               className="mt-10 hidden aspect-[4/5] rounded-2xl lg:block"
               curtain="var(--ink)"
@@ -48,7 +48,7 @@ export default async function AboutPage() {
             <Reveal delay={100}><p>{d.why2}</p></Reveal>
             <ImageReveal
               src={d.storyImage}
-              alt="Studiodot A — residential design study"
+              alt="Studiodot A - residential design study"
               sizes="100vw"
               className="aspect-[16/10] rounded-2xl lg:hidden"
               curtain="var(--ink)"

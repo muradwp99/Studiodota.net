@@ -71,7 +71,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
           <div className="overflow-hidden rounded-2xl border border-[var(--line)] sm:col-span-2 lg:col-span-1">
             <iframe
               src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-              title={`Map — ${site.name} offices`}
+              title={`Map - ${site.name} offices`}
               className="h-full min-h-[260px] w-full"
               style={{ border: 0, filter: "grayscale(1) contrast(1.04)" }}
               loading="lazy"

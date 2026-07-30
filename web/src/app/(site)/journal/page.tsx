@@ -33,7 +33,7 @@ export default async function JournalPage() {
       <section className="section pt-16">
         <div className="shell">
           {posts.length === 0 ? (
-            <p className="py-20 text-center text-[var(--muted)]">No articles published yet — add one in the admin.</p>
+            <p className="py-20 text-center text-[var(--muted)]">No articles published yet - add one in the admin.</p>
           ) : (
             <JournalClient posts={cards} />
           )}

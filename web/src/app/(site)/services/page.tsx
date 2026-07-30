@@ -44,7 +44,7 @@ export default async function ServicesPage() {
               </Reveal>
               <ImageReveal
                 src={s.image}
-                alt={`${s.title} — project example`}
+                alt={`${s.title} - project example`}
                 sizes="(max-width:1024px) 100vw, 42vw"
                 className="mt-10 aspect-[4/3] rounded-2xl"
                 curtain="var(--ink)"

@@ -85,7 +85,7 @@ export default function ProjectsClient({
                   <Link href={`/projects/${p.slug}`} className="group block">
                     <ImageReveal
                       src={p.heroImage}
-                      alt={`${p.title} — ${p.sector}`}
+                      alt={`${p.title} - ${p.sector}`}
                       sizes={feature ? "100vw" : "(max-width:768px) 100vw, 50vw"}
                       className={`w-full rounded-2xl ${feature ? "aspect-[16/9]" : "aspect-[4/3]"}`}
                       imgClassName={`object-cover ${reduced ? "" : "transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"}`}
@@ -129,7 +129,7 @@ export default function ProjectsClient({
         </motion.div>
 
         {list.length === 0 && (
-          <p className="py-20 text-center text-[var(--muted)]">No projects in this sector yet — view all work instead.</p>
+          <p className="py-20 text-center text-[var(--muted)]">No projects in this sector yet - view all work instead.</p>
         )}
       </div>
     </section>

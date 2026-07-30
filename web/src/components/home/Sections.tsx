@@ -1,13 +1,13 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import SplitReveal from "@/components/SplitReveal";
 import LineMask from "@/components/motion/LineMask";
-import Arcs from "@/components/motion/Arcs";
 import { EASE_CURTAIN } from "@/lib/motion";
 import ImageMaskText from "@/components/ImageMaskText";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -16,6 +16,8 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
 import { HOME_SECTION_IDS } from "@/lib/homeSections";
 import type { BlockData } from "@/content/defaults";
+
+const GlossyObject = dynamic(() => import("@/components/GlossyObject"), { ssr: false });
 
 /* All homepage content arrives as props (CMS blocks) — see app/(site)/page.tsx. */
 export type HomeData = {
@@ -104,53 +106,53 @@ function CountUp({ end, prefix = "", suffix = "", duration = 1600 }: { end: numb
 }
 
 /* ---------------- About ---------------- */
-function About({ d, chips }: { d: HomeData["about"]; chips: { image: string; title: string }[] }) {
-  // Manifesto with inline image chips: the statement leads, the architecture
-  // stays present INSIDE the sentence (small photo pills between words).
-  const words = d.title.split(/\s+/).filter(Boolean);
-  const chipAfter: Record<number, number> =
-    words.length >= 4 && chips.length >= 2
-      ? { [Math.ceil(words.length / 3) - 1]: 0, [words.length - 2]: 1 }
-      : {};
+function About({ d }: { d: HomeData["about"] }) {
+  // Statement + supporting copy up top; stats live in their own bronze-glass
+  // band below, with a floating 3D gem standing in for "architecture" here
+  // instead of photography (which the page already leans on elsewhere).
   return (
     <section className="section pattern-dots" id="about">
       <div className="shell">
-        <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
-        <Reveal delay={60}>
-          <h2 className="display-2xl mt-10 max-w-[26ch]">
-            {words.map((w, i) => (
-              <span key={i}>
-                {i > 0 ? " " : null}
-                {w}
-                {chipAfter[i] !== undefined && chips[chipAfter[i]] ? (
-                  <span className="relative mx-[0.14em] inline-block h-[0.72em] w-[1.7em] overflow-hidden rounded-full align-[-0.08em]">
-                    <Image src={chips[chipAfter[i]].image} alt={chips[chipAfter[i]].title} fill sizes="140px" className="object-cover" />
-                  </span>
-                ) : null}
-              </span>
-            ))}
-          </h2>
-        </Reveal>
-        <div className="mt-14 grid gap-x-16 gap-y-8 lg:grid-cols-[0.85fr_1.15fr]">
-          <Reveal><CTA href="/about" label={d.ctaLabel} variant="ghost" /></Reveal>
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-16">
+          <div>
+            <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
+            <Reveal delay={60}>
+              <h2 className="display-2xl mt-6 text-balance">{d.title}</h2>
+            </Reveal>
+          </div>
           <Reveal delay={120}>
-            <div className="max-w-[64ch] space-y-6 text-[var(--bone-dim)]">
+            <div className="space-y-5 text-[var(--bone-dim)]">
               <p>{d.paragraph1}</p>
               <p>{d.paragraph2}</p>
+              <CTA href="/about" label={d.ctaLabel} variant="ghost" />
             </div>
           </Reveal>
         </div>
-        <div className="mt-20 grid gap-10 border-t border-[var(--line)] pt-14 sm:grid-cols-2 lg:grid-cols-4">
-          {d.stats.map((s, i) => (
-            <Reveal key={s.label} delay={i * 70}>
-              <div>
-                <div className="display-m grad-text font-semibold"><CountUp end={s.end} suffix={s.suffix} /></div>
-                <div className="mt-4 font-semibold">{s.label}</div>
-                <p className="mt-2 text-sm text-[var(--muted)]">{s.desc}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+
+        <Reveal delay={160}>
+          <div
+            className="relative mt-16 overflow-hidden rounded-[2rem] p-6 sm:p-10"
+            style={{
+              background:
+                "radial-gradient(120% 90% at 15% 0%, rgba(255,255,255,0.35), transparent 55%), linear-gradient(135deg, #dbb977 0%, var(--gold) 45%, #6b4a24 100%)",
+            }}
+          >
+            <div className="pointer-events-none absolute -top-14 right-4 h-[170px] w-[170px] sm:right-8 sm:h-[220px] sm:w-[220px] lg:h-[300px] lg:w-[300px]">
+              <GlossyObject />
+            </div>
+            <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+              {d.stats.map((s, i) => (
+                <Reveal key={s.label} delay={i * 70}>
+                  <div className="rounded-2xl bg-[var(--surface)] p-6 shadow-[0_20px_45px_-20px_rgba(23,19,10,0.45)] lg:p-7">
+                    <div className="display-m grad-text font-semibold"><CountUp end={s.end} suffix={s.suffix} /></div>
+                    <div className="mt-4 font-semibold">{s.label}</div>
+                    <p className="mt-2 text-sm text-[var(--muted)]">{s.desc}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -458,7 +460,7 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
                       <button onClick={() => setPlaying(true)} aria-label={`Play ${r.title} showreel`} className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`} style={{ color: "var(--on-media)" }}>▶</button>
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6" style={{ color: "var(--on-media)" }}>
                         <div className="font-mono text-sm tracking-[0.25em]">{r.title.toUpperCase()}</div>
-                        <div className="mt-1 font-mono text-xs tracking-[0.25em]" style={{ color: "var(--on-media-dim)" }}>{r.kicker.toUpperCase()} — 2026</div>
+                        <div className="mt-1 font-mono text-xs tracking-[0.25em]" style={{ color: "var(--on-media-dim)" }}>{r.kicker.toUpperCase()} - 2026</div>
                       </div>
                     </>
                   )}
@@ -645,7 +647,7 @@ function Timeline({ d }: { d: HomeData["timeline"] }) {
    One voice on stage at a time: the portrait wipes in through a geometric
    clip, the quote rises word-by-word out of masks, and on rotation the whole
    figure lifts out the top (AnimatePresence exit) as the next enters. */
-function Testimonials({ d }: { d: HomeData["testimonials"] }) {
+function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage?: { src: string; alt: string } }) {
   const reduced = useReducedMotion();
   const all = useMemo(() => [d.featured, ...d.quotes], [d]);
   const [idx, setIdx] = useState(0);
@@ -660,6 +662,7 @@ function Testimonials({ d }: { d: HomeData["testimonials"] }) {
   const cur = all[Math.min(idx, all.length - 1)];
   if (!cur) return null;
   const words = cur.quote.split(/\s+/).filter(Boolean);
+  const goTo = (delta: number) => setIdx((i) => (i + delta + all.length) % all.length);
 
   if (reduced) {
     return (
@@ -693,38 +696,21 @@ function Testimonials({ d }: { d: HomeData["testimonials"] }) {
           <span className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">06 / Testimonials</span>
         </div>
         <div className="lg:pl-16">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <Reveal><span className="eyebrow">{d.label}</span></Reveal>
-              <LineMask text={d.title} tag="h2" className="display-l mt-5 max-w-[15ch]" />
-            </div>
-            <Reveal delay={140}>
-              <div className="flex items-center gap-3 pb-2">
-                {all.map((t, i) => (
-                  <button
-                    key={t.name}
-                    onClick={() => setIdx(i)}
-                    aria-label={`Show quote from ${t.name}`}
-                    aria-pressed={i === idx}
-                    className="grid h-9 w-9 place-items-center rounded-full border text-xs font-bold transition-all duration-400"
-                    style={{
-                      borderColor: i === idx ? "var(--gold)" : "var(--line-strong)",
-                      background: i === idx ? "var(--gold)" : "transparent",
-                      color: i === idx ? "#17191c" : "var(--muted)",
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </button>
-                ))}
+          <Reveal className="overflow-hidden rounded-2xl border border-[var(--line-strong)]">
+            {/* Row 1: statement | context image */}
+            <div className="grid lg:grid-cols-2">
+              <div className="flex flex-col justify-center border-b border-[var(--line-strong)] p-8 lg:border-b-0 lg:border-r lg:p-14">
+                <span className="eyebrow">{d.label}</span>
+                <LineMask text={d.title} tag="h2" className="display-l mt-5" />
               </div>
-            </Reveal>
-          </div>
+              <div className="relative min-h-[220px] border-b border-[var(--line-strong)] lg:border-b-0">
+                {heroImage ? <ParallaxImage src={heroImage.src} alt={heroImage.alt} sizes="(min-width: 1024px) 50vw, 100vw" className="h-full w-full" /> : null}
+              </div>
+            </div>
 
-          <div className="mt-14 grid items-center gap-12 lg:grid-cols-[0.38fr_0.62fr] lg:gap-20">
-            {/* Portrait: geometric clip wipe in, lift out */}
-            <div className="relative mx-auto w-full max-w-[340px]">
-              <Arcs className="absolute -left-14 -top-14 w-[125%]" />
-              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[var(--line)]">
+            {/* Row 2: portrait | quote */}
+            <div className="grid border-t border-[var(--line-strong)] lg:grid-cols-[0.38fr_0.62fr]">
+              <div className="relative aspect-[4/5] min-h-[360px] overflow-hidden border-b border-[var(--line-strong)] lg:aspect-auto lg:min-h-[460px] lg:border-b-0 lg:border-r">
                 <AnimatePresence mode="popLayout">
                   <motion.div
                     key={idx}
@@ -735,65 +721,69 @@ function Testimonials({ d }: { d: HomeData["testimonials"] }) {
                     transition={{ duration: 0.75, ease: EASE_CURTAIN }}
                   >
                     {cur.image ? (
-                      <Image src={cur.image} alt={`${cur.name} — portrait`} fill sizes="340px" className="object-cover" />
+                      <Image src={cur.image} alt={`${cur.name} - portrait`} fill sizes="(min-width: 1024px) 30vw, 90vw" className="object-cover" />
                     ) : (
                       <span className="grid h-full w-full place-items-center bg-[var(--surface-2)] text-4xl font-bold text-[var(--gold)]">{initials(cur.name)}</span>
                     )}
                   </motion.div>
                 </AnimatePresence>
               </div>
+
+              <div className="relative p-8 lg:p-14">
+                <span aria-hidden="true" className="pointer-events-none absolute left-8 top-6 select-none text-[6rem] font-extrabold leading-none text-[var(--gold)] opacity-[0.16] lg:left-14 lg:top-8 lg:text-[8rem]">&ldquo;</span>
+                <AnimatePresence mode="wait">
+                  <motion.figure key={idx} className="relative pt-16" exit={{ y: -34, opacity: 0, transition: { duration: 0.35, ease: EASE_CURTAIN } }}>
+                    <motion.blockquote
+                      aria-label={cur.quote}
+                      className="max-w-[46ch] text-2xl leading-snug text-[var(--bone)] md:text-[2.15rem]"
+                      initial="hidden"
+                      animate="show"
+                      variants={{ show: { transition: { staggerChildren: 0.028, delayChildren: 0.15 } } }}
+                    >
+                      {words.map((w, i) => (
+                        <span key={i} className="inline-flex overflow-hidden py-[0.09em] -my-[0.09em] align-bottom">
+                          <motion.span
+                            aria-hidden="true"
+                            className="inline-block will-change-transform"
+                            variants={{ hidden: { y: "115%" }, show: { y: "0%", transition: { duration: 0.7, ease: EASE_CURTAIN } } }}
+                          >
+                            {w}
+                          </motion.span>
+                          {i < words.length - 1 ? <span aria-hidden="true">&nbsp;</span> : null}
+                        </span>
+                      ))}
+                    </motion.blockquote>
+                  </motion.figure>
+                </AnimatePresence>
+              </div>
             </div>
 
-            {/* Quote: word-mask cascade in, lift + fade out */}
-            <div className="relative">
-              <span aria-hidden="true" className="pointer-events-none absolute -left-4 -top-16 select-none text-[9rem] font-extrabold leading-none text-[var(--gold)] opacity-[0.13]">&ldquo;</span>
-              <AnimatePresence mode="wait">
-                <motion.figure key={idx} exit={{ y: -34, opacity: 0, transition: { duration: 0.35, ease: EASE_CURTAIN } }}>
-                  <motion.blockquote
-                    aria-label={cur.quote}
-                    className="max-w-[44ch] text-xl leading-normal text-[var(--bone)] md:text-2xl"
-                    initial="hidden"
-                    animate="show"
-                    variants={{ show: { transition: { staggerChildren: 0.028, delayChildren: 0.15 } } }}
-                  >
-                    {words.map((w, i) => (
-                      <span key={i} className="inline-flex overflow-hidden py-[0.09em] -my-[0.09em] align-bottom">
-                        <motion.span
-                          aria-hidden="true"
-                          className="inline-block will-change-transform"
-                          variants={{ hidden: { y: "115%" }, show: { y: "0%", transition: { duration: 0.7, ease: EASE_CURTAIN } } }}
-                        >
-                          {w}
-                        </motion.span>
-                        {i < words.length - 1 ? <span aria-hidden="true">&nbsp;</span> : null}
-                      </span>
-                    ))}
-                  </motion.blockquote>
-                  <motion.figcaption
-                    className="mt-8"
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_CURTAIN, delay: 0.5 } }}
-                  >
-                    <span className="font-semibold">{cur.name}</span>
-                    <div className="text-sm text-[var(--muted)]">{cur.role}</div>
-                  </motion.figcaption>
-                </motion.figure>
-              </AnimatePresence>
-              {/* per-quote progress */}
-              <div className="mt-10 h-px w-full max-w-[320px] overflow-hidden rounded-full bg-[var(--line)]">
-                {!paused && (
-                  <motion.div
-                    key={`p-${idx}`}
-                    className="h-px origin-left bg-[var(--gold)]"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 6, ease: "linear" }}
-                  />
-                )}
+            {/* Row 3: prev/next + counter | name & role */}
+            <div className="grid grid-cols-2 border-t border-[var(--line-strong)]">
+              <div className="flex items-center gap-6 border-r border-[var(--line-strong)] p-6 lg:p-8">
+                <button onClick={() => goTo(-1)} aria-label="Previous testimonial" className="text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">←</button>
+                <span className="font-mono text-sm text-[var(--muted)]">{String(idx + 1).padStart(2, "0")}/{String(all.length).padStart(2, "0")}</span>
+                <button onClick={() => goTo(1)} aria-label="Next testimonial" className="text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">→</button>
               </div>
-              <Reveal delay={100}><CTA href="/contact" label={d.ctaLabel} variant="ghost" /></Reveal>
+              <div className="flex items-center justify-between gap-4 p-6 lg:p-8">
+                <span className="font-semibold">{cur.name}</span>
+                <span className="text-sm text-[var(--muted)]">{cur.role}</span>
+              </div>
             </div>
-          </div>
+          </Reveal>
+
+          {!paused && (
+            <div className="mt-4 h-px w-full overflow-hidden rounded-full bg-[var(--line)]">
+              <motion.div
+                key={`p-${idx}`}
+                className="h-px origin-left bg-[var(--gold)]"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 6, ease: "linear" }}
+              />
+            </div>
+          )}
+          <Reveal delay={100} className="mt-10"><CTA href="/contact" label={d.ctaLabel} variant="ghost" /></Reveal>
         </div>
       </div>
     </section>
@@ -819,7 +809,7 @@ function Clients({ d }: { d: HomeData["clients"] }) {
       <div className="shell">
         <div className="flex items-center justify-between gap-6">
           <Reveal><span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--muted)]">{d.label}</span></Reveal>
-          <Reveal delay={80}><span className="font-mono text-xs text-[var(--muted)]">{String(names.length).padStart(2, "0")} — and counting</span></Reveal>
+          <Reveal delay={80}><span className="font-mono text-xs text-[var(--muted)]">{String(names.length).padStart(2, "0")} - and counting</span></Reveal>
         </div>
         <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3 lg:grid-cols-4">
           {names.map((c, i) => {
@@ -869,35 +859,110 @@ function StatementBand({ d }: { d: HomeData["statement"] }) {
 }
 
 /* ---------------- FAQ ---------------- */
+function CalendarIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
+      <path d="M8 3v4M16 3v4M3.5 10h17" />
+    </svg>
+  );
+}
+function HeadsetIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+      <rect x="3" y="13" width="4" height="6" rx="1.5" />
+      <rect x="17" y="13" width="4" height="6" rx="1.5" />
+      <path d="M19 19v1a2 2 0 0 1-2 2h-3" />
+    </svg>
+  );
+}
+function PlusMinusIcon({ open }: { open: boolean }) {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M5 12h14" />
+      {!open && <path d="M12 5v14" />}
+    </svg>
+  );
+}
+
+const GOLD_GRADIENT = "linear-gradient(120deg, #d0aa72 0%, #a87f3f 55%, #8f6c39 100%)";
+
 function FAQ({ d }: { d: HomeData["faq"] }) {
   const [open, setOpen] = useState(0);
+  const titleWords = d.title.split(" ");
+  const titleLead = titleWords.slice(0, -1).join(" ");
+  const titleLast = titleWords[titleWords.length - 1];
   return (
     <section className="section bg-[var(--ink-2)]">
       <div className="shell grid gap-12 lg:grid-cols-[0.9fr_1.3fr]">
         <div>
-          <Reveal><div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-[var(--gold)]" /><span className="uppercase tracking-[0.16em] text-[var(--bone-dim)]">{d.label}</span></div></Reveal>
-          <Reveal delay={70}><h2 className="display-l mt-5">{d.title}</h2></Reveal>
-          <Reveal delay={130}>
-            <div className="hover-lift mt-8 card p-8">
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--gold)] font-bold text-[#17191c]">{d.cardInitials}</span>
+          <Reveal>
+            <span className="inline-flex rounded-full border border-[var(--gold)]/40 bg-[var(--surface)] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-[var(--gold-ink)]">
+              {d.label}
+            </span>
+          </Reveal>
+          <Reveal delay={70}>
+            <h2 className="display-l mt-6">{titleLead} <span className="grad-text">{titleLast}</span></h2>
+          </Reveal>
+          <Reveal delay={110}><div className="mt-5 h-1 w-16 rounded-full" style={{ background: GOLD_GRADIENT }} /></Reveal>
+          <Reveal delay={140}><p className="mt-6 max-w-[42ch] text-[var(--bone-dim)]">{d.description}</p></Reveal>
+
+          <Reveal delay={180}>
+            <div className="hover-lift mt-8 rounded-2xl border border-[var(--line)] p-8" style={{ background: "linear-gradient(160deg, rgba(168,127,63,0.14), rgba(168,127,63,0.03))" }}>
+              <span className="grid h-14 w-14 place-items-center rounded-full text-[#17191c]" style={{ background: GOLD_GRADIENT }}>
+                <CalendarIcon />
+              </span>
               <h3 className="display-m mt-6">{d.cardTitle}</h3>
               <p className="mt-3 text-sm text-[var(--muted)]">{d.cardBody}</p>
-              <Link href="/contact" className="btn btn-primary mt-6 w-full justify-center">{d.cardCta}</Link>
+              <Link href="/contact" className="btn btn-grad mt-6 w-full justify-center">
+                <CalendarIcon className="h-4 w-4" />
+                {d.cardCta}
+                <span className="btn-icon" aria-hidden="true">→</span>
+              </Link>
             </div>
           </Reveal>
+
+          <Reveal delay={220}>
+            <Link href="/contact" className="group mt-5 flex items-center gap-4 rounded-2xl border border-[var(--line)] p-5 transition-colors duration-300 hover:border-[var(--line-strong)]">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--surface-2)] text-[var(--gold-ink)]"><HeadsetIcon /></span>
+              <span className="flex-1">
+                <span className="block font-semibold">{d.supportLabel}</span>
+                <span className="block text-sm text-[var(--muted)]">{d.supportBody}</span>
+              </span>
+              <span className="shrink-0 text-sm font-semibold text-[var(--gold-ink)] transition-transform duration-300 group-hover:translate-x-1">{d.supportCta} →</span>
+            </Link>
+          </Reveal>
         </div>
-        <div className="space-y-4">
+
+        <div>
           {d.items.map((f, i) => {
             const isOpen = open === i;
             return (
-              <Reveal key={f.q + i} delay={(i % 5) * 50}>
-                <div className="card p-6 transition-colors duration-300 hover:border-[var(--line-strong)]">
-                  <button onClick={() => setOpen(isOpen ? -1 : i)} className="flex w-full items-center justify-between gap-6 text-left">
-                    <span className="text-lg font-medium">{f.q}</span>
-                    <span className="text-xl text-[var(--gold)] transition-transform duration-500" style={{ transform: isOpen ? "rotate(45deg)" : "none" }}>+</span>
+              <Reveal key={f.q + i} delay={(i % 5) * 50} className="mb-4 last:mb-0">
+                <div
+                  className="rounded-2xl border p-6 transition-colors duration-300"
+                  style={isOpen ? { borderColor: "rgba(168,127,63,0.35)", background: "linear-gradient(160deg, rgba(168,127,63,0.12), rgba(168,127,63,0.02))" } : { borderColor: "var(--line)" }}
+                >
+                  <button onClick={() => setOpen(isOpen ? -1 : i)} className="flex w-full items-center justify-between gap-6 text-left" aria-expanded={isOpen}>
+                    <span className="flex items-center gap-4">
+                      <span
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full font-mono text-xs font-bold text-[var(--gold-ink)]"
+                        style={{ background: isOpen ? "rgba(168,127,63,0.18)" : "var(--surface-2)" }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="text-lg font-medium md:text-xl">{f.q}</span>
+                    </span>
+                    <span
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full border transition-colors duration-300"
+                      style={isOpen ? { background: GOLD_GRADIENT, borderColor: "transparent", color: "#17191c" } : { borderColor: "var(--line-strong)", color: "var(--muted)" }}
+                    >
+                      <PlusMinusIcon open={isOpen} />
+                    </span>
                   </button>
                   <div className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}>
-                    <div className="overflow-hidden"><p className="pt-4 text-sm text-[var(--muted)]">{f.a}</p></div>
+                    <div className="overflow-hidden"><p className="max-w-[58ch] py-4 pl-12 text-sm text-[var(--muted)]">{f.a}</p></div>
                   </div>
                 </div>
               </Reveal>
@@ -976,7 +1041,7 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
         company: String(fd.get("company") || ""),
       });
       if (res.ok) setSent(true);
-      else setError(res.error ?? "Something interrupted the send — please try again.");
+      else setError(res.error ?? "Something interrupted the send - please try again.");
     });
   };
 
@@ -1026,7 +1091,7 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
                 </div>
                 <label className="block">
                   <span className={ctaLabelCls} style={{ color: "var(--on-media-dim)" }}>Your project</span>
-                  <textarea required name="message" rows={4} minLength={10} placeholder="Site, scale, ambitions — anything helps." className={`${ctaFieldCls} resize-none`} />
+                  <textarea required name="message" rows={4} minLength={10} placeholder="Site, scale, ambitions - anything helps." className={`${ctaFieldCls} resize-none`} />
                 </label>
                 {/* Honeypot — hidden from humans, bots fill it. */}
                 <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
@@ -1062,14 +1127,19 @@ export default function Sections({
   // id → section element. Order/visibility comes from the CMS `home.layout`
   // block; when it's absent every section renders in the canonical order.
   const renderers: Record<string, React.ReactNode> = {
-    about: <About d={data.about} chips={data.featured.items.slice(0, 2)} />,
+    about: <About d={data.about} />,
     services: <ServicesSlider d={data.services} />,
     whyChoose: <WhyChoose d={data.whyChoose} />,
     featured: <Featured d={data.featured} />,
     showreel: <Showreel d={data.showreel} />,
     process: <Process d={data.process} />,
     timeline: <Timeline d={data.timeline} />,
-    testimonials: <Testimonials d={data.testimonials} />,
+    testimonials: (
+      <Testimonials
+        d={data.testimonials}
+        heroImage={data.featured.items[2] ? { src: data.featured.items[2].image, alt: data.featured.items[2].title } : undefined}
+      />
+    ),
     clients: <Clients d={data.clients} />,
     statement: <StatementBand d={data.statement} />,
     faq: <FAQ d={data.faq} />,

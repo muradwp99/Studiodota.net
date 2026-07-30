@@ -35,7 +35,7 @@ export async function submitContact(input: unknown): Promise<ContactState> {
   const key = await clientKey();
   const bucket = submissions.get(key);
   if (bucket && Date.now() < bucket.resetAt && bucket.count >= MAX_PER_HOUR) {
-    return { error: "Too many enquiries from this connection — please try again later or email us directly." };
+    return { error: "Too many enquiries from this connection - please try again later or email us directly." };
   }
 
   try {

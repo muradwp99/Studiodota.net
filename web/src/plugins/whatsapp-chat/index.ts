@@ -16,7 +16,7 @@ export const whatsappChat: PluginManifest = {
   ],
   defaultSettings: {
     phone: "",
-    message: "Hello Studiodota — I'd like to talk about a project.",
+    message: "Hello Studiodota - I'd like to talk about a project.",
     position: "right",
     label: "Chat with us on WhatsApp",
   },

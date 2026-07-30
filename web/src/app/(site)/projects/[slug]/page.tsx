@@ -67,7 +67,7 @@ export default async function ProjectDetail({
       <div className="shell">
         <ImageReveal
           src={project.heroImage}
-          alt={`${project.title} — hero view`}
+          alt={`${project.title} - hero view`}
           sizes="100vw"
           priority
           className="aspect-[16/9] w-full rounded-2xl border border-[var(--line)]"
@@ -90,7 +90,7 @@ export default async function ProjectDetail({
               <ImageReveal
                 key={src}
                 src={src}
-                alt={`${project.title} — view ${n + 2}`}
+                alt={`${project.title} - view ${n + 2}`}
                 sizes={wide ? "100vw" : "(max-width:768px) 100vw, 50vw"}
                 className={`w-full rounded-2xl border border-[var(--line)] ${wide ? "aspect-[16/9] md:col-span-2" : "aspect-[4/3]"}`}
                 curtain="var(--ink)"
@@ -102,7 +102,7 @@ export default async function ProjectDetail({
             <ImageReveal
               key={`${src}-${n}`}
               src={src}
-              alt={`${project.title} — detail view`}
+              alt={`${project.title} - detail view`}
               sizes="(max-width:768px) 100vw, 50vw"
               className="aspect-[4/3] w-full rounded-2xl border border-[var(--line)]"
               curtain="var(--ink)"
