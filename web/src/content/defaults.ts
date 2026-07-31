@@ -106,25 +106,25 @@ export const BLOCK_DEFAULTS = {
         title: "Architectural Design",
         sub: "Crafting functional, aesthetic, and purposeful building concepts - from first sketch through to a completed building.",
         tags: ["Concepting", "Space planning", "Building design"],
-        image: R("atelier-house"),
+        image: P("apartments-hesperia", 1),
       },
       {
         title: "Interior Architecture",
         sub: "Shaping interiors that feel comfortable, refined, and balanced through light, material, and considered detail.",
         tags: ["Moodboarding", "Styling", "Layouting"],
-        image: R("interior"),
+        image: P("cannabis-lounge", 1),
       },
       {
         title: "Urban & Masterplanning",
         sub: "Precincts and public realm planned around the way real communities live, gather, and move.",
         tags: ["Zoning", "Public realm", "Phasing"],
-        image: R("harbour-masterplan"),
+        image: P("moreno-valley", 1),
       },
       {
         title: "Renovation & Restoration",
         sub: "New life for existing and heritage structures, handled with precision, restraint, and care.",
         tags: ["Assessment", "Heritage", "Delivery"],
-        image: R("riverside-warehouse"),
+        image: P("tustin-house", 1),
       },
     ],
   },
@@ -159,11 +159,11 @@ export const BLOCK_DEFAULTS = {
     label: "Showreel",
     linkLabel: "Explore the gallery →",
     items: [
-      { image: R("atelier-house"), title: "Atelier House", kicker: "Residential", youtubeId: "zwagmtVuZoI" },
-      { image: R("interior"), title: "Studio Vale", kicker: "Interior", youtubeId: "daL7TkzyW7k" },
-      { image: R("meridian-sports"), title: "Meridian", kicker: "Civic", youtubeId: "FnrPZuN0m-0" },
-      { image: R("urban-oasis"), title: "Urban Oasis", kicker: "Residential", youtubeId: "gToL_3ouPcI" },
-      { image: R("harbour-masterplan"), title: "Harbour Quarter", kicker: "Masterplan", youtubeId: "lOJO1osi9po" },
+      { image: P("office-san-diego", 1), title: "Office @ San Diego", kicker: "Office", youtubeId: "" },
+      { image: P("cannabis-lounge", 1), title: "Cannabis Lounge", kicker: "Hospitality", youtubeId: "" },
+      { image: P("moreno-valley", 1), title: "Moreno Valley", kicker: "Multifamily", youtubeId: "" },
+      { image: P("tustin-house", 1), title: "Tustin House", kicker: "Remodel", youtubeId: "" },
+      { image: P("truck-servicing-fontana", 1), title: "Truck Servicing @ Fontana", kicker: "Industrial", youtubeId: "" },
     ],
   },
 
@@ -173,12 +173,12 @@ export const BLOCK_DEFAULTS = {
       "At Studiodota, great architecture begins with understanding. Our process is clear, transparent, and client-focused - from first sketch to handover. Click each step to see how we work.",
     ctaLabel: "Start your project",
     steps: [
-      { n: "01", title: "Consultation", body: "We start by understanding your brief, references, and goals in a focused kickoff.", image: R("interior") },
-      { n: "02", title: "Technical planning", body: "Measured drawings, structure, and a shared programme with clear milestones.", image: R("atelier-house") },
-      { n: "03", title: "Design development", body: "Materials, structure, and detail resolved against annotated design reviews.", image: R("meridian-sports") },
-      { n: "04", title: "Author supervision", body: "We guide the design through each review round - no guesswork, no drift.", image: R("riverside-warehouse") },
-      { n: "05", title: "Construction support", body: "On-site coordination and detailing through construction to protect the design intent.", image: R("urban-oasis") },
-      { n: "06", title: "Project completion", body: "The completed building handed over - documented, resolved, and ready to occupy.", image: R("harbour-masterplan") },
+      { n: "01", title: "Consultation", body: "We start by understanding your brief, references, and goals in a focused kickoff.", image: P("office-san-diego", 2) },
+      { n: "02", title: "Technical planning", body: "Measured drawings, structure, and a shared programme with clear milestones.", image: P("condominium-temple-simi-valley", 3) },
+      { n: "03", title: "Design development", body: "Materials, structure, and detail resolved against annotated design reviews.", image: P("hesperia-47-west", 2) },
+      { n: "04", title: "Author supervision", body: "We guide the design through each review round - no guesswork, no drift.", image: P("senior-housing-fontana", 3) },
+      { n: "05", title: "Construction support", body: "On-site coordination and detailing through construction to protect the design intent.", image: P("truck-servicing-fontana", 1) },
+      { n: "06", title: "Project completion", body: "The completed building handed over - documented, resolved, and ready to occupy.", image: P("apartments-hesperia", 4) },
     ],
   },
 
@@ -220,7 +220,7 @@ export const BLOCK_DEFAULTS = {
   "home.statement": {
     label: "The practice",
     word: "STUDIODOTA",
-    image: R("harbour-masterplan"),
+    image: P("mixed-use-114", 1),
     body: "Buildings shaped with clarity, restraint, and lasting value - guided from the first sketch to the final resolved detail.",
   },
 
@@ -274,7 +274,7 @@ export const BLOCK_DEFAULTS = {
     title: "Let's build something lasting.",
     body: "Tell us about your site, your brief, or the idea you can't stop thinking about. We reply within one business day.",
     submitLabel: "Start the conversation",
-    image: R("harbour-masterplan"),
+    image: P("affordable-housing-136", 1),
   },
 
   "page.services": {
@@ -430,7 +430,7 @@ export const BLOCK_DEFAULTS = {
     eyebrow: "Journal",
     title: "Notes from the studio.",
     lede: "Craft, process, and ideas - on daylight, materials, sustainability, and the discipline of building well.",
-    image: R("interior"),
+    image: P("cannabis-lounge", 2),
     bannerImage: "/media/blog-banner.png",
     bannerAlt: "Let's build something lasting - get in touch",
   },
@@ -441,12 +441,12 @@ export const BLOCK_DEFAULTS = {
     eyebrow: "Start with a vision",
     title: "Tell us about your project.",
     lede: "Share your brief, site details, drawings, or references. We'll turn them into a considered design - guided from first concept through to construction.",
-    image: R("urban-oasis"),
+    image: P("town-homes-la-habra", 3),
     formLabel: "Enquiry",
     formTitle: "Send us the brief.",
     whatToSend: "A brief or wishlist, the site address or a survey, any existing drawings, and references or moodboards. A rough sketch is a fine place to start.",
     turnaround: "Concept design takes a few weeks; full projects run over several months. We'll confirm a clear programme with your proposal.",
-    asideImage: R("atelier-house"),
+    asideImage: P("san-pedro-house", 1),
     serviceOptions: [
       "Pre-Design",
       "Schematic Design",
@@ -580,13 +580,13 @@ export const SEED_PROJECTS = [
   { slug: "tustin-house", title: "Tustin House", summary: "A residential remodel in Tustin - the existing home reimagined with a new elevation, entry, and material palette.", category: "single-family", sector: "Remodel", location: "Tustin, CA", year: "2023", services: ["Architectural Design", "3D Visualization"], heroImage: P("tustin-house", 1), interiorImage: P("tustin-house", 2), gallery: G("tustin-house", 2), published: true, sort: 14 },
   { slug: "rollaway-6663", title: "6663 Rollaway - Stanley", summary: "A single-family residence at 6663 Rollaway - a street-facing study of massing, roofline, and entry.", category: "single-family", sector: "Single Family Residence", location: "", year: "2021", services: ["Architectural Design", "3D Visualization"], heroImage: P("rollaway-6663", 1), interiorImage: "", gallery: G("rollaway-6663", 1), published: true, sort: 15 },
 
-  // ---- Drafts (client folders delivered without renders yet - publish after adding images) ----
-  { slug: "affordable-housing-136", title: "Affordable Housing - 136 Units", summary: "A 136-unit affordable housing development - currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2025", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 16 },
-  { slug: "affordable-housing-77", title: "Affordable Housing - 77 Units", summary: "A 77-unit affordable housing development - currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2021", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 17 },
-  { slug: "affordable-housing-72", title: "Affordable Housing - 72 Units", summary: "A 72-unit affordable housing development - currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2023", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 18 },
-  { slug: "affordable-housing-62", title: "Affordable Housing - 62 Units", summary: "A 62-unit affordable housing development - currently in design; renders to follow.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2022", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 19 },
-  { slug: "crenshaw-apartments", title: "Crenshaw Apartments", summary: "A multifamily apartment development - currently in design; renders to follow.", category: "multifamily", sector: "Multifamily", location: "", year: "2024", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 20 },
-  { slug: "mixed-use-114", title: "Mixed Use - 114 Units", summary: "A 114-unit mixed-use development - currently in design; renders to follow.", category: "mixed-use", sector: "Mixed Use", location: "", year: "2024", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 21 },
+  // ---- Drafts published this round (real renders delivered 2026-07-31) ----
+  { slug: "affordable-housing-136", title: "Affordable Housing - 136 Units", summary: "A 136-unit affordable housing development on Inglewood Ave - massing, unit interiors, and street context resolved across thirteen studies.", category: "affordable-housing", sector: "Affordable Housing", location: "Inglewood, CA", year: "2025", services: ["Architectural Design", "3D Visualization"], heroImage: P("affordable-housing-136", 1), interiorImage: P("affordable-housing-136", 9), gallery: G("affordable-housing-136", 13), published: true, sort: 16 },
+  { slug: "affordable-housing-77", title: "Affordable Housing - 77 Units", summary: "A 77-unit affordable housing development - five camera studies plus unit-interior views of kitchen, living, and bath.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2021", services: ["Architectural Design", "3D Visualization"], heroImage: P("affordable-housing-77", 1), interiorImage: P("affordable-housing-77", 6), gallery: G("affordable-housing-77", 9), published: true, sort: 17 },
+  { slug: "affordable-housing-72", title: "Affordable Housing - 72 Units", summary: "A 72-unit affordable housing development - six exterior camera studies of massing and street presence.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2023", services: ["Architectural Design", "3D Visualization"], heroImage: P("affordable-housing-72", 1), interiorImage: "", gallery: G("affordable-housing-72", 6), published: true, sort: 18 },
+  { slug: "affordable-housing-62", title: "Affordable Housing - 62 Units", summary: "A 62-unit affordable housing development - from early concept sketch through massing studies and rendered camera views.", category: "affordable-housing", sector: "Affordable Housing", location: "", year: "2022", services: ["Architectural Design", "3D Visualization"], heroImage: P("affordable-housing-62", 1), interiorImage: "", gallery: G("affordable-housing-62", 7), published: true, sort: 19 },
+  { slug: "crenshaw-apartments", title: "Crenshaw Apartments", summary: "A multifamily apartment development in Crenshaw - unit interiors studied through five views while exterior renders are still in progress.", category: "multifamily", sector: "Multifamily", location: "Los Angeles, CA", year: "2024", services: ["Architectural Design", "3D Visualization"], heroImage: P("crenshaw-apartments", 1), interiorImage: P("crenshaw-apartments", 1), gallery: G("crenshaw-apartments", 5), published: true, sort: 20 },
+  { slug: "mixed-use-114", title: "Mixed Use - 114 Units", summary: "A 114-unit mixed-use development with ground-floor retail - massing and street-level studies for a four-view concept set.", category: "mixed-use", sector: "Mixed Use", location: "", year: "2024", services: ["Architectural Design", "3D Visualization"], heroImage: P("mixed-use-114", 1), interiorImage: "", gallery: G("mixed-use-114", 4), published: true, sort: 21 },
   { slug: "studio-apartment-158", title: "Studio Apartment - 158 Units", summary: "A 158-unit studio apartment development - currently in design; renders to follow.", category: "multifamily", sector: "Multifamily", location: "", year: "2022", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 22 },
   { slug: "ball-residence", title: "Ball Residence", summary: "A single-family residence - currently in design; renders to follow.", category: "single-family", sector: "Single Family Residence", location: "", year: "2024", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 23 },
   { slug: "sfr-lot-08", title: "Lot 08", summary: "A single-family residence - currently in design; renders to follow.", category: "single-family", sector: "Single Family Residence", location: "", year: "2024", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 24 },
@@ -594,6 +594,13 @@ export const SEED_PROJECTS = [
   { slug: "fire-rebuild-mckendree-01", title: "Mckendree 01", summary: "A fire-rebuild residence in Pacific Palisades - currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "2023", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 26 },
   { slug: "fire-rebuild-mckendree-02", title: "Mckendree 02", summary: "A fire-rebuild residence in Pacific Palisades - currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "2025", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 27 },
   { slug: "fire-rebuild-temecula", title: "Temecula", summary: "A fire-rebuild residence - currently in design; renders to follow.", category: "single-family", sector: "Fire Rebuild", location: "Pacific Palisades, CA", year: "2024", services: ["Architectural Design"], heroImage: PLACEHOLDER, interiorImage: "", gallery: [] as string[], published: false, sort: 28 },
+
+  // ---- New projects added 2026-07-31 ----
+  { slug: "covina-residence", title: "Covina Residence", summary: "A single-family residence in Covina - five exterior studies of massing, roofline, and entry.", category: "single-family", sector: "Single Family Residence", location: "Covina, CA", year: "2024", services: ["Architectural Design", "3D Visualization"], heroImage: P("covina-residence", 1), interiorImage: "", gallery: G("covina-residence", 5), published: true, sort: 29 },
+  { slug: "cyclebar", title: "CycleBar", summary: "A tenant-improvement build-out for a boutique cycling studio - brick and cedar cladding, signage, and storefront glazing.", category: "commercial", sector: "Tenant Improvement", location: "", year: "2023", services: ["Interior Architecture"], heroImage: P("cyclebar", 1), interiorImage: P("cyclebar", 2), gallery: G("cyclebar", 13), published: true, sort: 30 },
+  { slug: "row-house", title: "Row House", summary: "A tenant-improvement project documented on site through construction.", category: "commercial", sector: "Tenant Improvement", location: "", year: "2018", services: ["Interior Architecture"], heroImage: P("row-house", 1), interiorImage: P("row-house", 2), gallery: G("row-house", 8), published: true, sort: 31 },
+  { slug: "bell-residence-chino", title: "Bell Residence", summary: "A single-family residence in Chino.", category: "single-family", sector: "Single Family Residence", location: "Chino, CA", year: "2024", services: ["Architectural Design", "3D Visualization"], heroImage: P("bell-residence", 1), interiorImage: "", gallery: G("bell-residence", 1), published: true, sort: 32 },
+  { slug: "jurien-bay", title: "Jurien Bay", summary: "A residence studied across two views.", category: "single-family", sector: "Single Family Residence", location: "", year: "2024", services: ["Architectural Design", "3D Visualization"], heroImage: P("jurien-bay", 1), interiorImage: "", gallery: G("jurien-bay", 2), published: true, sort: 33 },
 ];
 
 export const SEED_GALLERY = [
@@ -613,6 +620,8 @@ export const SEED_GALLERY = [
   { title: "Condominium & Temple", sector: "Mixed use", image: P("condominium-temple-simi-valley", 1), category: "architecture", type: "photo", sort: 13 },
   { title: "Hesperia @ 47 West", sector: "Multifamily", image: P("hesperia-47-west", 1), category: "architecture", type: "photo", sort: 14 },
   { title: "Moreno Valley - Streetscape", sector: "Multifamily", image: P("moreno-valley", 1), category: "architecture", type: "photo", tall: true, sort: 15 },
+  { title: "Foyer Study", sector: "Interior", image: "/gallery/foyer.webp", category: "residential", type: "photo", sort: 16 },
+  { title: "Bedroom Study", sector: "Interior", image: "/gallery/crimson-bed.webp", category: "residential", type: "photo", tall: true, sort: 17 },
 ];
 
 export const SEED_MEDIA = [

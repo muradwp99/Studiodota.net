@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { BlockData } from "@/content/defaults";
 
 export default function Footer({ site, pages }: { site: BlockData["site"]; pages: { label: string; href: string }[] }) {
@@ -9,17 +10,13 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
         <div className="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-[1.05fr_0.55fr_0.75fr_0.9fr_1.05fr]">
           {/* brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-[var(--gold)] text-lg font-extrabold text-[#17191c]">
-                {site.name.charAt(0)}
-              </span>
-              <span className="flex flex-col leading-none">
-                <span className="text-2xl font-extrabold uppercase tracking-[0.12em]">{site.name}</span>
-                {site.tagline && (
-                  <span className="mt-1 text-[0.62rem] uppercase tracking-[0.22em] text-[var(--muted)]">{site.tagline}</span>
-                )}
-              </span>
+            <div className="flex items-center">
+              <Image src="/logo-wordmark.png" alt={site.name} width={2619} height={846} className="logo-light-only h-10 w-auto" />
+              <Image src="/logo-wordmark-white.png" alt={site.name} width={2619} height={846} className="logo-dark-only h-10 w-auto" />
             </div>
+            {site.tagline && (
+              <span className="mt-3 block text-[0.62rem] uppercase tracking-[0.22em] text-[var(--muted)]">{site.tagline}</span>
+            )}
             <p className="mt-6 max-w-[26ch] text-lg font-semibold leading-snug text-[var(--bone-dim)]">
               {site.footerHeadline}
             </p>

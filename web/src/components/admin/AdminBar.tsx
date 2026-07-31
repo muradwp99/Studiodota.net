@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { logoutAction } from "@/lib/actions/auth";
 
 const NEW_ITEMS = [
@@ -55,8 +56,7 @@ export default function AdminBar({ siteName, userName }: { siteName: string; use
     <div className="sticky top-0 z-[90] flex h-9 items-stretch justify-between bg-[#17191c] text-white">
       <div className="flex items-stretch">
         <Link href="/" target="_blank" className="flex items-center gap-2 px-3 text-[0.8rem] text-[rgba(246,245,242,0.82)] transition-colors hover:bg-[rgba(246,245,242,0.08)] hover:text-white">
-          <span className="grid h-5 w-5 place-items-center rounded bg-[var(--gold)] text-[0.65rem] font-extrabold text-[#17191c]">{siteName.charAt(0)}</span>
-          <span className="hidden sm:inline">{siteName}</span>
+          <Image src="/logo-wordmark-white.png" alt={siteName} width={2619} height={846} className="h-4 w-auto" />
           <span className="text-[0.65rem] text-[rgba(246,245,242,0.5)]">↗</span>
         </Link>
         <Drop label={<><span className="text-base leading-none" aria-hidden="true">＋</span> New</>}>

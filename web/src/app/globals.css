@@ -547,6 +547,13 @@ html.lenis body {
   to { transform: translateX(2%); }
 }
 
+/* ---------- Theme-swapped logo images (server components can't read the
+   client-only theme flag, so the swap happens in CSS instead of JS) ---------- */
+.logo-light-only { display: inline-block; }
+.logo-dark-only { display: none; }
+:root[data-theme="dark"] .logo-light-only { display: none; }
+:root[data-theme="dark"] .logo-dark-only { display: inline-block; }
+
 /* ---------- Dark theme (toggle) ---------- */
 :root[data-theme="dark"] {
   --ink: #111315;

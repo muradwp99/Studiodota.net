@@ -457,7 +457,9 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
                   {isActive && (
                     <>
                       <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(17,19,21,0.8), transparent 55%)" }} />
-                      <button onClick={() => setPlaying(true)} aria-label={`Play ${r.title} showreel`} className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`} style={{ color: "var(--on-media)" }}>▶</button>
+                      {r.youtubeId && (
+                        <button onClick={() => setPlaying(true)} aria-label={`Play ${r.title} showreel`} className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`} style={{ color: "var(--on-media)" }}>▶</button>
+                      )}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6" style={{ color: "var(--on-media)" }}>
                         <div className="font-mono text-sm tracking-[0.25em]">{r.title.toUpperCase()}</div>
                         <div className="mt-1 font-mono text-xs tracking-[0.25em]" style={{ color: "var(--on-media-dim)" }}>{r.kicker.toUpperCase()} - 2026</div>

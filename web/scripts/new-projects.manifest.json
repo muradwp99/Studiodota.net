@@ -1,0 +1,103 @@
+{
+  "projects": {
+    "affordable-housing-136": [
+      "/projects/affordable-housing-136/01.webp",
+      "/projects/affordable-housing-136/02.webp",
+      "/projects/affordable-housing-136/03.webp",
+      "/projects/affordable-housing-136/04.webp",
+      "/projects/affordable-housing-136/05.webp",
+      "/projects/affordable-housing-136/06.webp",
+      "/projects/affordable-housing-136/07.webp",
+      "/projects/affordable-housing-136/08.webp",
+      "/projects/affordable-housing-136/09.webp",
+      "/projects/affordable-housing-136/10.webp",
+      "/projects/affordable-housing-136/11.webp",
+      "/projects/affordable-housing-136/12.webp",
+      "/projects/affordable-housing-136/13.webp"
+    ],
+    "affordable-housing-77": [
+      "/projects/affordable-housing-77/01.webp",
+      "/projects/affordable-housing-77/02.webp",
+      "/projects/affordable-housing-77/03.webp",
+      "/projects/affordable-housing-77/04.webp",
+      "/projects/affordable-housing-77/05.webp",
+      "/projects/affordable-housing-77/06.webp",
+      "/projects/affordable-housing-77/07.webp",
+      "/projects/affordable-housing-77/08.webp",
+      "/projects/affordable-housing-77/09.webp"
+    ],
+    "affordable-housing-72": [
+      "/projects/affordable-housing-72/01.webp",
+      "/projects/affordable-housing-72/02.webp",
+      "/projects/affordable-housing-72/03.webp",
+      "/projects/affordable-housing-72/04.webp",
+      "/projects/affordable-housing-72/05.webp",
+      "/projects/affordable-housing-72/06.webp"
+    ],
+    "affordable-housing-62": [
+      "/projects/affordable-housing-62/01.webp",
+      "/projects/affordable-housing-62/02.webp",
+      "/projects/affordable-housing-62/03.webp",
+      "/projects/affordable-housing-62/04.webp",
+      "/projects/affordable-housing-62/05.webp",
+      "/projects/affordable-housing-62/06.webp",
+      "/projects/affordable-housing-62/07.webp"
+    ],
+    "mixed-use-114": [
+      "/projects/mixed-use-114/01.webp",
+      "/projects/mixed-use-114/02.webp",
+      "/projects/mixed-use-114/03.webp",
+      "/projects/mixed-use-114/04.webp"
+    ],
+    "covina-residence": [
+      "/projects/covina-residence/01.webp",
+      "/projects/covina-residence/02.webp",
+      "/projects/covina-residence/03.webp",
+      "/projects/covina-residence/04.webp",
+      "/projects/covina-residence/05.webp"
+    ],
+    "cyclebar": [
+      "/projects/cyclebar/01.webp",
+      "/projects/cyclebar/02.webp",
+      "/projects/cyclebar/03.webp",
+      "/projects/cyclebar/04.webp",
+      "/projects/cyclebar/05.webp",
+      "/projects/cyclebar/06.webp",
+      "/projects/cyclebar/07.webp",
+      "/projects/cyclebar/08.webp",
+      "/projects/cyclebar/09.webp",
+      "/projects/cyclebar/10.webp",
+      "/projects/cyclebar/11.webp",
+      "/projects/cyclebar/12.webp",
+      "/projects/cyclebar/13.webp"
+    ],
+    "row-house": [
+      "/projects/row-house/01.webp",
+      "/projects/row-house/02.webp",
+      "/projects/row-house/03.webp",
+      "/projects/row-house/04.webp",
+      "/projects/row-house/05.webp",
+      "/projects/row-house/06.webp",
+      "/projects/row-house/07.webp",
+      "/projects/row-house/08.webp"
+    ],
+    "bell-residence": [
+      "/projects/bell-residence/01.webp"
+    ],
+    "jurien-bay": [
+      "/projects/jurien-bay/01.webp",
+      "/projects/jurien-bay/02.webp"
+    ],
+    "crenshaw-apartments": [
+      "/projects/crenshaw-apartments/01.webp",
+      "/projects/crenshaw-apartments/02.webp",
+      "/projects/crenshaw-apartments/03.webp",
+      "/projects/crenshaw-apartments/04.webp",
+      "/projects/crenshaw-apartments/05.webp"
+    ]
+  },
+  "gallery": {
+    "foyer": "/gallery/foyer.webp",
+    "crimson-bed": "/gallery/crimson-bed.webp"
+  }
+}

@@ -119,9 +119,15 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
     <header ref={headerRef} className="fixed inset-x-0 top-0 z-50" onMouseLeave={scheduleClose}>
       <div className="pointer-events-none flex justify-center px-4 pt-4">
         <nav data-tone={tone} className="nav-shell pointer-events-auto flex w-[min(1120px,94vw)] items-center justify-between gap-4 rounded-full py-2 pl-4 pr-2 shadow-[0_18px_50px_-24px_rgba(17,19,21,0.4)]">
-          <Link href="/" className="flex items-center gap-2.5" onMouseEnter={scheduleClose}>
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--gold)] text-sm font-extrabold text-[#17191c]">{siteName.charAt(0)}</span>
-            <span className="text-[1.05rem] font-bold tracking-tight">{siteName}</span>
+          <Link href="/" className="flex items-center" onMouseEnter={scheduleClose}>
+            <Image
+              src={tone === "dark" ? "/logo-wordmark-white.png" : "/logo-wordmark.png"}
+              alt={siteName}
+              width={2619}
+              height={846}
+              priority
+              className="h-8 w-auto"
+            />
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
