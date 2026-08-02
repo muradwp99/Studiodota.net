@@ -11,6 +11,7 @@ import LineMask from "@/components/motion/LineMask";
 import { EASE_CURTAIN } from "@/lib/motion";
 import ImageMaskText from "@/components/ImageMaskText";
 import VideoPlayer from "@/components/VideoPlayer";
+import MediaLightbox from "@/components/MediaLightbox";
 import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
@@ -407,7 +408,8 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
   const reel = d.items;
   const wrap = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [lightbox, setLightbox] = useState<HomeData["showreel"]["items"][number] | null>(null);
+  const playing = lightbox !== null; // freeze the scroll-driven tile while open
   const reduced = useReducedMotion();
   useEffect(() => {
     if (reduced) return;
@@ -424,7 +426,6 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, [playing, reduced, reel.length]);
-  const current = reel[Math.min(active, reel.length - 1)];
   if (reel.length === 0) return null;
   return (
     <section ref={wrap} className="relative bg-[var(--ink)]" style={{ height: `${reel.length * 40}vh` }}>
@@ -455,9 +456,17 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
                   {isActive && (
                     <>
                       <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(17,19,21,0.8), transparent 55%)" }} />
-                      {r.youtubeId && (
-                        <button onClick={() => setPlaying(true)} aria-label={`Play ${r.title} showreel`} className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`} style={{ color: "var(--on-media)" }}>▶</button>
-                      )}
+                      {/* Opening the active tile goes through the same lightbox
+                          the gallery page uses — video if the item has one,
+                          the still otherwise. */}
+                      <button
+                        onClick={() => setLightbox(r)}
+                        aria-label={r.youtubeId ? `Play ${r.title}` : `Open ${r.title}`}
+                        className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`}
+                        style={{ color: "var(--on-media)" }}
+                      >
+                        {r.youtubeId ? "▶" : "⤢"}
+                      </button>
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6" style={{ color: "var(--on-media)" }}>
                         <div className="font-mono text-sm tracking-[0.25em]">{r.title.toUpperCase()}</div>
                         <div className="mt-1 font-mono text-xs tracking-[0.25em]" style={{ color: "var(--on-media-dim)" }}>{r.kicker.toUpperCase()} - 2026</div>
@@ -468,17 +477,17 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
               );
             })}
           </div>
-          <AnimatePresence>
-            {playing && (
-              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: reduced ? 0 : 0.4 }} className="absolute inset-0 z-20 overflow-hidden rounded-2xl bg-black">
-                <VideoPlayer youtubeId={current.youtubeId} poster={current.image} className="h-full w-full" rounded="" title={current.title} mode="cinema" />
-                <button onClick={() => setPlaying(false)} aria-label="Close" className="absolute right-5 top-5 z-10 grid h-11 w-11 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-lg backdrop-blur transition-transform duration-300 hover:scale-110" style={{ color: "var(--on-media)" }}>✕</button>
-              </motion.div>
-            )}
-          </AnimatePresence>
           </div>
         </div>
       </div>
+      <MediaLightbox
+        active={
+          lightbox
+            ? { title: lightbox.title, sector: lightbox.kicker, image: lightbox.image, youtubeId: lightbox.youtubeId || undefined }
+            : null
+        }
+        onClose={() => setLightbox(null)}
+      />
     </section>
   );
 }

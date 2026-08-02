@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import VideoPlayer from "@/components/VideoPlayer";
+import MediaLightbox from "@/components/MediaLightbox";
 
 type Cat = "architecture" | "residential" | "commercial";
 export type GalleryItemData = {
@@ -32,7 +33,6 @@ export default function GalleryClient({ items }: { items: GalleryItemData[] }) {
   const [cat, setCat] = useState<"all" | Cat>("all");
   const [page, setPage] = useState(0);
   const [active, setActive] = useState<GalleryItemData | null>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
 
   const filtered = useMemo(() => items.filter((it) => cat === "all" || it.category === cat), [cat, items]);
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
@@ -42,23 +42,6 @@ export default function GalleryClient({ items }: { items: GalleryItemData[] }) {
     setCat(c);
     setPage(0);
   };
-
-  // Lightbox: Esc close, scroll lock, focus management.
-  useEffect(() => {
-    if (!active) return;
-    const prev = document.activeElement as HTMLElement | null;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActive(null);
-    };
-    document.addEventListener("keydown", onKey);
-    document.documentElement.classList.add("lenis-stopped");
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.documentElement.classList.remove("lenis-stopped");
-      prev?.focus?.();
-    };
-  }, [active]);
 
   return (
     <section className="section pt-14">
@@ -153,51 +136,21 @@ export default function GalleryClient({ items }: { items: GalleryItemData[] }) {
         )}
       </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${active.title}, ${active.sector}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0 : 0.3 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center p-4 md:p-10"
-            style={{ background: "rgba(8,9,10,0.9)", backdropFilter: "blur(6px)" }}
-            onClick={() => setActive(null)}
-          >
-            <motion.div
-              initial={reduced ? false : { scale: 0.96, y: 10 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={reduced ? undefined : { scale: 0.97, opacity: 0 }}
-              transition={{ duration: reduced ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-[1100px] overflow-hidden rounded-2xl bg-[var(--surface)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative aspect-video w-full overflow-hidden bg-black">
-                {active.type === "video" ? (
-                  <VideoPlayer youtubeId={active.youtubeId} poster={active.image} className="h-full w-full" rounded="" title={`${active.title} - ${active.sector}`} mode="cinema" />
-                ) : (
-                  <Image src={active.image} alt={`${active.title} - ${active.sector}`} fill sizes="90vw" className="object-cover" />
-                )}
-              </div>
-              <div className="flex items-center justify-between gap-4 p-5">
-                <div>
-                  <div className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-[var(--muted)]">
-                    {active.type === "video" ? "Motion" : "Still"} · {active.sector}
-                  </div>
-                  <div className="text-lg font-medium">{active.title}</div>
-                </div>
-                <button ref={closeRef} onClick={() => setActive(null)} aria-label="Close" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--line-strong)] text-lg transition-colors duration-300 hover:bg-[var(--surface-2)]">
-                  ✕
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <MediaLightbox
+        active={
+          active
+            ? {
+                title: active.title,
+                sector: active.sector,
+                image: active.image,
+                // Gallery stills carry a youtubeId field but only "video" rows
+                // mean it; passing it unconditionally would play stale ids.
+                youtubeId: active.type === "video" ? active.youtubeId : undefined,
+              }
+            : null
+        }
+        onClose={() => setActive(null)}
+      />
     </section>
   );
 }

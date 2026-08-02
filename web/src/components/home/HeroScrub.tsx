@@ -30,9 +30,36 @@ import type { BlockData } from "@/content/defaults";
 const SEQ_DESKTOP = { base: "/media/hero-seq-v2", count: 300 };
 const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v2", count: 150 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
+// 6 matches the per-origin connection limit browsers apply on HTTP/1.1, which
+// is what `next start` speaks. Going above it queues requests at the socket
+// layer where this code cannot see or recover them.
 const MAX_INFLIGHT = 6; // concurrent frame fetches — see the loader below
-const WINDOW_AHEAD = 48; // frames kept loaded ahead of the scrub position
-const WINDOW_BEHIND = 8; // ...and behind it, for scrubbing back up
+// A detached Image() request can wedge and fire neither onload nor onerror,
+// holding its slot forever. Observed on a local production build: loading
+// dead-stopped with exactly MAX_INFLIGHT frames hung, while the same files
+// returned 200 in ~1ms via fetch(). The watchdog is what makes the loader
+// self-healing rather than one bad socket away from a frozen hero.
+const FRAME_TIMEOUT_MS = 10_000;
+const MAX_TRIES = 2;
+// Live Image() objects the loader will hold, centred on the scrub position.
+//
+// Holding the WHOLE 300-frame sequence does not work: measured repeatedly on a
+// local production build, loading races to ~215-226 frames in about 3 seconds
+// and then stops dead - permanently, with the watchdog unable to recover it -
+// while the very same files still return 200 in ~1ms via fetch(). That is a
+// browser ceiling on concurrent live image objects, and v1's "preload all 300"
+// hit it too; it only ever felt complete because nothing measured it.
+//
+// A window stays well under the ceiling and never wedges. It costs a re-fetch
+// when scrubbing somewhere far away, which is free once the `immutable`
+// headers on /media are actually live - on production today they are not,
+// which is why the window felt network-bound there.
+const WINDOW_AHEAD = 96;
+const WINDOW_BEHIND = 24;
+// How hard GSAP smooths the scrub. Higher = the footage eases toward the
+// scroll position instead of tracking it rigidly, which is what reads as
+// "gentle". Above ~1.5 it starts to feel disconnected from the wheel.
+const SCRUB_SMOOTHING = 1.2;
 
 export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const reduced = useReducedMotion();
@@ -103,8 +130,14 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   //      waiting out a queue. Worst case the next frame needed is MAX_INFLIGHT
   //      requests deep, not 200.
   //
-  // A window around the scrub position bounds total weight, so a visitor who
-  // never scrolls pays for WINDOW_AHEAD frames rather than the whole sequence.
+  // The WHOLE sequence loads, not a rolling window. A window looked like the
+  // responsible choice, but it made the scrub feel worse than the original
+  // build: measured on production, only the 48 windowed frames were ever
+  // resident and every one came off the network mid-scroll, so scrubbing was
+  // network-bound. The original preloaded all 300 up front, which is exactly
+  // why it felt smooth - it was just paying 57MB for the privilege. At
+  // 1280px/q72 the sequence is 13.7MB, so loading all of it is affordable, and
+  // the two rules above keep it from starving the frames being scrubbed past.
   useEffect(() => {
     cancelledRef.current = false;
     seqRef.current = window.matchMedia("(max-width: 767px)").matches ? SEQ_MOBILE : SEQ_DESKTOP;
@@ -113,48 +146,96 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     imagesRef.current = new Array(count);
     wantedRef.current = 0;
     let inflight = 0;
+    const tries = new Array<number>(count).fill(0);
+    const retry: number[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // Nearest unloaded frame inside the window, preferring ahead of the scrub.
-    // Linear, but it is a few hundred array reads next to a ~200KB image
-    // decode — not worth a cleverer structure.
+    // Nearest unloaded frame, preferring ahead of the scrub position: frames
+    // about to be drawn win slots, then everything else back-fills. Linear,
+    // but a few hundred array reads is nothing next to an image decode.
     const nextFrame = () => {
       const w = wantedRef.current;
-      for (let i = w; i < Math.min(count, w + WINDOW_AHEAD); i++) {
-        if (!imagesRef.current[i]) return i;
+      const hi = Math.min(count, w + WINDOW_AHEAD);
+      const lo = Math.max(0, w - WINDOW_BEHIND);
+      for (let i = w; i < hi; i++) if (!imagesRef.current[i]) return i;
+      for (let i = w - 1; i >= lo; i--) if (!imagesRef.current[i]) return i;
+      // Everything has been attempted once — now re-attempt whatever timed out.
+      while (retry.length) {
+        const i = retry.shift() as number;
+        if (!loadedRef.current[i]) {
+          imagesRef.current[i] = undefined as unknown as HTMLImageElement;
+          return i;
+        }
       }
-      for (let i = w - 1; i >= Math.max(0, w - WINDOW_BEHIND); i--) {
-        if (!imagesRef.current[i]) return i;
-      }
-      return -1; // window satisfied; the scrub effect re-kicks us when it moves
+      return -1; // whole sequence resident
     };
 
+    // `pumping` makes this non-re-entrant, and it is load-bearing: an image
+    // already in the browser cache fires onload SYNCHRONOUSLY from the
+    // `img.src = ...` assignment below, so onSettle -> pump() would re-enter
+    // while the outer loop is mid-iteration. That nested call raced the loop's
+    // own accounting and wedged loading at frame 189 of 300 - the sequence
+    // simply stopped, with 110 frames never requested.
+    let pumping = false;
     const pump = () => {
-      if (cancelledRef.current) return;
+      if (cancelledRef.current || pumping) return;
+      pumping = true;
+      try {
+        fill();
+      } finally {
+        pumping = false; // never leave the pump wedged, even on a throw
+      }
+    };
+
+    const fill = () => {
       while (inflight < MAX_INFLIGHT) {
         const i = nextFrame();
-        if (i < 0) return;
+        if (i < 0) return; // whole sequence claimed
         const img = new Image();
         imagesRef.current[i] = img; // claim the slot before the request starts
         inflight++;
         img.decoding = "async";
-        // Only the opening frames are urgent; let the browser deprioritise the
-        // rest behind the page's own critical JS/CSS/fonts.
-        img.fetchPriority = i < 4 ? "high" : "low";
-        const onSettle = () => {
+        // Opening frames are urgent so the hero paints; the rest stay at the
+        // browser default. Explicitly marking them "low" starved the sequence
+        // - it took ~14s to reach 190 frames locally - and a resident sequence
+        // is the whole reason the scrub feels smooth. Images already rank below
+        // render-blocking CSS/JS without being pinned to the bottom.
+        if (i < 8) img.fetchPriority = "high";
+
+        let done = false;
+        // Declared before `settle` closes over it: a cached image can fire
+        // onload synchronously, and reading `timer` in its TDZ would throw
+        // straight out of the loop.
+        let timer: ReturnType<typeof setTimeout> | undefined = undefined;
+        const settle = (ok: boolean) => {
+          if (done) return; // onload/onerror and the watchdog can all fire
+          done = true;
+          clearTimeout(timer);
           if (cancelledRef.current) return;
           inflight--;
-          loadedRef.current[i] = true;
-          if (drawnRef.current < 0) {
-            resizeCanvas();
-            draw(i);
-            setReady(true);
-          } else if (i === drawnRef.current) {
-            draw(i); // upgrade from whatever nearest-loaded frame stood in
+          if (ok) {
+            loadedRef.current[i] = true;
+            if (drawnRef.current < 0) {
+              resizeCanvas();
+              draw(i);
+              setReady(true);
+            } else if (i === drawnRef.current) {
+              draw(i); // upgrade from whatever nearest-loaded frame stood in
+            }
+          } else if (tries[i] < MAX_TRIES) {
+            // Queue for retry but keep the claim, so the pump moves on to
+            // never-tried frames first. Releasing it here would just re-request
+            // the frame that only just wedged and stall again.
+            retry.push(i);
           }
           pump();
         };
-        img.onload = onSettle;
-        img.onerror = onSettle; // free the slot regardless, or loading stalls
+        timer = setTimeout(() => settle(false), FRAME_TIMEOUT_MS);
+        timers.push(timer);
+
+        tries[i] = (tries[i] ?? 0) + 1;
+        img.onload = () => settle(true);
+        img.onerror = () => settle(false);
         img.src = `${base}/frame-${String(i).padStart(3, "0")}.webp`;
       }
     };
@@ -164,6 +245,7 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
 
     return () => {
       cancelledRef.current = true;
+      for (const t of timers) clearTimeout(t);
     };
   }, [draw, resizeCanvas]);
 
@@ -210,7 +292,7 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
       trigger: trackRef.current!,
       start: "top top",
       end: () => "+=" + window.innerHeight * PIN_SCREENS,
-      scrub: 0.5,
+      scrub: SCRUB_SMOOTHING,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
         const count = seqRef.current.count;
