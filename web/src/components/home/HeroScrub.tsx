@@ -21,12 +21,12 @@ import type { BlockData } from "@/content/defaults";
  * Frames are produced by scripts/build-hero-frames.mjs — keep the counts in sync.
  */
 
-const SEQ_DESKTOP = { base: "/media/hero-seq", count: 300 };
-const SEQ_MOBILE = { base: "/media/hero-seq-mobile", count: 150 };
+const SEQ_DESKTOP = { base: "/media/hero-seq", count: 180 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile", count: 120 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
-const EAGER_FRAMES = 8; // frames loaded up front, before idle/scroll filling
-const IDLE_BATCH = 4; // frames requested per idle tick while back-filling
-const LOOKAHEAD = 16; // frames fetched ahead of the current scrub position
+const MAX_INFLIGHT = 6; // concurrent frame fetches — see the loader below
+const WINDOW_AHEAD = 48; // frames kept loaded ahead of the scrub position
+const WINDOW_BEHIND = 8; // ...and behind it, for scrubbing back up
 
 export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const reduced = useReducedMotion();
@@ -37,11 +37,12 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const cueRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const loadedRef = useRef<boolean[]>([]);
-  const loadedCountRef = useRef(0);
   const cancelledRef = useRef(false);
   const drawnRef = useRef<number>(-1);
   const seqRef = useRef(SEQ_DESKTOP);
-  const [progress, setProgress] = useState(0); // preload progress 0..1
+  const wantedRef = useRef(0); // frame the scrub currently needs
+  const pumpRef = useRef<() => void>(() => {});
+  const [ready, setReady] = useState(false); // first frame painted
 
   // Draw frame `i` (cover-fit). If it isn't loaded yet, draw the nearest loaded
   // frame so the canvas never flashes blank while preloading catches up.
@@ -83,84 +84,82 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     draw(drawnRef.current < 0 ? 0 : drawnRef.current);
   }, [draw]);
 
-  // Load frame `i` if it isn't already loaded (or already in flight). Shared by
-  // the initial eager batch and the scroll-triggered lookahead below, so the
-  // sequence is fetched on demand rather than all 300 frames (~45MB) up front.
-  const requestFrame = useCallback((i: number) => {
-    const { base, count } = seqRef.current;
-    if (i < 0 || i >= count || imagesRef.current[i]) return;
-    const img = new Image();
-    img.decoding = "async";
-    const onSettle = () => {
-      if (cancelledRef.current) return;
-      loadedRef.current[i] = true;
-      loadedCountRef.current += 1;
-      // Denominator is the eager batch, not the whole sequence - otherwise a
-      // visitor who never scrolls sees "Loading 8%" forever, since only the
-      // eager frames load without a scroll.
-      setProgress(Math.min(1, loadedCountRef.current / Math.min(count, EAGER_FRAMES)));
-      if (i === 0 && drawnRef.current < 0) { resizeCanvas(); draw(0); }
-      else if (i === drawnRef.current) draw(i);
-    };
-    img.onload = onSettle;
-    img.onerror = onSettle; // still count, so progress can complete
-    img.src = `${base}/frame-${String(i).padStart(3, "0")}.webp`;
-    imagesRef.current[i] = img;
-  }, [draw, resizeCanvas]);
-
-  // Frame loading, in three tiers, so the ~45MB sequence never blocks first
-  // paint (it used to fetch all 300 frames unconditionally on mount):
-  //   1. EAGER_FRAMES immediately - the opening frames, so the hero paints;
-  //   2. the remainder during idle time once the visitor first interacts, a
-  //      few at a time, so a normal-speed scrub always has frames ready
-  //      without ever competing with the initial critical JS/CSS;
-  //   3. a lookahead window driven by the scrub position (see ScrollTrigger
-  //      onUpdate) to cover someone who jumps ahead faster than tier 2 fills.
+  // Frame loading. Two rules, and both matter:
+  //
+  //   1. At most MAX_INFLIGHT requests are ever outstanding. The previous
+  //      version fired requests and forgot about them, so an idle back-fill
+  //      queued the whole sequence from index 0 upward and the frames actually
+  //      being scrubbed past sat behind a couple hundred pending low-priority
+  //      requests. Measured on production: loading dead-stalled at 67 frames
+  //      and the canvas painted identical pixels from 60% scroll to the end.
+  //   2. Every freed slot goes to the unloaded frame nearest whatever the
+  //      scrub needs *right now*, so jumping ahead re-prioritises instead of
+  //      waiting out a queue. Worst case the next frame needed is MAX_INFLIGHT
+  //      requests deep, not 200.
+  //
+  // A window around the scrub position bounds total weight, so a visitor who
+  // never scrolls pays for WINDOW_AHEAD frames rather than the whole sequence.
   useEffect(() => {
     cancelledRef.current = false;
     seqRef.current = window.matchMedia("(max-width: 767px)").matches ? SEQ_MOBILE : SEQ_DESKTOP;
-    const { count } = seqRef.current;
+    const { base, count } = seqRef.current;
     loadedRef.current = new Array(count).fill(false);
     imagesRef.current = new Array(count);
-    loadedCountRef.current = 0;
+    wantedRef.current = 0;
+    let inflight = 0;
 
-    const eager = Math.min(count, EAGER_FRAMES);
-    for (let i = 0; i < eager; i++) requestFrame(i);
-
-    // requestIdleCallback isn't in Safari <16.4; setTimeout is a fine fallback.
-    const schedule = (cb: () => void): number =>
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(cb, { timeout: 2000 })
-        : window.setTimeout(cb, 250);
-    const unschedule = (h: number) =>
-      typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(h) : window.clearTimeout(h);
-
-    let cursor = eager;
-    let handle = 0;
-    const fillNext = () => {
-      if (cancelledRef.current || cursor >= count) return;
-      for (let n = 0; n < IDLE_BATCH && cursor < count; n++) requestFrame(cursor++);
-      handle = schedule(fillNext);
+    // Nearest unloaded frame inside the window, preferring ahead of the scrub.
+    // Linear, but it is a few hundred array reads next to a ~200KB image
+    // decode — not worth a cleverer structure.
+    const nextFrame = () => {
+      const w = wantedRef.current;
+      for (let i = w; i < Math.min(count, w + WINDOW_AHEAD); i++) {
+        if (!imagesRef.current[i]) return i;
+      }
+      for (let i = w - 1; i >= Math.max(0, w - WINDOW_BEHIND); i--) {
+        if (!imagesRef.current[i]) return i;
+      }
+      return -1; // window satisfied; the scrub effect re-kicks us when it moves
     };
 
-    // Hold the back-fill until the visitor actually engages. The sequence only
-    // matters once they scrub, so a visitor who reads the hero and leaves (and
-    // an audit tool that never scrolls) only ever pays for the eager frames.
-    let started = false;
-    const startFill = () => {
-      if (started || cancelledRef.current) return;
-      started = true;
-      handle = schedule(fillNext);
+    const pump = () => {
+      if (cancelledRef.current) return;
+      while (inflight < MAX_INFLIGHT) {
+        const i = nextFrame();
+        if (i < 0) return;
+        const img = new Image();
+        imagesRef.current[i] = img; // claim the slot before the request starts
+        inflight++;
+        img.decoding = "async";
+        // Only the opening frames are urgent; let the browser deprioritise the
+        // rest behind the page's own critical JS/CSS/fonts.
+        img.fetchPriority = i < 4 ? "high" : "low";
+        const onSettle = () => {
+          if (cancelledRef.current) return;
+          inflight--;
+          loadedRef.current[i] = true;
+          if (drawnRef.current < 0) {
+            resizeCanvas();
+            draw(i);
+            setReady(true);
+          } else if (i === drawnRef.current) {
+            draw(i); // upgrade from whatever nearest-loaded frame stood in
+          }
+          pump();
+        };
+        img.onload = onSettle;
+        img.onerror = onSettle; // free the slot regardless, or loading stalls
+        img.src = `${base}/frame-${String(i).padStart(3, "0")}.webp`;
+      }
     };
-    const events = ["scroll", "wheel", "touchstart", "pointerdown"] as const;
-    for (const e of events) window.addEventListener(e, startFill, { passive: true, once: true });
+
+    pumpRef.current = pump;
+    pump();
 
     return () => {
       cancelledRef.current = true;
-      for (const e of events) window.removeEventListener(e, startFill);
-      if (handle) unschedule(handle);
     };
-  }, [requestFrame]);
+  }, [draw, resizeCanvas]);
 
   // Hero intro — released by the Preloader's exit: the footage settles from a
   // slight over-scale while the headline rises out of line masks, then the
@@ -211,16 +210,17 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
         const count = seqRef.current.count;
         const i = Math.min(count - 1, Math.round(self.progress * (count - 1)));
         if (i !== drawnRef.current) draw(i);
-        // Fetch a window just ahead of the scrub position, for anyone moving
-        // faster than the idle back-fill can keep up with.
-        for (let k = 0; k <= LOOKAHEAD; k++) requestFrame(i + k);
+        // Re-aim the loader. Cheap when every slot is busy, and it restarts the
+        // pump once the window has moved past what's already loaded.
+        wantedRef.current = i;
+        pumpRef.current();
       },
     });
     return () => {
       st.kill();
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [reduced, draw, resizeCanvas, requestFrame]);
+  }, [reduced, draw, resizeCanvas]);
 
   return (
     <section
@@ -292,13 +292,13 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
           </span>
         </div>
 
-        {/* preload indicator — only while the opening frames are still arriving */}
-        {progress < 0.12 && (
+        {/* preload indicator — only until the first frame lands on the canvas */}
+        {!ready && (
           <div
             className="pointer-events-none absolute bottom-6 right-6 font-mono text-[0.6rem] uppercase tracking-[0.2em]"
             style={{ color: "var(--on-media-dim)" }}
           >
-            Loading {Math.round(progress * 100)}%
+            Loading
           </div>
         )}
       </div>
