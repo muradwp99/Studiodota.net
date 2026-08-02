@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import SocialIcon from "@/components/SocialIcon";
 import type { BlockData } from "@/content/defaults";
 
 export default function Footer({ site, pages }: { site: BlockData["site"]; pages: { label: string; href: string }[] }) {
@@ -55,9 +56,11 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
               </div>
               <div>
                 <div className="eyebrow eyebrow-muted text-[var(--muted)]">Follow</div>
-                <div className="mt-1.5 flex gap-4 text-sm text-[var(--bone-dim)]">
+                <div className="mt-2 flex gap-4 text-[var(--bone-dim)]">
                   {site.socials.map((s) => (
-                    <a key={s.label} href={s.href} className="hover:text-[var(--gold)]">{s.label}</a>
+                    <a key={s.label} href={s.href} aria-label={s.label} className="hover:text-[var(--gold)]">
+                      <SocialIcon label={s.label} className="h-[18px] w-[18px]" />
+                    </a>
                   ))}
                 </div>
               </div>

@@ -21,7 +21,7 @@
   --gold-hi: #8f6c39;
   --gold-ink: #856428; /* readable bronze for text on light */
   --gold-media: #e6cb92; /* light champagne for text over dark imagery */
-  --blueprint: #6b7d8a;
+  --blueprint: #eb9864;
   --watermark: rgba(17, 19, 21, 0.05);
 
   /* Text over media (always light) */
@@ -588,7 +588,7 @@ html.lenis body {
 .grad-warm {
   background:
     radial-gradient(60% 55% at 88% -5%, rgba(176, 137, 78, 0.14), transparent 62%),
-    radial-gradient(50% 50% at 5% 110%, rgba(107, 125, 138, 0.07), transparent 60%),
+    radial-gradient(50% 50% at 5% 110%, rgba(235, 152, 100, 0.1), transparent 60%),
     var(--ink-2);
 }
 .grad-soft {

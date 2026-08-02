@@ -26,9 +26,8 @@ export const BLOCK_DEFAULTS = {
   site: {
     name: "Studiodota",
     tagline: "Architecture & Design Studio",
-    email: "studio@studiodota.net",
-    // Placeholder - real studio contact info pending; correct in Settings > General.
-    phone: "+1 (310) 555-0148",
+    email: "studioa.arch@gmail.com",
+    phone: "+1 (213) 587-1256",
     address1: "1420 Sepulveda Blvd, Suite 310",
     address2: "Los Angeles, CA 90025",
     metaTitle: "Studiodota - Architecture & Design Studio",
