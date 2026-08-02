@@ -44,15 +44,15 @@ const nextConfig: NextConfig = {
         ],
       },
       // Build artifacts of scripts/build-hero-frames.mjs, and the bulk of the
-      // homepage's weight. Regenerating rewrites every frame under the same
-      // names, so rename the directory if that ever happens - `immutable`
-      // means clients will not re-check.
+      // homepage's weight. `immutable` means clients never re-check, so a
+      // re-encode MUST land on a new `-vN` directory rather than overwriting
+      // these - that is exactly what the unsuffixed v1 paths got wrong.
       {
-        source: "/media/hero-seq/:file*",
+        source: "/media/hero-seq-v2/:file*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
-        source: "/media/hero-seq-mobile/:file*",
+        source: "/media/hero-seq-mobile-v2/:file*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];

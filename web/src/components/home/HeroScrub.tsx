@@ -21,8 +21,14 @@ import type { BlockData } from "@/content/defaults";
  * Frames are produced by scripts/build-hero-frames.mjs — keep the counts in sync.
  */
 
-const SEQ_DESKTOP = { base: "/media/hero-seq", count: 180 };
-const SEQ_MOBILE = { base: "/media/hero-seq-mobile", count: 120 };
+// The `-v2` suffix is a cache-bust, not decoration: these are served
+// `immutable`, and the previous sequence shipped without any Cache-Control at
+// all, so CDN edges and browsers are still holding the old frames under the
+// unsuffixed paths. Re-encoding under the same names served a mix of old and
+// new. Any future re-encode needs a fresh suffix here, in next.config.ts, and
+// in scripts/build-hero-frames.mjs.
+const SEQ_DESKTOP = { base: "/media/hero-seq-v2", count: 300 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v2", count: 150 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
 const MAX_INFLIGHT = 6; // concurrent frame fetches — see the loader below
 const WINDOW_AHEAD = 48; // frames kept loaded ahead of the scrub position

@@ -29,15 +29,28 @@ const PUBLIC = path.resolve(__dirname, "../public/media");
 
 // Keep these in sync with SEQ_DESKTOP / SEQ_MOBILE in components/home/HeroScrub.tsx.
 //
-// Desktop was 300 frames @1920px q92 = 194KB/frame, 57MB for the sequence. That
-// is the dominant weight on the homepage by a wide margin, and no loading
-// strategy makes 57MB fast. q92 is wasted on frames that flash past during a
-// scrub; measured, 1600px q72 lands at ~71KB with no visible difference in
-// motion, and 180 frames across 2.5 viewport-heights of scroll still steps
-// invisibly (mobile has always shipped 150 and reads as smooth).
+// WIDTH IS THE FRAME-RATE KNOB, and it is not obvious. During a scrub the
+// canvas draws a different frame every rAF, so each frame is decoded exactly
+// once, and that decode - not the drawImage call, not the network - is what
+// sets the frame rate. Measured on production, drawing successive frames at
+// rAF into a 1466x766 canvas:
+//
+//     1920x1080 source -> 20.9ms/frame (48fps)
+//     1080x608  source -> 13.3ms/frame (75fps)
+//
+// which fits t ≈ 9ms + 6.5e-6 * pixels. A 60fps budget (16.7ms) therefore caps
+// the source at ~1.2M pixels, so 1280x720 (0.92M, ~15ms) is the largest size
+// that holds 60fps, and 1600px does NOT. The footage sits behind a scrim as a
+// background, so the slight upscale is not noticeable.
+//
+// Frame COUNT does not affect frame rate (still one decode per rAF either
+// way) - it only affects total bytes and how finely the scrub steps.
+//
+// q92 was wasted on frames on screen for milliseconds; a measured sweep put
+// the knee at q72.
 const VARIANTS = {
-  desktop: { dir: "hero-seq", width: 1600, quality: 72, count: 180 },
-  mobile: { dir: "hero-seq-mobile", width: 1080, quality: 72, count: 120 },
+  desktop: { dir: "hero-seq-v2", width: 1280, quality: 72, count: 300 },
+  mobile: { dir: "hero-seq-mobile-v2", width: 1080, quality: 72, count: 150 },
 };
 
 const argv = process.argv.slice(2);
@@ -68,10 +81,14 @@ for (const name of names) {
 
   let srcDir, srcFiles;
   if (recompress) {
-    srcDir = out;
-    srcFiles = (await readdir(out)).filter((f) => f.endsWith(".webp")).sort();
+    // Defaults to re-encoding the variant in place; point HERO_WEBP_SRC at
+    // another directory to migrate an older sequence into a new versioned one.
+    srcDir = process.env.HERO_WEBP_SRC
+      ? path.resolve(process.env.HERO_WEBP_SRC)
+      : out;
+    srcFiles = (await readdir(srcDir)).filter((f) => f.endsWith(".webp")).sort();
     if (srcFiles.length === 0) {
-      console.error(`${name}: nothing to recompress in ${out}`);
+      console.error(`${name}: nothing to recompress in ${srcDir}`);
       process.exit(1);
     }
   } else {
