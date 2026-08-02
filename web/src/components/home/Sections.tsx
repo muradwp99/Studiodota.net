@@ -886,7 +886,7 @@ function PlusMinusIcon({ open }: { open: boolean }) {
   );
 }
 
-const GOLD_GRADIENT = "linear-gradient(120deg, #f7a26d 0%, #f59153 55%, #b86d3e 100%)";
+const GOLD_GRADIENT = "linear-gradient(120deg, #d0aa72 0%, #a87f3f 55%, #8f6c39 100%)";
 
 function FAQ({ d }: { d: HomeData["faq"] }) {
   const [open, setOpen] = useState(0);
@@ -983,7 +983,7 @@ function Journals({ d, posts }: { d: HomeData["journals"]; posts: JournalCard[] 
       <div className="shell">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Reveal><h2 className="display-l max-w-[16ch]">{d.title}</h2></Reveal>
-          <Reveal delay={80}><Link href="/journal" className="group inline-flex items-center gap-3 rounded-full py-2 pl-6 pr-2 font-semibold" style={{ background: "linear-gradient(120deg,#f7a26d,#f59153 55%,#b86d3e)", color: "#17191c" }}>{d.viewAllLabel} <span className="grid h-9 w-9 place-items-center rounded-full bg-[#17191c] text-[#f5f5f3] transition-transform duration-500 group-hover:translate-x-0.5">↗</span></Link></Reveal>
+          <Reveal delay={80}><Link href="/journal" className="group inline-flex items-center gap-3 rounded-full py-2 pl-6 pr-2 font-semibold" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{d.viewAllLabel} <span className="grid h-9 w-9 place-items-center rounded-full bg-[#17191c] text-[#f5f5f3] transition-transform duration-500 group-hover:translate-x-0.5">↗</span></Link></Reveal>
         </div>
         <Reveal className="mt-12">
           <Link href={`/journal/${featured.slug}`} className="group grid overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] md:grid-cols-2">

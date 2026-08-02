@@ -239,7 +239,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             <button onClick={toggleTheme} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
               {dark ? <Sun /> : <Moon />}
             </button>
-            <Link href={nav.getStartedHref} className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#f7a26d,#f59153 55%,#b86d3e)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
+            <Link href={nav.getStartedHref} className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
             <button className="grid h-9 w-9 place-items-center lg:hidden" aria-label={open ? "Close" : "Menu"} onClick={() => setOpen((v) => !v)}>
               <div className="flex flex-col gap-[5px]">
                 <span className={`h-px w-5 bg-[var(--nav-fg)] transition-transform duration-500 ${open ? "translate-y-[6px] rotate-45" : ""}`} />

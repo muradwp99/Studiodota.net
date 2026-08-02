@@ -17,11 +17,11 @@
   --muted: #6b7178;
 
   /* Accents — Champagne Bronze */
-  --gold: #f59153;
-  --gold-hi: #d97a3d;
-  --gold-ink: #b8622f; /* readable orange for text on light */
-  --gold-media: #f8ad7a; /* light peach for text over dark imagery */
-  --blueprint: #eb9864;
+  --gold: #a87f3f;
+  --gold-hi: #8f6c39;
+  --gold-ink: #856428; /* readable bronze for text on light */
+  --gold-media: #e6cb92; /* light champagne for text over dark imagery */
+  --blueprint: #6b7d8a;
   --watermark: rgba(17, 19, 21, 0.05);
 
   /* Text over media (always light) */
@@ -563,10 +563,10 @@ html.lenis body {
   --bone: #f5f5f3;
   --bone-dim: #a5abb2;
   --muted: #8b9199;
-  --gold: #f5a06a;
-  --gold-hi: #f7b183;
-  --gold-ink: #f8b98f;
-  --gold-media: #f9c29c;
+  --gold: #c6a672;
+  --gold-hi: #d6b483;
+  --gold-ink: #d8b877;
+  --gold-media: #e6cb92;
   --line: rgba(245, 245, 243, 0.09);
   --line-strong: rgba(245, 245, 243, 0.16);
   --glass-bg: rgba(20, 22, 26, 0.72);
@@ -588,7 +588,7 @@ html.lenis body {
 .grad-warm {
   background:
     radial-gradient(60% 55% at 88% -5%, rgba(176, 137, 78, 0.14), transparent 62%),
-    radial-gradient(50% 50% at 5% 110%, rgba(235, 152, 100, 0.1), transparent 60%),
+    radial-gradient(50% 50% at 5% 110%, rgba(107, 125, 138, 0.07), transparent 60%),
     var(--ink-2);
 }
 .grad-soft {
@@ -612,7 +612,7 @@ html.lenis body {
 }
 /* bright gradient text for use OVER dark imagery (hero wordmark) */
 .grad-text-media {
-  background: linear-gradient(118deg, #ffffff 0%, #fac89c 52%, #e3813f 100%);
+  background: linear-gradient(118deg, #ffffff 0%, #f2ddb0 52%, #d0a86f 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -621,7 +621,7 @@ html.lenis body {
 
 /* Gradient (bronze) button — modern, branded, readable dark text */
 .btn-grad {
-  background: linear-gradient(120deg, #f7a26d 0%, #f59153 55%, #b86d3e 100%);
+  background: linear-gradient(120deg, #d0aa72 0%, #a87f3f 55%, #8f6c39 100%);
   color: #17191c;
   border: none;
 }

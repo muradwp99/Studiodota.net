@@ -1,8 +1,9 @@
 /**
- * Targeted sync: real contact info (site block) + the new orange brand
- * accent (appearance block). Same narrow-upsert approach as
- * sync-2026-07-31-updates.ts - only touches these two keys, so it can't
- * clobber anything else admin-edited since the last import.
+ * Targeted sync: real contact info (site block) + the brand accent
+ * (appearance block, reverted back to the original champagne-bronze).
+ * Same narrow-upsert approach as sync-2026-07-31-updates.ts - only
+ * touches these two keys, so it can't clobber anything else admin-edited
+ * since the last import.
  *
  * Run from web/:  npx tsx scripts/sync-theme-contact.ts   (DATABASE_URL must be set)
  */
