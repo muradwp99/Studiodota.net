@@ -491,8 +491,8 @@ export const BLOCK_DEFAULTS = {
   },
 
   appearance: {
-    /** Brand accent (the champagne-bronze). Shades are derived with color-mix. */
-    accent: "#a87f3f",
+    /** Brand accent. Shades are derived with color-mix. */
+    accent: "#f59153",
   },
 
   /** Global SEO defaults. Per-page overrides live on each page/project/post. */

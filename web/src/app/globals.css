@@ -17,10 +17,10 @@
   --muted: #6b7178;
 
   /* Accents — Champagne Bronze */
-  --gold: #a87f3f;
-  --gold-hi: #8f6c39;
-  --gold-ink: #856428; /* readable bronze for text on light */
-  --gold-media: #e6cb92; /* light champagne for text over dark imagery */
+  --gold: #f59153;
+  --gold-hi: #d97a3d;
+  --gold-ink: #b8622f; /* readable orange for text on light */
+  --gold-media: #f8ad7a; /* light peach for text over dark imagery */
   --blueprint: #eb9864;
   --watermark: rgba(17, 19, 21, 0.05);
 
@@ -563,10 +563,10 @@ html.lenis body {
   --bone: #f5f5f3;
   --bone-dim: #a5abb2;
   --muted: #8b9199;
-  --gold: #c6a672;
-  --gold-hi: #d6b483;
-  --gold-ink: #d8b877;
-  --gold-media: #e6cb92;
+  --gold: #f5a06a;
+  --gold-hi: #f7b183;
+  --gold-ink: #f8b98f;
+  --gold-media: #f9c29c;
   --line: rgba(245, 245, 243, 0.09);
   --line-strong: rgba(245, 245, 243, 0.16);
   --glass-bg: rgba(20, 22, 26, 0.72);
@@ -612,7 +612,7 @@ html.lenis body {
 }
 /* bright gradient text for use OVER dark imagery (hero wordmark) */
 .grad-text-media {
-  background: linear-gradient(118deg, #ffffff 0%, #f2ddb0 52%, #d0a86f 100%);
+  background: linear-gradient(118deg, #ffffff 0%, #fac89c 52%, #e3813f 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
