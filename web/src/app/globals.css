@@ -621,7 +621,7 @@ html.lenis body {
 
 /* Gradient (bronze) button — modern, branded, readable dark text */
 .btn-grad {
-  background: linear-gradient(120deg, #d0aa72 0%, #a87f3f 55%, #8f6c39 100%);
+  background: linear-gradient(120deg, #f7a26d 0%, #f59153 55%, #b86d3e 100%);
   color: #17191c;
   border: none;
 }
