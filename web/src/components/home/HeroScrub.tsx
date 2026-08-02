@@ -11,10 +11,12 @@ import type { BlockData } from "@/content/defaults";
 /**
  * Scroll-scrub hero. A tall track holds a sticky, full-viewport canvas; as the
  * page scrolls through the track, ScrollTrigger maps progress → frame index and
- * the frame is drawn to the canvas (cover-fit, DPR-aware). Frames preload
- * progressively so first paint is fast. Reduced-motion users get one static
- * frame. Mobile viewports load a lighter, lower-res sequence. Headline/lede/CTA
- * stay CMS-editable via `d`.
+ * the frame is drawn to the canvas (cover-fit, DPR-aware). Only the first
+ * EAGER_FRAMES load up front; the rest load on demand as the scrub position
+ * approaches them, so a visitor who never scrolls past the hero doesn't pay
+ * for the full sequence. Reduced-motion users get one static frame. Mobile
+ * viewports load a lighter, lower-res sequence. Headline/lede/CTA stay
+ * CMS-editable via `d`.
  *
  * Frames are produced by scripts/build-hero-frames.mjs — keep the counts in sync.
  */
@@ -22,6 +24,7 @@ import type { BlockData } from "@/content/defaults";
 const SEQ_DESKTOP = { base: "/media/hero-seq", count: 300 };
 const SEQ_MOBILE = { base: "/media/hero-seq-mobile", count: 150 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
+const EAGER_FRAMES = 24; // frames loaded up front; the rest load on scroll
 
 export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const reduced = useReducedMotion();
@@ -32,6 +35,8 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const cueRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const loadedRef = useRef<boolean[]>([]);
+  const loadedCountRef = useRef(0);
+  const cancelledRef = useRef(false);
   const drawnRef = useRef<number>(-1);
   const seqRef = useRef(SEQ_DESKTOP);
   const [progress, setProgress] = useState(0); // preload progress 0..1
@@ -76,34 +81,50 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     draw(drawnRef.current < 0 ? 0 : drawnRef.current);
   }, [draw]);
 
-  // Preload frames — picks the mobile or desktop sequence by viewport (once, at mount).
-  useEffect(() => {
-    let cancelled = false;
-    seqRef.current = window.matchMedia("(max-width: 767px)").matches ? SEQ_MOBILE : SEQ_DESKTOP;
+  // Load frame `i` if it isn't already loaded (or already in flight). Shared by
+  // the initial eager batch and the scroll-triggered lookahead below, so the
+  // sequence is fetched on demand rather than all 300 frames (~45MB) up front.
+  const requestFrame = useCallback((i: number) => {
     const { base, count } = seqRef.current;
-    let loaded = 0;
-    loadedRef.current = new Array(count).fill(false);
-    imagesRef.current = new Array(count);
-
-    const onDone = (i: number) => {
-      if (cancelled) return;
+    if (i < 0 || i >= count || imagesRef.current[i]) return;
+    const img = new Image();
+    img.decoding = "async";
+    const onSettle = () => {
+      if (cancelledRef.current) return;
       loadedRef.current[i] = true;
-      loaded += 1;
-      setProgress(loaded / count);
+      loadedCountRef.current += 1;
+      // Denominator is the eager batch, not the whole sequence - otherwise a
+      // visitor who never scrolls sees "Loading 8%" forever, since only the
+      // eager frames load without a scroll.
+      setProgress(Math.min(1, loadedCountRef.current / Math.min(count, EAGER_FRAMES)));
       if (i === 0 && drawnRef.current < 0) { resizeCanvas(); draw(0); }
       else if (i === drawnRef.current) draw(i);
     };
-
-    for (let i = 0; i < count; i++) {
-      const img = new Image();
-      img.decoding = "async";
-      img.onload = () => onDone(i);
-      img.onerror = () => onDone(i); // still count, so progress can complete
-      img.src = `${base}/frame-${String(i).padStart(3, "0")}.webp`;
-      imagesRef.current[i] = img;
-    }
-    return () => { cancelled = true; };
+    img.onload = onSettle;
+    img.onerror = onSettle; // still count, so progress can complete
+    img.src = `${base}/frame-${String(i).padStart(3, "0")}.webp`;
+    imagesRef.current[i] = img;
   }, [draw, resizeCanvas]);
+
+  // Eager batch on mount — picks the mobile or desktop sequence by viewport,
+  // then loads just enough frames (~2.5 screens' worth of scrub headroom) for
+  // scrubbing to feel instant from frame 0. The rest of the sequence loads
+  // on demand from the scroll-triggered lookahead below, so a visitor who
+  // never scrolls the hero never pays for the other ~90% of it (this was
+  // unconditionally fetching all 300 frames, ~45MB, on every homepage visit).
+  useEffect(() => {
+    cancelledRef.current = false;
+    seqRef.current = window.matchMedia("(max-width: 767px)").matches ? SEQ_MOBILE : SEQ_DESKTOP;
+    const { count } = seqRef.current;
+    loadedRef.current = new Array(count).fill(false);
+    imagesRef.current = new Array(count);
+    loadedCountRef.current = 0;
+    setProgress(0);
+
+    const eager = Math.min(count, EAGER_FRAMES);
+    for (let i = 0; i < eager; i++) requestFrame(i);
+    return () => { cancelledRef.current = true; };
+  }, [requestFrame]);
 
   // Hero intro — released by the Preloader's exit: the footage settles from a
   // slight over-scale while the headline rises out of line masks, then the
@@ -154,13 +175,17 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
         const count = seqRef.current.count;
         const i = Math.min(count - 1, Math.round(self.progress * (count - 1)));
         if (i !== drawnRef.current) draw(i);
+        // Fetch a small window just ahead of the scrub position - the eager
+        // batch on mount only covers the opening frames, so scrubbing past it
+        // needs the rest loaded just-in-time rather than not at all.
+        for (let k = 0; k <= 8; k++) requestFrame(i + k);
       },
     });
     return () => {
       st.kill();
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [reduced, draw, resizeCanvas]);
+  }, [reduced, draw, resizeCanvas, requestFrame]);
 
   return (
     <section
