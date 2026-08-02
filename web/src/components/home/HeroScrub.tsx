@@ -24,7 +24,9 @@ import type { BlockData } from "@/content/defaults";
 const SEQ_DESKTOP = { base: "/media/hero-seq", count: 300 };
 const SEQ_MOBILE = { base: "/media/hero-seq-mobile", count: 150 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
-const EAGER_FRAMES = 24; // frames loaded up front; the rest load on scroll
+const EAGER_FRAMES = 8; // frames loaded up front, before idle/scroll filling
+const IDLE_BATCH = 4; // frames requested per idle tick while back-filling
+const LOOKAHEAD = 16; // frames fetched ahead of the current scrub position
 
 export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const reduced = useReducedMotion();
@@ -106,12 +108,14 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     imagesRef.current[i] = img;
   }, [draw, resizeCanvas]);
 
-  // Eager batch on mount — picks the mobile or desktop sequence by viewport,
-  // then loads just enough frames (~2.5 screens' worth of scrub headroom) for
-  // scrubbing to feel instant from frame 0. The rest of the sequence loads
-  // on demand from the scroll-triggered lookahead below, so a visitor who
-  // never scrolls the hero never pays for the other ~90% of it (this was
-  // unconditionally fetching all 300 frames, ~45MB, on every homepage visit).
+  // Frame loading, in three tiers, so the ~45MB sequence never blocks first
+  // paint (it used to fetch all 300 frames unconditionally on mount):
+  //   1. EAGER_FRAMES immediately - the opening frames, so the hero paints;
+  //   2. the remainder during idle time once the visitor first interacts, a
+  //      few at a time, so a normal-speed scrub always has frames ready
+  //      without ever competing with the initial critical JS/CSS;
+  //   3. a lookahead window driven by the scrub position (see ScrollTrigger
+  //      onUpdate) to cover someone who jumps ahead faster than tier 2 fills.
   useEffect(() => {
     cancelledRef.current = false;
     seqRef.current = window.matchMedia("(max-width: 767px)").matches ? SEQ_MOBILE : SEQ_DESKTOP;
@@ -119,11 +123,43 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     loadedRef.current = new Array(count).fill(false);
     imagesRef.current = new Array(count);
     loadedCountRef.current = 0;
-    setProgress(0);
 
     const eager = Math.min(count, EAGER_FRAMES);
     for (let i = 0; i < eager; i++) requestFrame(i);
-    return () => { cancelledRef.current = true; };
+
+    // requestIdleCallback isn't in Safari <16.4; setTimeout is a fine fallback.
+    const schedule = (cb: () => void): number =>
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(cb, { timeout: 2000 })
+        : window.setTimeout(cb, 250);
+    const unschedule = (h: number) =>
+      typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(h) : window.clearTimeout(h);
+
+    let cursor = eager;
+    let handle = 0;
+    const fillNext = () => {
+      if (cancelledRef.current || cursor >= count) return;
+      for (let n = 0; n < IDLE_BATCH && cursor < count; n++) requestFrame(cursor++);
+      handle = schedule(fillNext);
+    };
+
+    // Hold the back-fill until the visitor actually engages. The sequence only
+    // matters once they scrub, so a visitor who reads the hero and leaves (and
+    // an audit tool that never scrolls) only ever pays for the eager frames.
+    let started = false;
+    const startFill = () => {
+      if (started || cancelledRef.current) return;
+      started = true;
+      handle = schedule(fillNext);
+    };
+    const events = ["scroll", "wheel", "touchstart", "pointerdown"] as const;
+    for (const e of events) window.addEventListener(e, startFill, { passive: true, once: true });
+
+    return () => {
+      cancelledRef.current = true;
+      for (const e of events) window.removeEventListener(e, startFill);
+      if (handle) unschedule(handle);
+    };
   }, [requestFrame]);
 
   // Hero intro — released by the Preloader's exit: the footage settles from a
@@ -175,10 +211,9 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
         const count = seqRef.current.count;
         const i = Math.min(count - 1, Math.round(self.progress * (count - 1)));
         if (i !== drawnRef.current) draw(i);
-        // Fetch a small window just ahead of the scrub position - the eager
-        // batch on mount only covers the opening frames, so scrubbing past it
-        // needs the rest loaded just-in-time rather than not at all.
-        for (let k = 0; k <= 8; k++) requestFrame(i + k);
+        // Fetch a window just ahead of the scrub position, for anyone moving
+        // faster than the idle back-fill can keep up with.
+        for (let k = 0; k <= LOOKAHEAD; k++) requestFrame(i + k);
       },
     });
     return () => {

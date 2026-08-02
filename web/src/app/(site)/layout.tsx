@@ -13,6 +13,19 @@ import { jsonLdScript } from "@/lib/jsonLd";
 
 const SITE_URL = "https://studiodota.net";
 
+/**
+ * Without this, these pages are fully static and Next emits
+ * `Cache-Control: s-maxage=31536000` (its one-year fallback for routes with no
+ * `revalidate`). Hostinger's CDN honors that literally and does not purge on
+ * deploy, so edge nodes served the same HTML for days - referencing hashed JS
+ * chunks that later builds had already deleted (404 -> hydration never
+ * completed -> "This page couldn't load", dead scroll animations, stale
+ * content). A numeric revalidate switches Next to `s-maxage=60,
+ * stale-while-revalidate`, capping how long a stale document can outlive a
+ * deploy. Admin saves still publish instantly via revalidatePath().
+ */
+export const revalidate = 60;
+
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [site, nav, menus, servicesPage, galleryItems, projects, integrations, appearance, seo] = await Promise.all([
     getBlock("site"),
