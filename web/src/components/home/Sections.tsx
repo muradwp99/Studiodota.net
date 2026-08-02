@@ -116,9 +116,7 @@ function About({ d }: { d: HomeData["about"] }) {
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-16">
           <div>
             <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
-            <Reveal delay={60}>
-              <h2 className="display-2xl mt-6 text-balance">{d.title}</h2>
-            </Reveal>
+            <SplitReveal text={d.title} tag="h2" className="display-2xl mt-6 text-balance" by="letter" mode="fade" />
           </div>
           <Reveal delay={120}>
             <div className="space-y-5 text-[var(--bone-dim)]">
