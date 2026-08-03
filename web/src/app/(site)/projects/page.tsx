@@ -25,7 +25,7 @@ export default async function ProjectsPage({
       <header className="relative overflow-hidden pb-12 pt-40 md:pt-56">
         <Arcs className="absolute -right-[28vw] -top-[26vw] w-[74vw] min-w-[520px]" />
         <div className="shell relative">
-          <Reveal><span className="eyebrow">{d.eyebrow}</span></Reveal>
+          <Reveal><span className="eyebrow eyebrow--sheet">{d.eyebrow}</span></Reveal>
           <LineMask text={d.title} tag="h1" className="display-2xl mt-8 max-w-[14ch]" delay={0.08} />
           <Reveal delay={260}>
             <p className="lede mt-8 max-w-[54ch]">{d.lede}</p>

@@ -116,7 +116,7 @@ function About({ d }: { d: HomeData["about"] }) {
       <div className="shell">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-16">
           <div>
-            <Reveal><span className="font-mono text-xs tracking-[0.2em] text-[var(--muted)]">{d.kicker}</span></Reveal>
+            <Reveal><span className="eyebrow eyebrow--rule">{d.kicker}</span></Reveal>
             <SplitReveal text={d.title} tag="h2" className="display-2xl mt-6 text-balance" by="letter" mode="fade" />
           </div>
           <Reveal delay={120}>
@@ -344,7 +344,7 @@ function Featured({ d }: { d: HomeData["featured"] }) {
   return (
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,11vw,9rem)]" style={{ color: "var(--on-media)" }}>
       <div className="shell">
-        <Reveal><span className="font-mono text-xs tracking-[0.2em]" style={{ color: "var(--on-media-dim)" }}>{d.kicker}</span></Reveal>
+        <Reveal><span className="eyebrow eyebrow--sheet" style={{ color: "var(--on-media-dim)" }}>{d.kicker}</span></Reveal>
         <SplitReveal text={`${d.title} ${d.titleMuted}`} tag="h2" className="display-2xl mt-8" />
       </div>
 
@@ -432,7 +432,7 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
         <div className="shell relative z-10 w-full">
           <div className="flex items-end justify-between">
-            <span className="eyebrow">{d.label}</span>
+            <span className="eyebrow eyebrow--sheet">{d.label}</span>
             <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">{d.linkLabel}</Link>
           </div>
           <div className="relative mt-8">
@@ -513,7 +513,7 @@ function Process({ d }: { d: HomeData["process"] }) {
           <CurtainOnView />
         </div>
         <div>
-          <Reveal><span className="eyebrow">{d.label}</span></Reveal>
+          <Reveal><span className="eyebrow eyebrow--keynote">{d.label}</span></Reveal>
           <Reveal delay={70}><p className="mt-5 text-[var(--bone-dim)]">{d.intro}</p></Reveal>
           <div className="mt-8 border-t border-[var(--line)]">
             {steps.map((s, i) => (
@@ -677,7 +677,7 @@ function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage
     return (
       <section className="section grad-mesh">
         <div className="shell">
-          <span className="eyebrow">{d.label}</span>
+          <span className="eyebrow eyebrow--plain">{d.label}</span>
           <h2 className="display-l mt-5 max-w-[13ch]">{d.title}</h2>
           <div className="mt-12 space-y-10">
             {all.map((t) => (
@@ -709,7 +709,7 @@ function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage
             {/* Row 1: statement | context image */}
             <div className="grid lg:grid-cols-2">
               <div className="flex flex-col justify-center border-b border-[var(--line-strong)] p-8 lg:border-b-0 lg:border-r lg:p-14">
-                <span className="eyebrow">{d.label}</span>
+                <span className="eyebrow eyebrow--plain">{d.label}</span>
                 <LineMask text={d.title} tag="h2" className="display-l mt-5" />
               </div>
               <div className="relative min-h-[220px] border-b border-[var(--line-strong)] lg:border-b-0">
@@ -855,7 +855,7 @@ function StatementBand({ d }: { d: HomeData["statement"] }) {
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,15vw,11rem)]" style={{ color: "var(--on-media)" }}>
       <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(rgba(246,245,242,0.6) 1px, transparent 1px)", backgroundSize: "26px 26px" }} aria-hidden="true" />
       <div className="shell relative text-center">
-        <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span>
+        <span className="eyebrow eyebrow--dim" style={{ color: "var(--gold-media)" }}>{d.label}</span>
         <h2 className="mt-6 font-extrabold leading-[0.84] tracking-[-0.04em] text-[clamp(2.7rem,13vw,12.5rem)]">
           <ImageMaskText text={d.word} image={d.image} />
         </h2>
@@ -1061,7 +1061,7 @@ function FinalCTA({ d, contact }: { d: HomeData["cta"]; contact: { email: string
         <div className="absolute inset-0" style={{ background: "linear-gradient(112deg, rgba(9,10,12,0.93) 10%, rgba(9,10,12,0.6) 52%, rgba(9,10,12,0.84) 100%)" }} aria-hidden="true" />
       </div>
       <div className="shell relative z-10 py-[clamp(6rem,14vw,11rem)]" style={{ color: "var(--on-media)" }}>
-        <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span></Reveal>
+        <Reveal><span className="eyebrow eyebrow--rule" style={{ color: "var(--gold-media)" }}>{d.label}</span></Reveal>
         {/* The headline is the CTA — one giant interactive line. */}
         <Link href="/contact" className="group mt-6 block w-fit max-w-full">
           <SplitReveal text={d.title} tag="span" className="display-2xl block transition-colors duration-500 group-hover:text-[var(--gold-media)]" />

@@ -22,7 +22,7 @@ export default async function AboutPage() {
       <header className="relative overflow-hidden pb-16 pt-40 md:pt-56">
         <Arcs className="absolute -right-[24vw] -top-[22vw] w-[70vw] min-w-[480px]" />
         <div className="shell relative">
-          <Reveal><span className="eyebrow">{d.eyebrow}</span></Reveal>
+          <Reveal><span className="eyebrow eyebrow--rule">{d.eyebrow}</span></Reveal>
           <LineMask text={d.title} tag="h1" className="display-2xl mt-8 max-w-[15ch]" delay={0.08} />
           <Reveal delay={260}>
             <p className="lede mt-8 max-w-[56ch]">{d.lede}</p>
@@ -34,7 +34,7 @@ export default async function AboutPage() {
       <section className="section border-t border-[var(--line)]">
         <div className="shell grid gap-12 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
-            <Reveal><span className="eyebrow eyebrow-muted">{d.whyLabel}</span></Reveal>
+            <Reveal><span className="eyebrow eyebrow--dim eyebrow-muted">{d.whyLabel}</span></Reveal>
             <ImageReveal
               src={d.storyImage}
               alt="Studiodot A - residential design study"
@@ -61,7 +61,7 @@ export default async function AboutPage() {
       <section data-nav-tone="dark" className="relative overflow-hidden bg-[#111315] py-[clamp(5rem,10vw,8rem)]" style={{ color: "var(--on-media)" }}>
         <Arcs className="absolute -left-[16vw] top-1/2 w-[52vw] min-w-[420px] -translate-y-1/2" stroke="rgba(230,203,146,0.28)" />
         <div className="shell relative">
-          <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.quoteLabel}</span></Reveal>
+          <Reveal><span className="eyebrow eyebrow--plain" style={{ color: "var(--gold-media)" }}>{d.quoteLabel}</span></Reveal>
           <SplitReveal
             text={`“${d.quote}”`}
             tag="p"

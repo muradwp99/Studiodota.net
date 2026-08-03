@@ -45,7 +45,7 @@ export default function VideoHero() {
 
       {/* content */}
       <div className="relative flex h-full flex-col items-center justify-center px-6 text-center">
-        <span className="eyebrow mb-6">Studiodota — Showreel</span>
+        <span className="eyebrow eyebrow--sheet mb-6">Studiodota — Showreel</span>
         <h1 className="display-xl max-w-[15ch]">
           See it move before you build it.
         </h1>

@@ -52,7 +52,7 @@ export default async function ServicesPage() {
             </div>
             <div className="lg:pt-6">
               <Reveal>
-                <span className="eyebrow eyebrow-muted">What&apos;s included</span>
+                <span className="eyebrow eyebrow--keynote">What&apos;s included</span>
               </Reveal>
               <ul className="mt-6 grid gap-x-10 sm:grid-cols-2">
                 {s.tags.map((t, i) => (

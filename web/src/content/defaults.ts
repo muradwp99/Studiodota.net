@@ -82,7 +82,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "home.about": {
-    kicker: "(SD 02) - WHO WE ARE",
+    kicker: "Who we are",
     title: "Simplifying complexity in design.",
     paragraph1:
       "Studiodot A is a pioneering Architecture + Engineering firm, founded by Nubaira Haque in 2021 with a vision to simplify complexity in design. From bespoke residential work to urban infill and expansive developments, every project is approached with collaboration and creativity.",
@@ -140,7 +140,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "home.featured": {
-    kicker: "(SD 04) - FEATURED PROJECTS",
+    kicker: "Featured projects",
     title: "Inside,",
     titleMuted: "Outside",
     linkLabel: "View all projects →",

@@ -114,7 +114,7 @@ export default async function ProjectDetail({
 
       <section className="section border-t border-[var(--line)]">
         <div className="shell flex flex-col items-center gap-6 text-center">
-          <span className="eyebrow eyebrow-muted">Next project</span>
+          <span className="eyebrow eyebrow--sheet">Next project</span>
           <Link href={`/projects/${next.slug}`} className="group inline-flex items-baseline gap-4">
             <span className="display-m link-underline">{next.title}</span>
             <span aria-hidden="true" className="text-2xl text-[var(--gold-ink)] transition-transform duration-500 group-hover:translate-x-2">→</span>
@@ -132,7 +132,7 @@ export default async function ProjectDetail({
 function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="eyebrow eyebrow-muted">{label}</div>
+      <div className="eyebrow eyebrow--sheet">{label}</div>
       <div className="mt-3 text-[var(--bone)]">{value}</div>
     </div>
   );

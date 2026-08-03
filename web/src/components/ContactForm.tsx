@@ -67,7 +67,7 @@ export default function ContactForm({ serviceOptions }: { serviceOptions: string
     return (
       <div className="bezel">
         <div className="bezel-core flex flex-col items-start gap-4 p-10">
-          <span className="eyebrow">Enquiry received</span>
+          <span className="eyebrow eyebrow--plain">Enquiry received</span>
           <h3 className="display-m">Thank you - we&rsquo;ll be in touch.</h3>
           <p className="text-[var(--bone-dim)]">
             We&rsquo;ve got your details and will reply within one business day

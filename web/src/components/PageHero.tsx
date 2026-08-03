@@ -34,7 +34,7 @@ export default function PageHero({
       />
       <div className="shell relative w-full pb-14 pt-40 md:pb-20" style={{ color: "var(--on-media)" }}>
         <Reveal>
-          <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{eyebrow}</span>
+          <span className="eyebrow eyebrow--dim" style={{ color: "var(--gold-media)" }}>{eyebrow}</span>
         </Reveal>
         <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[18ch]" delay={0.08} />
         {lede && (
