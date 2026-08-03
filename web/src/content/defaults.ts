@@ -33,7 +33,9 @@ export const BLOCK_DEFAULTS = {
     metaTitle: "Studiodota - Architecture & Design Studio",
     metaDescription:
       "Studiodota is an architecture and design practice creating buildings and spaces defined by clarity, craft, and lasting value - from concept to completion.",
-    ogImage: R("hero"),
+    // A real project render, not R("hero") - that is a template stock image, and
+    // this value is the site-wide og:image and the Organization schema's `image`.
+    ogImage: P("office-san-diego", 1),
     twitterHandle: "",
     footerHeadline: "An architecture & design studio shaping spaces built to endure.",
     footerServices: [
@@ -72,7 +74,7 @@ export const BLOCK_DEFAULTS = {
   },
 
   "home.hero": {
-    slides: [{ image: R("hero") }, { image: R("meridian-sports") }, { image: R("harbour-masterplan") }],
+    slides: [{ image: P("office-san-diego", 1) }, { image: P("condominium-temple-simi-valley", 1) }, { image: P("affordable-housing-136", 1) }],
     titleAccent: "Studio",
     titleRestLine1: "of architecture",
     titleRestLine2: "& design",

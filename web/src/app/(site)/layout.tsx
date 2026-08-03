@@ -47,7 +47,12 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     email: site.email,
     telephone: site.phone,
     description: site.metaDescription,
-    ...(site.ogImage ? { logo: `${SITE_URL}${site.ogImage}`, image: `${SITE_URL}${site.ogImage}` } : {}),
+    // `logo` and `image` are different claims and must not share a value. logo
+    // is what search engines may show as the studio's mark, so it has to be the
+    // actual logo file - it was pointing at site.ogImage, i.e. a building
+    // photograph, which told Google a render was the company logo.
+    logo: `${SITE_URL}/logo.png`,
+    ...(site.ogImage ? { image: `${SITE_URL}${site.ogImage}` } : {}),
     address: { "@type": "PostalAddress", streetAddress: site.address1, addressLocality: site.address2 },
     sameAs: site.socials.map((s) => s.href).filter((h) => h && h !== "#"),
   };
