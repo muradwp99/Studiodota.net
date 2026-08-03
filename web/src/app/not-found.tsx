@@ -15,7 +15,7 @@ export default function NotFound() {
     <div className="shell flex min-h-screen flex-col items-start justify-center py-24">
       <NotFoundLogger />
       <Reveal>
-        <span className="eyebrow eyebrow--sheet">404</span>
+        <span className="eyebrow">404</span>
       </Reveal>
       <Reveal delay={80}>
         <h1 className="display-l mt-5 max-w-[20ch]">Page not found</h1>

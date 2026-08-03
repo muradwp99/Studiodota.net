@@ -41,21 +41,21 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
             <h3 className="text-lg font-extrabold">Contact</h3>
             <div className="mt-6 space-y-5 text-sm">
               <div>
-                <div className="eyebrow eyebrow--sheet">Email address</div>
+                <div className="eyebrow">Email address</div>
                 <a href={`mailto:${site.email}`} className="mt-1.5 block text-[var(--bone-dim)] hover:text-[var(--bone)]">
                   {site.email}
                 </a>
               </div>
               <div>
-                <div className="eyebrow eyebrow--sheet">Phone number</div>
+                <div className="eyebrow">Phone number</div>
                 <p className="mt-1.5 text-[var(--bone-dim)]">{site.phone}</p>
               </div>
               <div>
-                <div className="eyebrow eyebrow--sheet">Our offices</div>
+                <div className="eyebrow">Our offices</div>
                 <p className="mt-1.5 text-[var(--bone-dim)]">{site.address1}<br />{site.address2}</p>
               </div>
               <div>
-                <div className="eyebrow eyebrow--sheet">Follow</div>
+                <div className="eyebrow">Follow</div>
                 <div className="mt-2 flex gap-4 text-[var(--bone-dim)]">
                   {site.socials.map((s) => (
                     <a key={s.label} href={s.href} aria-label={s.label} className="hover:text-[var(--gold)]">

@@ -191,138 +191,43 @@ html.lenis body {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+/* Section label: a bronze dot, then wide-tracked caps. One treatment used on
+   every section - the dot carries the accent so the text can sit back in a
+   readable slate rather than shouting in bronze. */
 .eyebrow {
   font-family: var(--font-gilroy), system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gold-ink);
-  font-weight: 700;
-  display: inline-block;
+  color: var(--bone-dim);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+}
+.eyebrow::before {
+  content: "";
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: none;
 }
 .eyebrow-muted {
   color: var(--muted);
 }
-
-/* ---------- Eyebrow variants ----------
-   One eyebrow treatment repeated on every section read as a stamp, and the
-   "(SD 02)" numbering implied a sequence the reader does not actually follow.
-   These variants come from the studio's own vernacular - the annotation
-   language of a drawing sheet - so the marker says something true about the
-   block it labels instead of decorating it:
-
-     --dim      dimension line   -> quantities and scale (stats, coverage)
-     --sheet    title-block tag  -> catalogued, indexed things (projects, gallery)
-     --rule     leading hairline -> quiet editorial prose (statement, about)
-     --keynote  keynote marker   -> ordered procedure (process, services)
-     --plain    no stamp at all  -> human voice (testimonials, journal, contact)
-
-   Compose with the base: class="eyebrow eyebrow--sheet".
-   Each sets its own colour, so `.eyebrow-muted` must come after to win. */
-
-/* Dimension line: hairlines with tick ends, as a measurement callout. */
-.eyebrow--dim {
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
-  letter-spacing: 0.14em;
-  color: var(--blueprint);
-}
-.eyebrow--dim::before,
-.eyebrow--dim::after {
-  content: "";
-  height: 1px;
-  width: clamp(1.5rem, 4vw, 3rem);
-  background: currentColor;
-  opacity: 0.55;
-  /* the tick at each end of a dimension line */
-  box-shadow: 0 -3px 0 -0.5px currentColor, 0 3px 0 -0.5px currentColor;
-  clip-path: inset(-4px 0 -4px 0);
-}
-.eyebrow--dim::before {
-  box-shadow: 3px -3px 0 -0.5px currentColor, 3px 3px 0 -0.5px currentColor;
-}
-.eyebrow--dim::after {
-  box-shadow: -3px -3px 0 -0.5px currentColor, -3px 3px 0 -0.5px currentColor;
-}
-
-/* Sheet tag: boxed monospace, like a sheet number in a title block. */
-.eyebrow--sheet {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  color: var(--bone-dim);
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  padding: 0.4em 0.75em;
-  line-height: 1;
-}
-
-/* Leading hairline: the quietest marker, for prose that needs no label shout. */
-.eyebrow--rule {
-  display: flex;
-  align-items: center;
-  gap: 0.85em;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: none;
-  font-size: 0.82rem;
-  color: var(--muted);
-}
-.eyebrow--rule::before {
-  content: "";
-  height: 1px;
-  width: clamp(2rem, 6vw, 4.5rem);
-  /* currentColor so the rule follows an inline colour override when the
-     eyebrow sits over dark imagery, instead of staying a dark-on-dark bronze. */
-  background: currentColor;
-  opacity: 0.5;
-  flex: none;
-}
-
-/* Keynote: the filled marker that tags a numbered note on a drawing. Only
-   used where the content genuinely is an ordered procedure. */
-.eyebrow--keynote {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6em;
-  letter-spacing: 0.16em;
-  color: var(--gold-ink);
-}
-.eyebrow--keynote::before {
-  content: "";
-  width: 0.5em;
-  height: 0.5em;
-  background: currentColor;
-  transform: rotate(45deg);
-  flex: none;
-}
-
-/* No stamp: for a human voice, where small-caps tracking reads as corporate. */
-.eyebrow--plain {
-  text-transform: none;
-  letter-spacing: -0.01em;
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: var(--bone-dim);
-  font-family: var(--font-gilroy), system-ui, sans-serif;
-}
-
-/* Over dark imagery the light-background colours vanish. */
-[data-nav-tone="dark"] .eyebrow--dim,
-.on-media .eyebrow--dim {
+/* Over dark imagery the slate text disappears; an inline colour override on
+   the element drives the text, and the dot follows it via currentColor so the
+   pairing never breaks. */
+[data-nav-tone="dark"] .eyebrow,
+.on-media .eyebrow {
   color: var(--on-media-dim);
 }
-[data-nav-tone="dark"] .eyebrow--sheet,
-.on-media .eyebrow--sheet {
-  color: var(--on-media-dim);
-  border-color: rgba(245, 245, 243, 0.28);
+[data-nav-tone="dark"] .eyebrow::before,
+.on-media .eyebrow::before {
+  background: var(--gold-media);
 }
-[data-nav-tone="dark"] .eyebrow--plain,
-.on-media .eyebrow--plain {
-  color: var(--on-media-dim);
-}
+
 
 .lede {
   font-size: clamp(1.05rem, 1.5vw, 1.3rem);

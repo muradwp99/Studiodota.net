@@ -274,7 +274,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             <div className={`grid gap-6 ${galleryVideos.length ? "md:grid-cols-[1.2fr_1fr]" : ""}`}>
               {galleryVideos.length > 0 && (
                 <div>
-                  <div className="eyebrow eyebrow--sheet mb-3">Videos</div>
+                  <div className="eyebrow mb-3">Videos</div>
                   <div className="grid grid-cols-2 gap-3">
                     {galleryVideos.map((v) => (
                       <Link key={v.img} href="/gallery" onClick={() => setActive(null)} className="group relative aspect-video overflow-hidden rounded-xl">
@@ -287,7 +287,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
                 </div>
               )}
               <div>
-                <div className="eyebrow eyebrow--sheet mb-3">Photos</div>
+                <div className="eyebrow mb-3">Photos</div>
                 <div className="grid grid-cols-4 gap-2">
                   {galleryPhotos.map((p) => (
                     <Link key={p} href="/gallery" onClick={() => setActive(null)} className="group relative aspect-square overflow-hidden rounded-lg">

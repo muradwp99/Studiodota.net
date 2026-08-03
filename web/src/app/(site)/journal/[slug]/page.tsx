@@ -117,7 +117,7 @@ export default async function PostPage({
           {/* Sidebar: TOC + related */}
           <aside className="lg:sticky lg:top-28 lg:self-start">
             <div className="rounded-2xl border border-[var(--line)] p-6">
-              <h2 className="eyebrow eyebrow--plain">On this page</h2>
+              <h2 className="eyebrow">On this page</h2>
               <nav aria-label="Table of contents" className="mt-4 space-y-2.5 text-sm">
                 {sections.map((s) => (
                   <a key={s.id} href={`#${s.id}`} className="block text-[var(--bone-dim)] transition-colors duration-300 hover:text-[var(--gold-ink)]">
@@ -128,7 +128,7 @@ export default async function PostPage({
             </div>
 
             <div className="mt-8">
-              <h2 className="eyebrow eyebrow--plain">Related reading</h2>
+              <h2 className="eyebrow">Related reading</h2>
               <ul className="mt-4 space-y-5">
                 {related.map((r) => (
                   <li key={r.slug}>
