@@ -14,7 +14,10 @@
   /* Text */
   --bone: #17191c;
   --bone-dim: #545a62;
-  --muted: #6b7178;
+  /* #6b7178 measured 4.44:1 against --ink, just under the 4.5:1 WCAG AA floor
+     for body text - and it is used for footer copy and the tagline. Darkened
+     until it clears with margin (4.78:1); visually indistinguishable. */
+  --muted: #666c73;
 
   /* Accents — Champagne Bronze */
   --gold: #a87f3f;
@@ -129,6 +132,34 @@ html.lenis body {
 .skip-link:focus {
   top: 12px;
   outline: 2px solid #17191c;
+}
+
+/* ---------- Keyboard focus ----------
+   Tailwind's preflight strips the browser's default focus ring and nothing
+   replaced it, so keyboard users had no visible indicator anywhere on the site -
+   measured across links, buttons and form fields, every one reported
+   outline-style: none. :focus-visible restores it for keyboard and other
+   non-pointer input while leaving mouse clicks unringed. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+/* Bronze on dark footage is too close in luminance to read as a ring, so
+   sections flagged as dark get the light champagne instead. */
+[data-nav-tone="dark"] a:focus-visible,
+[data-nav-tone="dark"] button:focus-visible,
+[data-nav-tone="dark"] [tabindex]:focus-visible,
+.on-media a:focus-visible,
+.on-media button:focus-visible,
+.on-media [tabindex]:focus-visible {
+  outline-color: var(--gold-media);
 }
 
 /* In the base layer so Tailwind text-color utilities can override it —

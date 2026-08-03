@@ -95,9 +95,11 @@ export default function ProjectsClient({
                     {/* largo card anatomy: masked-feel title + ruled info columns */}
                     <div className="mt-5 flex flex-wrap items-start justify-between gap-x-8 gap-y-4 border-t border-[var(--line-strong)] pt-4">
                       <div className="min-w-0">
-                        <h3 className={`${feature ? "display-m" : "text-xl font-semibold"} transition-colors duration-300 group-hover:text-[var(--gold-ink)]`}>
+                        {/* h2: these cards are the page's top-level sections, sitting
+                            directly under the h1, so h3 skipped a level. */}
+                        <h2 className={`${feature ? "display-m" : "text-xl font-semibold"} transition-colors duration-300 group-hover:text-[var(--gold-ink)]`}>
                           {p.title}
-                        </h3>
+                        </h2>
                         {feature && (
                           <p className="mt-2 max-w-[52ch] text-sm text-[var(--muted)]">{p.summary}</p>
                         )}

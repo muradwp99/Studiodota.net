@@ -25,7 +25,14 @@ export default async function SearchPage({
       />
       <div className="shell pb-28">
         <form className="flex max-w-[52ch] gap-3">
+          {/* A placeholder is not a label - it disappears on input and screen
+              readers are not required to announce it. This one is visually
+              hidden but read out, so the field still announces its purpose. */}
+          <label htmlFor="site-search" className="sr-only">
+            Search projects, articles, and pages
+          </label>
           <input
+            id="site-search"
             type="search"
             name="q"
             defaultValue={q}

@@ -26,11 +26,13 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
           <FooterCol title="Pages" items={pages} />
 
           <div>
-            <h3 className="text-lg font-extrabold">Services</h3>
+            <h2 className="text-lg font-extrabold">Services</h2>
             <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
               {site.footerServices.map((s) => (
                 <li key={s}>
-                  <Link href="#" className="hover:text-[var(--bone)]">{s}</Link>
+                  {/* Was href="#", which reloads the page and goes nowhere.
+                      The services page is the honest destination. */}
+                  <Link href="/services" className="hover:text-[var(--bone)]">{s}</Link>
                 </li>
               ))}
             </ul>
@@ -38,7 +40,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
 
           {/* contact — beside the other columns, per the client's markup */}
           <div>
-            <h3 className="text-lg font-extrabold">Contact</h3>
+            <h2 className="text-lg font-extrabold">Contact</h2>
             <div className="mt-6 space-y-5 text-sm">
               <div>
                 <div className="eyebrow">Email address</div>
@@ -57,11 +59,26 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
               <div>
                 <div className="eyebrow">Follow</div>
                 <div className="mt-2 flex gap-4 text-[var(--bone-dim)]">
-                  {site.socials.map((s) => (
-                    <a key={s.label} href={s.href} aria-label={s.label} className="hover:text-[var(--gold)]">
-                      <SocialIcon label={s.label} className="h-[18px] w-[18px]" />
-                    </a>
-                  ))}
+                  {/* Only render a social link that actually goes somewhere. Every
+                      href ships as "#" until someone fills it in, which rendered
+                      five icons that reloaded the page and went nowhere. The
+                      Organization JSON-LD already treats "#" as unset the same
+                      way - see sameAs in (site)/layout.tsx. Add the real URLs in
+                      admin Settings and the icons reappear. */}
+                  {site.socials
+                    .filter((s) => s.href && s.href !== "#")
+                    .map((s) => (
+                      <a
+                        key={s.label}
+                        href={s.href}
+                        aria-label={s.label}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-[var(--gold)]"
+                      >
+                        <SocialIcon label={s.label} className="h-[18px] w-[18px]" />
+                      </a>
+                    ))}
                 </div>
               </div>
             </div>
@@ -106,11 +123,17 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
 function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
   return (
     <div>
-      <h3 className="text-lg font-extrabold">{title}</h3>
+      {/* h2, not h3: the footer sits directly under the page h1 on routes with no
+          intervening h2, and an h1 -> h3 jump is a skipped level for anyone
+          navigating by headings. Sizing stays visual, via the class. */}
+      <h2 className="text-lg font-extrabold">{title}</h2>
       <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
         {items.map((i) => (
           <li key={i.label}>
-            <Link href={`#${i.label.toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-[var(--bone)]">{i.label}</Link>
+            {/* Use the item's real href. This was linking to `#` + a slugified
+                label, so every link in the footer's Pages column pointed at an
+                anchor that does not exist on the page instead of navigating. */}
+            <Link href={i.href} className="hover:text-[var(--bone)]">{i.label}</Link>
           </li>
         ))}
       </ul>
