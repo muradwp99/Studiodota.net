@@ -73,7 +73,8 @@ echo
 
 # Order matters: remap-post-images and crop work on files, prune-missing-images
 # reconciles the database against whatever is left on disk, so it runs last.
-for s in rename-at strip-sd-numbering strip-long-dashes sentence-case-kickers remap-post-images prune-missing-images; do
+for s in rename-at strip-sd-numbering strip-long-dashes sentence-case-kickers \
+         remap-post-images replace-stock-renders prune-missing-images; do
   echo "=============================================================="
   echo "  $s ${APPLY:-(dry run)}"
   echo "=============================================================="

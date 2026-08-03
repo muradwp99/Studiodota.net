@@ -22,9 +22,14 @@
     Header always set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 
-  # Everything else under public/media is CMS-replaceable at the same path, so
-  # it gets a day of freshness plus a week of serve-stale instead.
-  <FilesMatch "\.(png|jpe?g|gif|svg|avif|ico|woff2?|mp4|webm)$">
+  # Everything else is CMS-replaceable at the same path, so it gets a day of
+  # freshness plus a week of serve-stale rather than `immutable`.
+  #
+  # `webp` belongs here and was missing at first: every project and gallery
+  # image is .webp, so ~130 of them were served with no Cache-Control at all and
+  # re-downloaded on each visit, while the .png files beside them cached fine.
+  # Only the frame-\d+ rule above was catching webp.
+  <FilesMatch "\.(webp|png|jpe?g|gif|svg|avif|ico|woff2?|mp4|webm)$">
     Header always set Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
   </FilesMatch>
 </IfModule>
