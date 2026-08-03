@@ -1,0 +1,30 @@
+# Cache headers for the hero image sequence, set at the web-server layer.
+#
+# WHY THIS EXISTS. next.config.ts already sets Cache-Control on /media, and it
+# works on a local production build - verified, /media/hero-seq-v2/frame-000.webp
+# returns `public, max-age=31536000, immutable`. On Hostinger it returns no
+# Cache-Control at all, and no CSP or X-Frame-Options either, while / and
+# /_next/static/* do get them. That means requests for files under public/ are
+# answered by LiteSpeed straight off disk and never reach the Node process, so
+# no Next header rule can apply to them.
+#
+# Without this, all ~300 hero frames re-validate on every visit and hcdn reports
+# MISS on them, which is the single largest cause of the site feeling slow.
+#
+# Harmless if LiteSpeed is not the one serving these files - the directives are
+# simply never read.
+
+<IfModule mod_headers.c>
+  # The hero sequences are build artifacts of scripts/build-hero-frames.mjs and
+  # are versioned by directory name (-v2), so a re-encode always lands on a new
+  # path. Safe to mark immutable.
+  <FilesMatch "^frame-\d+\.webp$">
+    Header always set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Everything else under public/media is CMS-replaceable at the same path, so
+  # it gets a day of freshness plus a week of serve-stale instead.
+  <FilesMatch "\.(png|jpe?g|gif|svg|avif|ico|woff2?|mp4|webm)$">
+    Header always set Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+  </FilesMatch>
+</IfModule>
