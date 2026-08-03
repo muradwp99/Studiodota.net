@@ -27,8 +27,11 @@ import type { BlockData } from "@/content/defaults";
 // unsuffixed paths. Re-encoding under the same names served a mix of old and
 // new. Any future re-encode needs a fresh suffix here, in next.config.ts, and
 // in scripts/build-hero-frames.mjs.
-const SEQ_DESKTOP = { base: "/media/hero-seq-v2", count: 300 };
-const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v2", count: 150 };
+// `width` is the encoded pixel width of these frames - keep it in sync with
+// VARIANTS in scripts/build-hero-frames.mjs. resizeCanvas uses it as the cap on
+// the canvas backing store.
+const SEQ_DESKTOP = { base: "/media/hero-seq-v2", count: 300, width: 1280 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v2", count: 150, width: 1080 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
 // 6 matches the per-origin connection limit browsers apply on HTTP/1.1, which
 // is what `next start` speaks. Going above it queues requests at the socket
@@ -111,9 +114,23 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    if (!cssW || !cssH) return;
+
+    // Cap the backing store at the source frame's own width.
+    //
+    // drawImage's cost scales with the DESTINATION area, and the frames are
+    // only 1280px wide. Sizing the canvas at cssWidth x devicePixelRatio means
+    // a 2x display gets a ~2880px backing store: five times the pixels to
+    // rasterise every scrub tick, entirely spent upscaling a 1280px source.
+    // There is no detail to recover, so it is pure cost - and it is invisible
+    // in testing at dpr 1, which is why the scrub measured fine locally while
+    // still feeling laggy on a retina screen.
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(canvas.clientWidth * dpr);
-    canvas.height = Math.round(canvas.clientHeight * dpr);
+    const scale = Math.min(dpr, seqRef.current.width / cssW);
+    canvas.width = Math.max(1, Math.round(cssW * scale));
+    canvas.height = Math.max(1, Math.round(cssH * scale));
     draw(drawnRef.current < 0 ? 0 : drawnRef.current);
   }, [draw]);
 
@@ -277,14 +294,26 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     };
   }, [reduced]);
 
+  // Size the canvas from a ResizeObserver rather than a window resize listener.
+  // resizeCanvas needs the element's laid-out size, and on mount that can still
+  // be 0 - a background tab, or a hero that has not been laid out yet. A window
+  // listener never fires for that, so the canvas would keep its default 300x150
+  // and the footage would render stretched. The observer fires as soon as the
+  // element gets a real size, and covers viewport resizes too.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ro = new ResizeObserver(() => resizeCanvas());
+    ro.observe(canvas);
+    resizeCanvas();
+    return () => ro.disconnect();
+  }, [resizeCanvas]);
+
   // Scroll scrub (skipped entirely for reduced motion).
   useEffect(() => {
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
     if (reduced) {
       draw(0);
-      return () => window.removeEventListener("resize", resizeCanvas);
+      return;
     }
 
     gsap.registerPlugin(ScrollTrigger);
@@ -306,9 +335,8 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     });
     return () => {
       st.kill();
-      window.removeEventListener("resize", resizeCanvas);
     };
-  }, [reduced, draw, resizeCanvas]);
+  }, [reduced, draw]);
 
   return (
     <section
