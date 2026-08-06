@@ -35,8 +35,18 @@ import type { BlockData } from "@/content/defaults";
 // motion-equalised on purpose: the edit contains two hard cuts at 5.5s and
 // 11.1s, and equalising would spend frames on those cuts and fight the
 // animator's pacing, which is already slow and even between them.
-const SEQ_DESKTOP = { base: "/media/hero-seq-v4", count: 300, width: 1280 };
-const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v4", count: 150, width: 1080 };
+// v5 raises the desktop frames from 1280px to 1600px. 1280 was chosen when the
+// source was generated footage and the binding constraint was decode time; with
+// a real 4K render behind it, 1280 was visibly soft because `width` also caps
+// the canvas backing store, so the frame was being upscaled on any wide or
+// retina display. Measured on this footage, sharpness at a 1600px viewing size:
+//
+//     1280px -> 13.3     1600px -> 15.1     1760px -> 11.7 (downscaled again)
+//
+// and webp quality barely moves it (q72 -> q90 went 13.31 -> 13.34 for 3x the
+// bytes), which is why this is a resolution change and not a quality one.
+const SEQ_DESKTOP = { base: "/media/hero-seq-v5", count: 300, width: 1600 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v5", count: 150, width: 1080 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
 // 6 matches the per-origin connection limit browsers apply on HTTP/1.1, which
 // is what `next start` speaks. Going above it queues requests at the socket
