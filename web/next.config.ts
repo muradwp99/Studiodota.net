@@ -100,11 +100,11 @@ const nextConfig: NextConfig = {
       // re-encode MUST land on a new `-vN` directory rather than overwriting
       // these - that is exactly what the unsuffixed v1 paths got wrong.
       {
-        source: "/media/hero-seq-v3/:file*",
+        source: "/media/hero-seq-v4/:file*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
-        source: "/media/hero-seq-mobile-v3/:file*",
+        source: "/media/hero-seq-mobile-v4/:file*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];

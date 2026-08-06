@@ -28,3 +28,7 @@ Thumbs.db
 # sequence derived from them lives in web/public/media/hero-seq-v3/ and IS
 # committed. Keep the masters locally so the sequence can be rebuilt.
 hero-ball-residence/
+
+# Client hero render master (456MB 4K) — the 300-frame webp sequence derived
+# from it lives in web/public/media/hero-seq-v4/ and IS committed.
+Hero_Video/

@@ -30,11 +30,13 @@ import type { BlockData } from "@/content/defaults";
 // `width` is the encoded pixel width of these frames - keep it in sync with
 // VARIANTS in scripts/build-hero-frames.mjs. resizeCanvas uses it as the cap on
 // the canvas backing store.
-// v3: the Ball Residence flythrough. A 13.1s continuous drone move generated
-// from the studio's own aerial render as the opening keyframe, cut to 300
-// frames. Replaces the stock v2 sequence with the practice's own project.
-const SEQ_DESKTOP = { base: "/media/hero-seq-v3", count: 300, width: 1280 };
-const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v3", count: 150, width: 1080 };
+// v4: the studio's own Ball Residence render animation (Hero_Video/FINAL_4K.mp4,
+// 4K/60fps/16.7s), sampled linearly to 300 frames. Linear rather than
+// motion-equalised on purpose: the edit contains two hard cuts at 5.5s and
+// 11.1s, and equalising would spend frames on those cuts and fight the
+// animator's pacing, which is already slow and even between them.
+const SEQ_DESKTOP = { base: "/media/hero-seq-v4", count: 300, width: 1280 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v4", count: 150, width: 1080 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
 // 6 matches the per-origin connection limit browsers apply on HTTP/1.1, which
 // is what `next start` speaks. Going above it queues requests at the socket
@@ -353,12 +355,21 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
       >
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
 
-        {/* scrim — weighted to the bottom so the footage leads and the lower lockup stays legible */}
+        {/* Scrim, in three layers.
+            The bottom gradient carries the headline lockup and already measured
+            13.7-15.5:1 over this footage. The TOP gradient is the one that was
+            missing: the scrim used to be bottom-only, so the navbar sat directly
+            on the footage and dropped to 1.36:1 against a bright sky frame -
+            far under the 4.5:1 floor. The flat base tint takes the brightest
+            frames down a touch without flattening the render. */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "linear-gradient(to top, rgba(11,11,12,0.9) 0%, rgba(11,11,12,0.5) 24%, rgba(11,11,12,0.08) 50%, rgba(11,11,12,0) 66%)",
+            background: [
+              "linear-gradient(to bottom, rgba(11,11,12,0.62) 0%, rgba(11,11,12,0.30) 14%, rgba(11,11,12,0) 34%)",
+              "linear-gradient(to top, rgba(11,11,12,0.92) 0%, rgba(11,11,12,0.58) 24%, rgba(11,11,12,0.14) 50%, rgba(11,11,12,0) 66%)",
+              "rgba(11,11,12,0.14)",
+            ].join(","),
           }}
         />
 
