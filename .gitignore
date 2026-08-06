@@ -13,6 +13,11 @@ dist/
 # Raw hero-frame source (6.9 GB) — optimized frames live in web/public/media/hero-seq/
 Homepage_ref/
 
+# Client's completed-projects delivery (1.5 GB of full-res originals) — the
+# optimized webp derivatives live in web/public/projects/ and ARE committed.
+# See scripts/import-completed-projects.mjs for the curation.
+Projects/
+
 # Logs & OS
 *.log
 .DS_Store

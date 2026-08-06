@@ -39,8 +39,13 @@ export default async function ProjectDetail({
   if (!project) notFound();
 
   const projects = await getProjects();
-  const idx = projects.findIndex((p) => p.slug === slug);
-  const next = projects[(idx + 1) % projects.length] ?? project;
+  // "Next project" stays inside the current category, so following it walks you
+  // through related work instead of jumping from a single-family house to an
+  // industrial yard. Falls back to the full list for a category of one.
+  const sameCategory = projects.filter((p) => p.category === project.category);
+  const pool = sameCategory.length > 1 ? sameCategory : projects;
+  const idx = pool.findIndex((p) => p.slug === slug);
+  const next = pool[(idx + 1) % pool.length] ?? project;
   const services = Array.isArray(project.services) ? (project.services as string[]) : [];
   const gallery = (Array.isArray(project.gallery) ? (project.gallery as string[]) : []).filter(
     (g) => g && g !== project.heroImage,

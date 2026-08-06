@@ -17,20 +17,32 @@ export type ProjectCardData = {
   heroImage: string;
 };
 
-/** Display order + labels; the filter bar only shows categories that exist. */
+/**
+ * Display order + labels. Affordable housing leads; "office" is gone, folded
+ * into commercial. Keep this in step with projectCategories in the taxonomies
+ * block and with scripts/update-project-structure.mjs.
+ */
 const CATEGORY_LABELS: [key: string, label: string][] = [
+  ["affordable-housing", "Affordable housing"],
   ["single-family", "Single family"],
   ["multifamily", "Multifamily"],
-  ["affordable-housing", "Affordable housing"],
   ["mixed-use", "Mixed use"],
   ["commercial", "Commercial"],
-  ["office", "Office"],
   ["senior-living", "Senior living"],
+  ["adu", "ADU"],
+  ["interior", "Interior"],
   // legacy demo categories — shown only if such rows still exist
   ["residential", "Residential"],
   ["institutional", "Institutional"],
   ["masterplan", "Masterplan"],
 ];
+
+/**
+ * Categories that appear in the filter bar even with nothing in them yet.
+ * ADU is announced work with no renders delivered, so the client wants it
+ * visible and clickable, landing on an empty state rather than being hidden.
+ */
+const ALWAYS_SHOWN = new Set(["adu"]);
 
 export default function ProjectsClient({
   projects,
@@ -42,7 +54,9 @@ export default function ProjectsClient({
   const reduced = useReducedMotion();
   const filters: { key: string; label: string }[] = [
     { key: "all", label: "All work" },
-    ...CATEGORY_LABELS.filter(([key]) => projects.some((p) => p.category === key)).map(([key, label]) => ({ key, label })),
+    ...CATEGORY_LABELS.filter(([key]) => ALWAYS_SHOWN.has(key) || projects.some((p) => p.category === key)).map(
+      ([key, label]) => ({ key, label }),
+    ),
   ];
   const [cat, setCat] = useState<string>(
     filters.some((f) => f.key === initial) ? initial : "all",
