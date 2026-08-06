@@ -23,3 +23,8 @@ Projects/
 .DS_Store
 Thumbs.db
 .mysql/
+
+# Magnific hero renders (masters + clips, ~100 MB) — the 300-frame webp
+# sequence derived from them lives in web/public/media/hero-seq-v3/ and IS
+# committed. Keep the masters locally so the sequence can be rebuilt.
+hero-ball-residence/

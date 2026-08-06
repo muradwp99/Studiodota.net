@@ -30,8 +30,11 @@ import type { BlockData } from "@/content/defaults";
 // `width` is the encoded pixel width of these frames - keep it in sync with
 // VARIANTS in scripts/build-hero-frames.mjs. resizeCanvas uses it as the cap on
 // the canvas backing store.
-const SEQ_DESKTOP = { base: "/media/hero-seq-v2", count: 300, width: 1280 };
-const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v2", count: 150, width: 1080 };
+// v3: the Ball Residence flythrough. A 13.1s continuous drone move generated
+// from the studio's own aerial render as the opening keyframe, cut to 300
+// frames. Replaces the stock v2 sequence with the practice's own project.
+const SEQ_DESKTOP = { base: "/media/hero-seq-v3", count: 300, width: 1280 };
+const SEQ_MOBILE = { base: "/media/hero-seq-mobile-v3", count: 150, width: 1080 };
 const PIN_SCREENS = 2.5; // viewport-heights the hero holds while scrubbing
 // 6 matches the per-origin connection limit browsers apply on HTTP/1.1, which
 // is what `next start` speaks. Going above it queues requests at the socket

@@ -49,8 +49,8 @@ const PUBLIC = path.resolve(__dirname, "../public/media");
 // q92 was wasted on frames on screen for milliseconds; a measured sweep put
 // the knee at q72.
 const VARIANTS = {
-  desktop: { dir: "hero-seq-v2", width: 1280, quality: 72, count: 300 },
-  mobile: { dir: "hero-seq-mobile-v2", width: 1080, quality: 72, count: 150 },
+  desktop: { dir: "hero-seq-v3", width: 1280, quality: 72, count: 300 },
+  mobile: { dir: "hero-seq-mobile-v3", width: 1080, quality: 72, count: 150 },
 };
 
 const argv = process.argv.slice(2);
