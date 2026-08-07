@@ -2,7 +2,9 @@
 
 import Reveal from "@/components/Reveal";
 import LineMask from "@/components/motion/LineMask";
+import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
 import { ParallaxImage } from "@/components/Parallax";
+import { DIA_REVEAL_COLORS } from "@/lib/motion";
 
 /**
  * Cinematic media-led page hero: full-bleed parallax render, dark scrim,
@@ -15,12 +17,15 @@ export default function PageHero({
   lede,
   image,
   imageAlt = "",
+  titleReveal = "mask",
 }: {
   eyebrow: string;
   title: string;
   lede?: string;
   image: string;
   imageAlt?: string;
+  /** "dia" swaps the mask rise-in for a gold-shimmer sweep (Services, Contact). */
+  titleReveal?: "mask" | "dia";
 }) {
   return (
     <header data-nav-tone="dark" className="relative flex min-h-[70vh] items-end overflow-hidden">
@@ -36,7 +41,13 @@ export default function PageHero({
         <Reveal>
           <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{eyebrow}</span>
         </Reveal>
-        <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[18ch]" delay={0.08} />
+        {titleReveal === "dia" ? (
+          <h1 className="display-l mt-5 max-w-[18ch]">
+            <DiaTextReveal text={title} colors={DIA_REVEAL_COLORS} textColor="var(--on-media)" delay={0.08} />
+          </h1>
+        ) : (
+          <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[18ch]" delay={0.08} />
+        )}
         {lede && (
           <Reveal delay={130}>
             <p className="lede mt-6 max-w-[54ch]" style={{ color: "var(--on-media-dim)" }}>{lede}</p>

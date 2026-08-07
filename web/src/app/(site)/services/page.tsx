@@ -18,7 +18,7 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <PageHero eyebrow={d.eyebrow} title={d.title} lede={d.lede} image={d.image} imageAlt="" />
+      <PageHero eyebrow={d.eyebrow} title={d.title} lede={d.lede} image={d.image} imageAlt="" titleReveal="dia" />
 
       <section className="section">
         <div className="shell">

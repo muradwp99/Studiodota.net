@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSectionTone } from "@/lib/useSectionTone";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export type NavbarProps = {
   siteName: string;
@@ -96,13 +97,6 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
     el?.querySelector<HTMLElement>('a, button, [tabindex]:not([tabindex="-1"])')?.focus();
   };
   const focusFirstInPanel = () => focusFirstIn(panelRef.current);
-
-  const toggleTheme = () => {
-    const d = !dark;
-    setDark(d);
-    document.documentElement.dataset.theme = d ? "dark" : "light";
-    localStorage.setItem("theme", d ? "dark" : "light");
-  };
 
   const openMega = (k: string) => { if (closeTimer.current) clearTimeout(closeTimer.current); setActive(k); };
   const scheduleClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setActive(null), 150); };
@@ -236,9 +230,17 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             <Link href="/search" onMouseEnter={scheduleClose} aria-label="Search" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
               <SearchIcon />
             </Link>
-            <button onClick={toggleTheme} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">
+            <AnimatedThemeToggler
+              theme={dark ? "dark" : "light"}
+              onThemeChange={(t) => {
+                setDark(t === "dark");
+                localStorage.setItem("theme", t);
+              }}
+              aria-label="Toggle theme"
+              className="grid h-9 w-9 place-items-center rounded-full text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]"
+            >
               {dark ? <Sun /> : <Moon />}
-            </button>
+            </AnimatedThemeToggler>
             <Link href={nav.getStartedHref} className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
             <button className="grid h-9 w-9 place-items-center lg:hidden" aria-label={open ? "Close" : "Menu"} onClick={() => setOpen((v) => !v)}>
               <div className="flex flex-col gap-[5px]">

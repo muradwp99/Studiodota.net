@@ -5,8 +5,10 @@ import SplitReveal from "@/components/SplitReveal";
 import LineMask from "@/components/motion/LineMask";
 import ImageReveal from "@/components/motion/ImageReveal";
 import Arcs from "@/components/motion/Arcs";
+import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
 import { getBlock } from "@/lib/content";
 import { pageMetadata } from "@/lib/seo";
+import { DIA_REVEAL_COLORS } from "@/lib/motion";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.about");
@@ -23,7 +25,9 @@ export default async function AboutPage() {
         <Arcs className="absolute -right-[24vw] -top-[22vw] w-[70vw] min-w-[480px]" />
         <div className="shell relative">
           <Reveal><span className="eyebrow">{d.eyebrow}</span></Reveal>
-          <LineMask text={d.title} tag="h1" className="display-2xl mt-8 max-w-[15ch]" delay={0.08} />
+          <h1 className="display-2xl mt-8 max-w-[15ch]">
+            <DiaTextReveal text={d.title} colors={DIA_REVEAL_COLORS} textColor="var(--bone)" delay={0.08} />
+          </h1>
           <Reveal delay={260}>
             <p className="lede mt-8 max-w-[56ch]">{d.lede}</p>
           </Reveal>

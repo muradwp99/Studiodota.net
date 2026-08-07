@@ -4,7 +4,6 @@ import SocialIcon from "@/components/SocialIcon";
 import type { BlockData } from "@/content/defaults";
 
 export default function Footer({ site, pages }: { site: BlockData["site"]; pages: { label: string; href: string }[] }) {
-  const mapQuery = encodeURIComponent(`${site.address1}, ${site.address2}`);
   return (
     <footer className="relative overflow-hidden border-t border-[var(--line)] bg-[var(--ink)]">
       <div className="shell pt-20">
@@ -53,10 +52,6 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
                 <p className="mt-1.5 text-[var(--bone-dim)]">{site.phone}</p>
               </div>
               <div>
-                <div className="eyebrow">Our offices</div>
-                <p className="mt-1.5 text-[var(--bone-dim)]">{site.address1}<br />{site.address2}</p>
-              </div>
-              <div>
                 <div className="eyebrow">Follow</div>
                 <div className="mt-2 flex gap-4 text-[var(--bone-dim)]">
                   {/* Only render a social link that actually goes somewhere. Every
@@ -84,17 +79,21 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
             </div>
           </div>
 
-          {/* map — address-driven, so fixing the address in Settings updates it */}
-          <div className="overflow-hidden rounded-2xl border border-[var(--line)] sm:col-span-2 lg:col-span-1">
-            <iframe
-              src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-              title={`Map - ${site.name} offices`}
-              className="h-full min-h-[260px] w-full"
-              style={{ border: 0, filter: "grayscale(1) contrast(1.04)" }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
-            />
+          {/* start-a-project CTA — was a map embed keyed to the still-placeholder
+              office address (Settings → General), which geocoded to a real but
+              unrelated LA location. A live contact prompt is honest in the
+              meantime and gives the footer an actual conversion point. */}
+          <div className="flex min-h-[260px] flex-col justify-between gap-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-8 sm:col-span-2 lg:col-span-1">
+            <div>
+              <span className="eyebrow">Start a project</span>
+              <p className="mt-3 max-w-[26ch] text-lg font-semibold leading-snug text-[var(--bone)]">
+                Have a site, a program, or just an idea? Let&apos;s talk it through.
+              </p>
+            </div>
+            <Link href="/contact" className="btn btn-primary w-max">
+              Get in touch
+              <span className="btn-icon" aria-hidden="true">→</span>
+            </Link>
           </div>
         </div>
 

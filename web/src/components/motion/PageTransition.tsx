@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { COVERING_ATTR, PAGE_REVEAL_EVENT } from "@/lib/motion";
 
 /**
  * largo-style route transitions for the App Router: internal link clicks are
@@ -36,6 +37,14 @@ export default function PageTransition() {
     failsafe.current = null;
   };
 
+  // Lets mount-triggered entrance effects (e.g. DiaTextReveal) know it's safe
+  // to play - never before this fires, whichever path gets here first.
+  const reveal = () => {
+    document.documentElement.removeAttribute(COVERING_ATTR);
+    window.dispatchEvent(new Event(PAGE_REVEAL_EVENT));
+    setPhase("reveal");
+  };
+
   // Intercept internal navigations.
   useEffect(() => {
     if (reduced) return;
@@ -56,12 +65,13 @@ export default function PageTransition() {
       e.preventDefault();
       awaiting.current = url.pathname + url.search;
       coveringSince.current = performance.now();
+      document.documentElement.setAttribute(COVERING_ATTR, "1");
       setPhase("cover");
       router.push(url.pathname + url.search + url.hash);
       if (failsafe.current) clearTimeout(failsafe.current);
       failsafe.current = setTimeout(() => {
         awaiting.current = null;
-        setPhase("reveal");
+        reveal();
         timers.current.push(setTimeout(() => setPhase("idle"), 750));
       }, FAILSAFE_MS);
     };
@@ -84,7 +94,7 @@ export default function PageTransition() {
     const wait = Math.max(COVER_MS - elapsed, 0) + REVEAL_HOLD_MS;
     timers.current.push(
       setTimeout(() => {
-        setPhase("reveal");
+        reveal();
         timers.current.push(setTimeout(() => setPhase("idle"), 750));
       }, wait),
     );

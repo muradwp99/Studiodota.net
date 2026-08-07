@@ -16,7 +16,7 @@ export default async function ContactPage() {
 
   return (
     <>
-      <PageHero eyebrow={d.eyebrow} title={d.title} lede={d.lede} image={d.image} imageAlt="" />
+      <PageHero eyebrow={d.eyebrow} title={d.title} lede={d.lede} image={d.image} imageAlt="" titleReveal="dia" />
 
       <section className="section pt-16">
         <div className="shell grid gap-14 lg:grid-cols-[1.35fr_0.85fr] lg:gap-20">

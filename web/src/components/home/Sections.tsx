@@ -16,6 +16,7 @@ import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
 import { HOME_SECTION_IDS } from "@/lib/homeSections";
+import { AnimatedBeam } from "@/components/ui/animated-beam";
 import type { BlockData } from "@/content/defaults";
 
 const GlossyObject = dynamic(() => import("@/components/GlossyObject"), { ssr: false });
@@ -199,7 +200,7 @@ function ServicesSlider({ d }: { d: HomeData["services"] }) {
               style={{ width: "min(84vw, 1180px)", height: "clamp(440px, 70vh, 760px)" }}
             >
               <Image src={s.image} alt={s.title} fill sizes="84vw" className="object-cover" />
-              <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.9), rgba(11,11,12,0.12) 55%, rgba(11,11,12,0.28))" }} />
+              <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.92), rgba(11,11,12,0.6) 60%, rgba(11,11,12,0.25))" }} />
               <div className="absolute inset-0 flex items-end p-6 md:p-12" style={{ color: "var(--on-media)" }}>
                 <div className="max-w-[52ch]">
                   <span className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: "var(--gold-media)" }}>
@@ -526,6 +527,98 @@ function Process({ d }: { d: HomeData["process"] }) {
           </div>
           <CTA href="/contact" label={d.ctaLabel} variant="ghost" />
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Our process — Animated Beam concept (comparison draft,
+   see Process above for the current live version) ---------------- */
+function ProcessBeam({ d }: { d: HomeData["process"] }) {
+  const steps = d.steps;
+  const [active, setActive] = useState(0);
+  const step = steps[Math.min(active, steps.length - 1)];
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Stable per-node ref objects, sized once to the step count.
+  const nodeRefs = useRef(steps.map(() => ({ current: null as HTMLButtonElement | null })));
+  const reduced = useReducedMotion();
+  if (!step) return null;
+
+  return (
+    <section className="section bg-[var(--ink-2)]">
+      <div className="shell">
+        <Reveal><span className="eyebrow">{d.label} — connected</span></Reveal>
+        <LineMask text="One process, six linked moves." tag="h2" className="display-l mt-4 max-w-[20ch]" />
+        <Reveal delay={70}><p className="mt-5 max-w-[54ch] text-[var(--bone-dim)]">{d.intro}</p></Reveal>
+      </div>
+
+      <div className="shell mt-16">
+        <div ref={containerRef} className="relative overflow-x-auto pb-2">
+          <div className="flex min-w-max items-start justify-between gap-8 px-2 py-6 sm:min-w-0 sm:gap-0">
+            {steps.map((s, i) => {
+              const on = i === active;
+              return (
+                <button
+                  key={s.n + i}
+                  ref={(el) => { nodeRefs.current[i].current = el; }}
+                  onClick={() => setActive(i)}
+                  onMouseEnter={() => setActive(i)}
+                  className="group flex w-28 shrink-0 flex-col items-center gap-3 text-center sm:w-auto sm:flex-1"
+                >
+                  <span
+                    className="grid h-16 w-16 shrink-0 place-items-center rounded-full border font-mono text-sm transition-all duration-300 sm:h-20 sm:w-20"
+                    style={{
+                      borderColor: on ? "var(--gold)" : "var(--line-strong)",
+                      background: on ? "var(--gold)" : "var(--surface)",
+                      color: on ? "#17191c" : "var(--bone-dim)",
+                      boxShadow: on ? "0 0 0 6px rgba(168,127,63,0.16)" : "none",
+                    }}
+                  >
+                    {s.n}
+                  </span>
+                  <span className={`text-xs uppercase tracking-[0.06em] transition-colors duration-300 ${on ? "text-[var(--bone)]" : "text-[var(--bone-dim)]"}`}>
+                    {s.title}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {!reduced &&
+            steps.slice(0, -1).map((_, i) => (
+              <AnimatedBeam
+                key={i}
+                containerRef={containerRef}
+                fromRef={nodeRefs.current[i]}
+                toRef={nodeRefs.current[i + 1]}
+                curvature={i % 2 === 0 ? 40 : -40}
+                duration={4}
+                delay={i * 0.3}
+              />
+            ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: EASE_CURTAIN }}
+            className="mt-10 grid gap-8 rounded-2xl border border-[var(--line)] p-7 md:grid-cols-[auto_1fr] md:items-center md:p-9"
+          >
+            <div className="relative hidden aspect-square w-full max-w-[9rem] overflow-hidden rounded-xl md:block">
+              <Image src={step.image} alt={step.title} fill sizes="144px" className="object-cover" />
+            </div>
+            <div>
+              <div className="font-mono text-sm text-[var(--gold-ink)]">{step.n}</div>
+              <h4 className="mt-1 text-xl font-semibold">{step.title}</h4>
+              <p className="mt-2 max-w-[52ch] text-sm text-[var(--bone-dim)]">{step.body}</p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        <CTA href="/contact" label={d.ctaLabel} variant="ghost" />
       </div>
     </section>
   );
@@ -1141,7 +1234,15 @@ export default function Sections({
     whyChoose: <WhyChoose d={data.whyChoose} />,
     featured: <Featured d={data.featured} />,
     showreel: <Showreel d={data.showreel} />,
-    process: <Process d={data.process} />,
+    // TEMP comparison: ProcessBeam is a draft alternate treatment of the same
+    // content, stacked right after the live Process section so the client can
+    // see both and decide which to keep. Remove the loser once they pick.
+    process: (
+      <>
+        <Process d={data.process} />
+        <ProcessBeam d={data.process} />
+      </>
+    ),
     timeline: <Timeline d={data.timeline} />,
     testimonials: (
       <Testimonials
