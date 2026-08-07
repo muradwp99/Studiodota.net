@@ -15,8 +15,10 @@ Homepage_ref/
 
 # Client's completed-projects delivery (1.5 GB of full-res originals) — the
 # optimized webp derivatives live in web/public/projects/ and ARE committed.
-# See scripts/import-completed-projects.mjs for the curation.
-Projects/
+# See scripts/import-completed-projects.mjs for the curation. Anchored to the
+# repo root - a bare "Projects/" also case-insensitively matched (and
+# silently swallowed) every file under web/public/projects/ on Windows git.
+/Projects/
 
 # Logs & OS
 *.log
@@ -32,3 +34,8 @@ hero-ball-residence/
 # Client hero render master (456MB 4K) — the 300-frame webp sequence derived
 # from it lives in web/public/media/hero-seq-v4/ and IS committed.
 Hero_Video/
+
+# 2026-08-07 interior delivery (226 MB of full-res originals) — optimized
+# webp derivatives live in web/public/projects/ and ARE committed.
+# See web/scripts/optimize-04-interior.mjs for the curation.
+/04_Interior/

@@ -1,0 +1,65 @@
+{
+  "projects": {
+    "bar": [
+      "/projects/bar/01.webp",
+      "/projects/bar/02.webp",
+      "/projects/bar/03.webp",
+      "/projects/bar/04.webp",
+      "/projects/bar/05.webp",
+      "/projects/bar/06.webp",
+      "/projects/bar/07.webp",
+      "/projects/bar/08.webp"
+    ],
+    "fisher-st": [
+      "/projects/fisher-st/01.webp",
+      "/projects/fisher-st/02.webp",
+      "/projects/fisher-st/03.webp",
+      "/projects/fisher-st/04.webp"
+    ],
+    "garments-office": [
+      "/projects/garments-office/01.webp",
+      "/projects/garments-office/02.webp",
+      "/projects/garments-office/03.webp",
+      "/projects/garments-office/04.webp",
+      "/projects/garments-office/05.webp",
+      "/projects/garments-office/06.webp",
+      "/projects/garments-office/07.webp",
+      "/projects/garments-office/08.webp",
+      "/projects/garments-office/09.webp"
+    ],
+    "humairas-residence": [
+      "/projects/humairas-residence/01.webp",
+      "/projects/humairas-residence/02.webp",
+      "/projects/humairas-residence/03.webp",
+      "/projects/humairas-residence/04.webp"
+    ],
+    "michaels-residence": [
+      "/projects/michaels-residence/01.webp",
+      "/projects/michaels-residence/02.webp",
+      "/projects/michaels-residence/03.webp"
+    ],
+    "mr-amins-kitchen": [
+      "/projects/mr-amins-kitchen/01.webp",
+      "/projects/mr-amins-kitchen/02.webp",
+      "/projects/mr-amins-kitchen/03.webp"
+    ],
+    "nandos-restaurant": [
+      "/projects/nandos-restaurant/01.webp",
+      "/projects/nandos-restaurant/02.webp",
+      "/projects/nandos-restaurant/03.webp",
+      "/projects/nandos-restaurant/04.webp",
+      "/projects/nandos-restaurant/05.webp"
+    ]
+  },
+  "append": {
+    "bell-residence": [
+      "/projects/bell-residence/02.webp",
+      "/projects/bell-residence/03.webp"
+    ],
+    "jurien-bay": [
+      "/projects/jurien-bay/03.webp",
+      "/projects/jurien-bay/04.webp",
+      "/projects/jurien-bay/05.webp"
+    ]
+  }
+}
