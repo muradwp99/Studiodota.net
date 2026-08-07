@@ -32,13 +32,6 @@ export default async function ServicesPage() {
           masked titles, ruled scope lists with hover-interactive rows */}
       {d.items.map((s) => (
         <section key={s.id} id={s.id} className="relative scroll-mt-28 overflow-hidden border-t border-[var(--line)]">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-[-3vw] right-[-2vw] hidden select-none font-extrabold leading-none sm:block"
-            style={{ fontSize: "clamp(8rem,20vw,20rem)", color: "var(--line-strong)" }}
-          >
-            {s.num}
-          </span>
           <div className="shell relative z-10 grid gap-x-16 gap-y-10 py-[clamp(3.5rem,8vw,7rem)] lg:grid-cols-[0.45fr_0.55fr]">
             <div>
               <Reveal>
@@ -59,7 +52,7 @@ export default async function ServicesPage() {
                 />
               </div>
             </div>
-            <div className="lg:pt-6">
+            <div className="relative lg:pt-6">
               <Reveal>
                 <span className="eyebrow">What&apos;s included</span>
               </Reveal>
@@ -78,6 +71,18 @@ export default async function ServicesPage() {
                   Enquire about {s.title.toLowerCase()}
                   <span className="btn-icon" aria-hidden="true">→</span>
                 </Link>
+              </Reveal>
+              {/* Fills the empty space below the CTA - column stretches to
+                  match the taller left column's image, so this sits right
+                  where that gap actually is. */}
+              <Reveal className="pointer-events-none absolute inset-x-0 bottom-[-95px] hidden justify-end sm:flex" from="right" delay={80}>
+                <span
+                  aria-hidden="true"
+                  className="select-none font-extrabold leading-none"
+                  style={{ fontSize: "clamp(6rem,16vw,26rem)", color: "#cccccc40" }}
+                >
+                  {s.num}
+                </span>
               </Reveal>
             </div>
           </div>
