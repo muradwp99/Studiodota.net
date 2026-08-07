@@ -37,7 +37,7 @@ export default function PageTransition() {
     failsafe.current = null;
   };
 
-  // Lets mount-triggered entrance effects (e.g. DiaTextReveal) know it's safe
+  // Lets mount-triggered entrance effects (e.g. BigTitle) know it's safe
   // to play - never before this fires, whichever path gets here first.
   const reveal = () => {
     document.documentElement.removeAttribute(COVERING_ATTR);

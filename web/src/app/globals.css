@@ -200,6 +200,17 @@ summary:focus-visible,
   font-size: clamp(2.9rem, 9vw, 8.75rem);
   overflow-wrap: anywhere;
 }
+/* The page-name treatment (BigTitle) - bigger than display-xl, reserved for
+   the one giant word at the top of each page. */
+.display-huge {
+  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.86;
+  font-size: clamp(3.4rem, 12vw, 10.5rem);
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
 .display-l {
   font-family: var(--font-gilroy), system-ui, sans-serif;
   font-weight: 600;

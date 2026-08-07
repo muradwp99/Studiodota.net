@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
-import LineMask from "@/components/motion/LineMask";
+import BigTitle from "@/components/motion/BigTitle";
 import Arcs from "@/components/motion/Arcs";
 import ProjectsClient from "@/components/projects/ProjectsClient";
 import { getBlock, getProjects } from "@/lib/content";
@@ -26,7 +26,7 @@ export default async function ProjectsPage({
         <Arcs className="absolute -right-[28vw] -top-[26vw] w-[74vw] min-w-[520px]" />
         <div className="shell relative">
           <Reveal><span className="eyebrow">{d.eyebrow}</span></Reveal>
-          <LineMask text={d.title} tag="h1" className="display-2xl mt-8 max-w-[14ch]" delay={0.08} />
+          <BigTitle text="Work" tag="h1" className="mt-8" />
           <Reveal delay={260}>
             <p className="lede mt-8 max-w-[54ch]">{d.lede}</p>
           </Reveal>

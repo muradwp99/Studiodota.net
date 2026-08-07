@@ -20,7 +20,7 @@ export default async function SearchPage({
     <>
       <PageHeader
         eyebrow="Search"
-        title="Search the site"
+        pageName="Search"
         lede={query ? `${total} result${total === 1 ? "" : "s"} for "${query}"` : "Find projects, journal articles, and pages."}
       />
       <div className="shell pb-28">

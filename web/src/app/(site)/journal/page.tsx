@@ -28,7 +28,7 @@ export default async function JournalPage() {
 
   return (
     <>
-      <PageHero eyebrow={d.eyebrow} title={d.title} lede={d.lede} image={d.image} imageAlt="" />
+      <PageHero eyebrow={d.eyebrow} pageName="Journal" lede={d.lede} image={d.image} imageAlt="" />
 
       <section className="section pt-16">
         <div className="shell">

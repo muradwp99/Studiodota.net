@@ -24,7 +24,7 @@ export default async function GalleryPage() {
 
   return (
     <>
-      <PageHero eyebrow={d.eyebrow} title={d.title} lede={d.lede} image={d.image} imageAlt="" />
+      <PageHero eyebrow={d.eyebrow} pageName="Gallery" lede={d.lede} image={d.image} imageAlt="" />
       <GalleryClient
         items={items.map((it) => ({
           id: it.id,

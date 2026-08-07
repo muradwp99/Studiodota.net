@@ -1,13 +1,13 @@
 import Reveal from "@/components/Reveal";
-import LineMask from "@/components/motion/LineMask";
+import BigTitle from "@/components/motion/BigTitle";
 
 export default function PageHeader({
   eyebrow,
-  title,
+  pageName,
   lede,
 }: {
   eyebrow: string;
-  title: string;
+  pageName: string;
   lede?: string;
 }) {
   return (
@@ -15,7 +15,7 @@ export default function PageHeader({
       <Reveal>
         <span className="eyebrow">{eyebrow}</span>
       </Reveal>
-      <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[20ch]" delay={0.08} />
+      <BigTitle text={pageName} tag="h1" className="mt-5" />
       {lede && (
         <Reveal delay={130}>
           <p className="lede mt-7 max-w-[52ch]">{lede}</p>

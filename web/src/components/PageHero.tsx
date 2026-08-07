@@ -1,31 +1,27 @@
 "use client";
 
 import Reveal from "@/components/Reveal";
-import LineMask from "@/components/motion/LineMask";
-import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
+import BigTitle from "@/components/motion/BigTitle";
 import { ParallaxImage } from "@/components/Parallax";
-import { DIA_REVEAL_COLORS } from "@/lib/motion";
 
 /**
  * Cinematic media-led page hero: full-bleed parallax render, dark scrim,
- * eyebrow + display title + lede overlaid at the bottom. Sets a dark nav tone.
- * Reduced-motion safe (ParallaxImage + Reveal both gate themselves).
+ * eyebrow + giant page-name title + lede overlaid at the bottom. Sets a dark
+ * nav tone. Reduced-motion safe (ParallaxImage + Reveal both gate themselves).
  */
 export default function PageHero({
   eyebrow,
-  title,
+  pageName,
   lede,
   image,
   imageAlt = "",
-  titleReveal = "mask",
 }: {
   eyebrow: string;
-  title: string;
+  /** The page's own name (e.g. "Services") - rendered giant, not the CMS marketing title. */
+  pageName: string;
   lede?: string;
   image: string;
   imageAlt?: string;
-  /** "dia" swaps the mask rise-in for a gold-shimmer sweep (Services, Contact). */
-  titleReveal?: "mask" | "dia";
 }) {
   return (
     <header data-nav-tone="dark" className="relative flex min-h-[70vh] items-end overflow-hidden">
@@ -41,13 +37,7 @@ export default function PageHero({
         <Reveal>
           <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{eyebrow}</span>
         </Reveal>
-        {titleReveal === "dia" ? (
-          <h1 className="display-l mt-5 max-w-[18ch]">
-            <DiaTextReveal text={title} colors={DIA_REVEAL_COLORS} textColor="var(--on-media)" delay={0.08} />
-          </h1>
-        ) : (
-          <LineMask text={title} tag="h1" className="display-l mt-5 max-w-[18ch]" delay={0.08} />
-        )}
+        <BigTitle text={pageName} tag="h1" className="mt-5" style={{ color: "var(--on-media)" }} />
         {lede && (
           <Reveal delay={130}>
             <p className="lede mt-6 max-w-[54ch]" style={{ color: "var(--on-media-dim)" }}>{lede}</p>

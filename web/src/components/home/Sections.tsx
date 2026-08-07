@@ -16,7 +16,6 @@ import { ParallaxImage, ParallaxX } from "@/components/Parallax";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { submitContact } from "@/lib/actions/contact";
 import { HOME_SECTION_IDS } from "@/lib/homeSections";
-import { AnimatedBeam } from "@/components/ui/animated-beam";
 import type { BlockData } from "@/content/defaults";
 
 const GlossyObject = dynamic(() => import("@/components/GlossyObject"), { ssr: false });
@@ -493,132 +492,118 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
   );
 }
 
-/* ---------------- Our process ---------------- */
+/* ---------------- Our process ----------------
+   Auto-advancing (pauses on hover/focus, and never runs under reduced
+   motion), with a per-row progress rail so the active step's dwell time
+   reads as a fill instead of a flat color swap - the "Ken Burns" image
+   zoom and the ghost numeral echo the treatment Services/Timeline use
+   elsewhere on the page. */
+const PROCESS_DWELL_MS = 4500;
+
 function Process({ d }: { d: HomeData["process"] }) {
-  const [active, setActive] = useState(0);
   const steps = d.steps;
+  const [active, setActive] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const reduced = useReducedMotion();
   const step = steps[Math.min(active, steps.length - 1)];
+
+  useEffect(() => {
+    if (reduced || paused || steps.length < 2) return;
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = now - last;
+      last = now;
+      setProgress((p) => {
+        const next = p + dt / PROCESS_DWELL_MS;
+        if (next >= 1) {
+          setActive((a) => (a + 1) % steps.length);
+          return 0;
+        }
+        return next;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [reduced, paused, steps.length]);
+
+  const selectStep = (i: number) => {
+    setActive(i);
+    setProgress(0);
+  };
+
   if (!step) return null;
   return (
     <section className="section bg-[var(--ink-2)]">
-      <div className="shell grid gap-12 lg:grid-cols-2">
+      <div className="shell">
+        <Reveal><span className="eyebrow">{d.label}</span></Reveal>
+        <LineMask text="A process built for clarity." tag="h2" className="display-l mt-4 max-w-[20ch]" />
+        <Reveal delay={70}><p className="mt-5 max-w-[56ch] text-[var(--bone-dim)]">{d.intro}</p></Reveal>
+      </div>
+
+      <div
+        className="shell mt-14 grid gap-12 lg:grid-cols-2"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false); }}
+      >
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl lg:sticky lg:top-28">
           {steps.map((s, i) => (
-            <Image key={s.image + i} src={s.image} alt={s.title} fill sizes="(max-width:1024px) 100vw, 45vw" className="object-cover transition-opacity duration-700" style={{ opacity: i === active ? 1 : 0 }} />
+            <Image
+              key={s.image + i}
+              src={s.image}
+              alt={s.title}
+              fill
+              sizes="(max-width:1024px) 100vw, 45vw"
+              className="object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.52,0.08,0.18,1)]"
+              style={{ opacity: i === active ? 1 : 0, transform: i === active ? "scale(1)" : "scale(1.06)" }}
+            />
           ))}
-          <div className="absolute inset-x-0 bottom-0 p-7" style={{ background: "rgba(17,19,21,0.5)", color: "var(--on-media)" }}>
-            <div className="font-mono text-sm text-[var(--gold-hi)]">{step.n}</div>
-            <h4 className="mt-1 text-xl font-semibold">{step.title}</h4>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-5 top-5 font-extrabold leading-none"
+            style={{ fontSize: "clamp(3rem,7vw,5rem)", color: "rgba(246,245,242,0.14)" }}
+          >
+            {step.n}
+          </span>
+          <div className="absolute inset-x-0 bottom-0 p-7" style={{ background: "linear-gradient(to top, rgba(17,19,21,0.78), rgba(17,19,21,0.5) 70%, transparent)", color: "var(--on-media)" }}>
+            <span className="font-mono text-xs uppercase tracking-[0.25em]" style={{ color: "var(--gold-media)" }}>
+              Step {String(active + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}
+            </span>
+            <h4 className="mt-2 text-xl font-semibold">{step.title}</h4>
             <p className="mt-2 max-w-[46ch] text-sm" style={{ color: "var(--on-media-dim)" }}>{step.body}</p>
           </div>
           <CurtainOnView />
         </div>
+
         <div>
-          <Reveal><span className="eyebrow">{d.label}</span></Reveal>
-          <Reveal delay={70}><p className="mt-5 text-[var(--bone-dim)]">{d.intro}</p></Reveal>
-          <div className="mt-8 border-t border-[var(--line)]">
-            {steps.map((s, i) => (
-              <button key={s.n + i} onClick={() => setActive(i)} className="flex w-full items-center gap-6 border-b border-[var(--line)] py-5 text-left transition-colors duration-300">
-                <span className={`font-mono text-sm ${i === active ? "text-[var(--gold)]" : "text-[var(--muted)]"}`}>{s.n}</span>
-                <span className={`flex-1 uppercase tracking-[0.06em] transition-colors duration-300 ${i === active ? "text-[var(--bone)]" : "text-[var(--bone-dim)]"}`}>{s.title}</span>
-                <span className="text-lg text-[var(--gold-ink)] transition-all duration-300" style={{ opacity: i === active ? 1 : 0, transform: i === active ? "translateX(0)" : "translateX(-8px)" }} aria-hidden="true">→</span>
+          {steps.map((s, i) => {
+            const on = i === active;
+            return (
+              <button
+                key={s.n + i}
+                onClick={() => selectStep(i)}
+                className="group block w-full border-b border-[var(--line)] py-5 text-left"
+              >
+                <span className="flex items-center gap-6">
+                  <span className={`font-mono text-sm transition-colors duration-300 ${on ? "text-[var(--gold)]" : "text-[var(--muted)] group-hover:text-[var(--gold-ink)]"}`}>{s.n}</span>
+                  <span className={`flex-1 uppercase tracking-[0.06em] transition-colors duration-300 ${on ? "text-[var(--bone)]" : "text-[var(--bone-dim)] group-hover:text-[var(--bone)]"}`}>{s.title}</span>
+                  <span className="text-lg text-[var(--gold-ink)] transition-all duration-300" style={{ opacity: on ? 1 : 0, transform: on ? "translateX(0)" : "translateX(-8px)" }} aria-hidden="true">→</span>
+                </span>
+                <span className="mt-3 block h-[2px] w-full overflow-hidden rounded-full bg-[var(--line)]" aria-hidden="true">
+                  <span
+                    className="block h-full w-full origin-left rounded-full bg-[var(--gold)]"
+                    style={{ transform: `scaleX(${on ? Math.min(progress, 1) : 0})`, transition: on ? "none" : "transform 0.3s ease" }}
+                  />
+                </span>
               </button>
-            ))}
-          </div>
+            );
+          })}
           <CTA href="/contact" label={d.ctaLabel} variant="ghost" />
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Our process — Animated Beam concept (comparison draft,
-   see Process above for the current live version) ---------------- */
-function ProcessBeam({ d }: { d: HomeData["process"] }) {
-  const steps = d.steps;
-  const [active, setActive] = useState(0);
-  const step = steps[Math.min(active, steps.length - 1)];
-  const containerRef = useRef<HTMLDivElement>(null);
-  // Stable per-node ref objects, sized once to the step count.
-  const nodeRefs = useRef(steps.map(() => ({ current: null as HTMLButtonElement | null })));
-  const reduced = useReducedMotion();
-  if (!step) return null;
-
-  return (
-    <section className="section bg-[var(--ink-2)]">
-      <div className="shell">
-        <Reveal><span className="eyebrow">{d.label} — connected</span></Reveal>
-        <LineMask text="One process, six linked moves." tag="h2" className="display-l mt-4 max-w-[20ch]" />
-        <Reveal delay={70}><p className="mt-5 max-w-[54ch] text-[var(--bone-dim)]">{d.intro}</p></Reveal>
-      </div>
-
-      <div className="shell mt-16">
-        <div ref={containerRef} className="relative overflow-x-auto pb-2">
-          <div className="flex min-w-max items-start justify-between gap-8 px-2 py-6 sm:min-w-0 sm:gap-0">
-            {steps.map((s, i) => {
-              const on = i === active;
-              return (
-                <button
-                  key={s.n + i}
-                  ref={(el) => { nodeRefs.current[i].current = el; }}
-                  onClick={() => setActive(i)}
-                  onMouseEnter={() => setActive(i)}
-                  className="group flex w-28 shrink-0 flex-col items-center gap-3 text-center sm:w-auto sm:flex-1"
-                >
-                  <span
-                    className="grid h-16 w-16 shrink-0 place-items-center rounded-full border font-mono text-sm transition-all duration-300 sm:h-20 sm:w-20"
-                    style={{
-                      borderColor: on ? "var(--gold)" : "var(--line-strong)",
-                      background: on ? "var(--gold)" : "var(--surface)",
-                      color: on ? "#17191c" : "var(--bone-dim)",
-                      boxShadow: on ? "0 0 0 6px rgba(168,127,63,0.16)" : "none",
-                    }}
-                  >
-                    {s.n}
-                  </span>
-                  <span className={`text-xs uppercase tracking-[0.06em] transition-colors duration-300 ${on ? "text-[var(--bone)]" : "text-[var(--bone-dim)]"}`}>
-                    {s.title}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {!reduced &&
-            steps.slice(0, -1).map((_, i) => (
-              <AnimatedBeam
-                key={i}
-                containerRef={containerRef}
-                fromRef={nodeRefs.current[i]}
-                toRef={nodeRefs.current[i + 1]}
-                curvature={i % 2 === 0 ? 40 : -40}
-                duration={4}
-                delay={i * 0.3}
-              />
-            ))}
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35, ease: EASE_CURTAIN }}
-            className="mt-10 grid gap-8 rounded-2xl border border-[var(--line)] p-7 md:grid-cols-[auto_1fr] md:items-center md:p-9"
-          >
-            <div className="relative hidden aspect-square w-full max-w-[9rem] overflow-hidden rounded-xl md:block">
-              <Image src={step.image} alt={step.title} fill sizes="144px" className="object-cover" />
-            </div>
-            <div>
-              <div className="font-mono text-sm text-[var(--gold-ink)]">{step.n}</div>
-              <h4 className="mt-1 text-xl font-semibold">{step.title}</h4>
-              <p className="mt-2 max-w-[52ch] text-sm text-[var(--bone-dim)]">{step.body}</p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        <CTA href="/contact" label={d.ctaLabel} variant="ghost" />
       </div>
     </section>
   );
@@ -1237,12 +1222,7 @@ export default function Sections({
     // TEMP comparison: ProcessBeam is a draft alternate treatment of the same
     // content, stacked right after the live Process section so the client can
     // see both and decide which to keep. Remove the loser once they pick.
-    process: (
-      <>
-        <Process d={data.process} />
-        <ProcessBeam d={data.process} />
-      </>
-    ),
+    process: <Process d={data.process} />,
     timeline: <Timeline d={data.timeline} />,
     testimonials: (
       <Testimonials

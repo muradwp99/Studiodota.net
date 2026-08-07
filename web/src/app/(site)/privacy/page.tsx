@@ -13,7 +13,7 @@ export default async function PrivacyPage() {
 
   return (
     <>
-      <PageHeader eyebrow={d.eyebrow} title={d.title} lede={d.lede} />
+      <PageHeader eyebrow={d.eyebrow} pageName={d.title} lede={d.lede} />
       <div className="shell pb-28">
         <div className="max-w-[70ch] space-y-10 text-[var(--bone-dim)]">
           {d.sections.map((s) => (

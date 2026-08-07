@@ -34,11 +34,6 @@ export const onSiteLoaded = (cb: () => void): (() => void) => {
   return () => window.removeEventListener(LOADED_EVENT, cb);
 };
 
-/** Sweep colors for DiaTextReveal (components/ui/dia-text-reveal.tsx) - stays
- *  inside the champagne-bronze family instead of the component's default
- *  rainbow palette, so the effect reads as a gold shimmer, not a color change. */
-export const DIA_REVEAL_COLORS = ["var(--gold-hi)", "var(--gold-media)", "var(--gold)"];
-
 /** Fired by PageTransition the instant its cover panel starts lifting on a
  *  route change (unlike sd:loaded, which only ever fires once per session). */
 export const PAGE_REVEAL_EVENT = "sd:page-reveal";

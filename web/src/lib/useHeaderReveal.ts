@@ -5,7 +5,7 @@ import { COVERING_ATTR, LOADED_EVENT, PAGE_REVEAL_EVENT, isSiteLoaded } from "@/
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 /**
- * True once it's safe for a mount-triggered header effect (e.g. DiaTextReveal)
+ * True once it's safe for a mount-triggered header effect (e.g. BigTitle)
  * to start playing - after the first-load Preloader exits, or after
  * PageTransition's cover has lifted on a route change. Without this, an
  * effect that starts on mount/in-view can play - or finish - while still
