@@ -18,7 +18,7 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <PageHero eyebrow={d.eyebrow} pageName="Services" lede={d.lede} image={d.image} imageAlt="" />
+      <PageHero eyebrow={d.eyebrow} pageName="Services" lede={d.lede} image={d.image} imageAlt="" video="/media/services-hero.mp4" />
 
       <section className="section">
         <div className="shell">

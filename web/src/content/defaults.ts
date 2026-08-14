@@ -294,7 +294,7 @@ export const BLOCK_DEFAULTS = {
         num: "01",
         title: "Pre-Design",
         blurb: "Feasibility, programming, and site intelligence - before a line is drawn.",
-        image: P("office-san-diego", 8),
+        image: P("office-san-diego", 1),
         tags: [
           "Master Planning / Programming",
           "Space Schematics / Flow Diagrams",
@@ -624,6 +624,9 @@ export const SEED_PROJECTS = [
   { slug: "michaels-residence", title: "Michael's Residence", summary: "A residence interior - living room, dining, and foyer resolved for material and light.", category: "interior", sector: "Single Family Residence", location: "", year: "", services: ["Architectural Design", "3D Visualization"], heroImage: P("michaels-residence", 1), interiorImage: P("michaels-residence", 2), gallery: G("michaels-residence", 3), published: true, sort: 38 },
   { slug: "mr-amins-kitchen", title: "Mr. Amin's Kitchen", summary: "A kitchen interior studied across three camera views.", category: "interior", sector: "Single Family Residence", location: "", year: "", services: ["Interior Architecture", "3D Visualization"], heroImage: P("mr-amins-kitchen", 1), interiorImage: P("mr-amins-kitchen", 2), gallery: G("mr-amins-kitchen", 3), published: true, sort: 39 },
   { slug: "nandos-restaurant", title: "Nando's Restaurant", summary: "A restaurant interior for Nando's - dining floor and ambience studied across five views.", category: "interior", sector: "Hospitality", location: "", year: "", services: ["Interior Architecture", "3D Visualization"], heroImage: P("nandos-restaurant", 1), interiorImage: P("nandos-restaurant", 2), gallery: G("nandos-restaurant", 5), published: true, sort: 40 },
+
+  // ---- ADU added 2026-08-09 ----
+  { slug: "adu", title: "ADU", summary: "Furnished floor-plan studies for an ADU development - unit layouts explored from a compact studio through multi-bedroom configurations.", category: "adu", sector: "ADU", location: "", year: "", services: ["Architectural Design", "Interior Architecture"], heroImage: P("adu", 1), interiorImage: P("adu", 2), gallery: G("adu", 7), published: true, sort: 41 },
 ];
 
 export const SEED_GALLERY = [

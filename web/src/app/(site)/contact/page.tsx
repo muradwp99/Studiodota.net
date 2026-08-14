@@ -16,7 +16,7 @@ export default async function ContactPage() {
 
   return (
     <>
-      <PageHero eyebrow={d.eyebrow} pageName="Contact" lede={d.lede} image={d.image} imageAlt="" />
+      <PageHero eyebrow={d.eyebrow} pageName="Contact" lede={d.lede} image={d.image} imageAlt="" video="/media/contact-hero.mp4" />
 
       <section className="section pt-16">
         <div className="shell grid gap-14 lg:grid-cols-[1.35fr_0.85fr] lg:gap-20">

@@ -79,6 +79,20 @@ export default async function ProjectDetail({
           curtain="var(--ink)"
         />
 
+        {/* Flythrough video - only the one project it was delivered for. */}
+        {slug === "affordable-housing-136" && (
+          <video
+            className="mt-6 aspect-[16/9] w-full rounded-2xl border border-[var(--line)] object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={project.heroImage}
+          >
+            <source src="/media/ah136-flythrough.mp4" type="video/mp4" />
+          </video>
+        )}
+
         {/* largo info rows: CATEGORY / LOCATION / SERVICES */}
         <div className="mt-10 grid gap-10 border-y border-[var(--line)] py-10 md:grid-cols-4">
           <Meta label="Sector" value={project.sector} />

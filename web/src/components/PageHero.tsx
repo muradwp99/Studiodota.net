@@ -15,6 +15,7 @@ export default function PageHero({
   lede,
   image,
   imageAlt = "",
+  video,
 }: {
   eyebrow: string;
   /** The page's own name (e.g. "Services") - rendered giant, not the CMS marketing title. */
@@ -22,11 +23,26 @@ export default function PageHero({
   lede?: string;
   image: string;
   imageAlt?: string;
+  /** Optional looping video background - `image` still renders as its poster/fallback. */
+  video?: string;
 }) {
   return (
     <header data-nav-tone="dark" className="relative flex min-h-[70vh] items-end overflow-hidden">
       <div className="absolute inset-0">
-        <ParallaxImage src={image} alt={imageAlt} sizes="100vw" priority range={8} className="h-full w-full" />
+        {video ? (
+          <video
+            className="h-full w-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={image}
+          >
+            <source src={video} type="video/mp4" />
+          </video>
+        ) : (
+          <ParallaxImage src={image} alt={imageAlt} sizes="100vw" priority range={8} className="h-full w-full" />
+        )}
       </div>
       <div
         className="pointer-events-none absolute inset-0"
