@@ -160,11 +160,11 @@ export const BLOCK_DEFAULTS = {
     label: "Showreel",
     linkLabel: "Explore the gallery →",
     items: [
-      { image: P("office-san-diego", 1), title: "Office at San Diego", kicker: "Office", youtubeId: "" },
-      { image: P("cannabis-lounge", 1), title: "Cannabis Lounge", kicker: "Hospitality", youtubeId: "" },
-      { image: P("moreno-valley", 1), title: "Moreno Valley", kicker: "Multifamily", youtubeId: "" },
-      { image: P("tustin-house", 1), title: "Tustin House", kicker: "Remodel", youtubeId: "" },
-      { image: P("truck-servicing-fontana", 1), title: "Truck Servicing at Fontana", kicker: "Industrial", youtubeId: "" },
+      { image: P("office-san-diego", 1), title: "Office at San Diego", kicker: "Office", youtubeId: "", mp4: "" },
+      { image: P("cannabis-lounge", 1), title: "Cannabis Lounge", kicker: "Hospitality", youtubeId: "", mp4: "" },
+      { image: P("moreno-valley", 1), title: "Moreno Valley", kicker: "Multifamily", youtubeId: "", mp4: "" },
+      { image: P("tustin-house", 1), title: "Tustin House", kicker: "Remodel", youtubeId: "", mp4: "" },
+      { image: P("truck-servicing-fontana", 1), title: "Truck Servicing at Fontana", kicker: "Industrial", youtubeId: "", mp4: "" },
     ],
   },
 

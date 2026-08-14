@@ -22,6 +22,8 @@ export type LightboxMedia = {
   sector?: string;
   image: string;
   youtubeId?: string;
+  /** Self-hosted mp4 path — takes the same video slot as youtubeId. */
+  mp4?: string;
 };
 
 export default function MediaLightbox({
@@ -50,7 +52,7 @@ export default function MediaLightbox({
     };
   }, [active, onClose]);
 
-  const isVideo = Boolean(active?.youtubeId);
+  const isVideo = Boolean(active?.youtubeId || active?.mp4);
 
   return (
     <AnimatePresence>
@@ -78,7 +80,8 @@ export default function MediaLightbox({
             <div className="relative aspect-video w-full overflow-hidden bg-black">
               {isVideo ? (
                 <VideoPlayer
-                  youtubeId={active.youtubeId as string}
+                  youtubeId={active.youtubeId}
+                  mp4={active.mp4}
                   poster={active.image}
                   className="h-full w-full"
                   rounded=""

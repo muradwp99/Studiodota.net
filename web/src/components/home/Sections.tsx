@@ -443,9 +443,9 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
                 <div key={r.image + i}
                   className={`group relative overflow-hidden rounded-2xl ${reduced ? "" : "transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
                   style={{ flex: isActive ? "1 1 58%" : "1 1 11%", opacity: isActive ? 1 : 0.55, filter: isActive ? "none" : "grayscale(0.9)" }}>
-                  {isActive && r.youtubeId && !playing ? (
+                  {isActive && (r.youtubeId || r.mp4) && !playing ? (
                     <div className="absolute inset-0">
-                      <VideoPlayer youtubeId={r.youtubeId} poster={r.image} title={r.title} mode="ambient" rounded="" className="h-full w-full" />
+                      <VideoPlayer youtubeId={r.youtubeId} mp4={r.mp4} poster={r.image} title={r.title} mode="ambient" rounded="" className="h-full w-full" />
                     </div>
                   ) : (
                     <Image src={r.image} alt={r.title} fill sizes="60vw" className={`object-cover ${reduced ? "" : "transition-transform duration-[1200ms] group-hover:scale-105"}`} />
@@ -461,11 +461,11 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
                           the still otherwise. */}
                       <button
                         onClick={() => setLightbox(r)}
-                        aria-label={r.youtubeId ? `Play ${r.title}` : `Open ${r.title}`}
+                        aria-label={r.youtubeId || r.mp4 ? `Play ${r.title}` : `Open ${r.title}`}
                         className={`absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.16)] text-xl backdrop-blur hover:scale-110 ${reduced ? "" : "transition-transform duration-500"}`}
                         style={{ color: "var(--on-media)" }}
                       >
-                        {r.youtubeId ? "▶" : "⤢"}
+                        {r.youtubeId || r.mp4 ? "▶" : "⤢"}
                       </button>
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6" style={{ color: "var(--on-media)" }}>
                         <div className="font-mono text-sm tracking-[0.25em]">{r.title.toUpperCase()}</div>
@@ -483,7 +483,7 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
       <MediaLightbox
         active={
           lightbox
-            ? { title: lightbox.title, sector: lightbox.kicker, image: lightbox.image, youtubeId: lightbox.youtubeId || undefined }
+            ? { title: lightbox.title, sector: lightbox.kicker, image: lightbox.image, youtubeId: lightbox.youtubeId || undefined, mp4: lightbox.mp4 || undefined }
             : null
         }
         onClose={() => setLightbox(null)}
