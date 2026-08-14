@@ -423,6 +423,9 @@ export const BLOCK_DEFAULTS = {
     title: "A closer look at the work.",
     lede: "Renderings and studies from across the practice - filter by discipline, or take in everything at once.",
     image: P("senior-housing-fontana", 2),
+    // Matches the live DB - stays a draft until someone explicitly republishes
+    // it, so a down/unreachable DB can't accidentally resurrect it.
+    published: false,
   },
 
   "page.journal": {
@@ -464,7 +467,6 @@ export const BLOCK_DEFAULTS = {
     primary: [
       { label: "Who we are", href: "/about", children: [] },
       { label: "Services", href: "/services", children: [] },
-      { label: "Gallery", href: "/gallery", children: [] },
       { label: "Projects", href: "/projects", children: [] },
       { label: "Blog", href: "/journal", children: [] },
       { label: "Contact", href: "/contact", children: [] },
