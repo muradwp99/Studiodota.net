@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
-import { sans } from "@/lib/fonts";
+import { sans, display } from "@/lib/fonts";
 import "./globals.css";
 import { getBlock } from "@/lib/content";
 import { jsonLdScript } from "@/lib/jsonLd";
@@ -53,7 +53,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${sans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${GeistMono.variable}`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteLd) }} />
         {children}

@@ -132,7 +132,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
                 if (kids.length === 0) {
                   return (
                     <li key={item.label + item.href} onMouseEnter={scheduleClose}>
-                      <Link href={item.href} className="rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{item.label}</Link>
+                      <Link href={item.href} className="link-underline rounded-full px-3.5 py-2 text-sm font-medium text-[var(--nav-fg-dim)] transition-colors duration-300 hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-fg)]">{item.label}</Link>
                     </li>
                   );
                 }
@@ -146,7 +146,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
                     <Link
                       href={item.href}
                       onClick={() => setActive(null)}
-                      className={`rounded-full py-2 pl-3.5 pr-1.5 text-sm font-medium transition-colors duration-300 ${subOn ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
+                      className={`link-underline rounded-full py-2 pl-3.5 pr-1.5 text-sm font-medium transition-colors duration-300 ${subOn ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
                     >
                       {item.label}
                     </Link>
@@ -197,7 +197,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
                   <Link
                     href={item.href}
                     onClick={() => setActive(null)}
-                    className={`rounded-full py-2 pl-3.5 pr-1.5 text-sm font-medium transition-colors duration-300 ${on ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
+                    className={`link-underline rounded-full py-2 pl-3.5 pr-1.5 text-sm font-medium transition-colors duration-300 ${on ? "text-[var(--nav-accent)]" : "text-[var(--nav-fg-dim)] hover:text-[var(--nav-fg)]"}`}
                   >
                     {item.label}
                   </Link>
@@ -241,7 +241,7 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
             >
               {dark ? <Sun /> : <Moon />}
             </AnimatedThemeToggler>
-            <Link href={nav.getStartedHref} className="hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-[1.03] sm:inline-block" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{nav.getStartedLabel}</Link>
+            <Link href={nav.getStartedHref} className="btn-primary hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-300 sm:inline-block">{nav.getStartedLabel}</Link>
             <button className="grid h-9 w-9 place-items-center lg:hidden" aria-label={open ? "Close" : "Menu"} onClick={() => setOpen((v) => !v)}>
               <div className="flex flex-col gap-[5px]">
                 <span className={`h-px w-5 bg-[var(--nav-fg)] transition-transform duration-500 ${open ? "translate-y-[6px] rotate-45" : ""}`} />
@@ -355,7 +355,15 @@ export default function Navbar({ siteName, nav, menuItems, services, galleryVide
                 </div>
               );
             })}
-            <Link href={nav.getStartedHref} onClick={() => setOpen(false)} className="btn btn-primary mt-6 w-max">{nav.getStartedLabel}</Link>
+            <Link
+              href={nav.getStartedHref}
+              onClick={() => setOpen(false)}
+              className="btn btn-primary mt-6 w-max"
+              style={{ opacity: open ? 1 : 0, transition: `opacity 0.5s var(--ease-lux) ${open ? `${120 + menuItems.length * 60}ms` : "0ms"}` }}
+            >
+              {nav.getStartedLabel}
+              <span className="btn-icon" aria-hidden="true">→</span>
+            </Link>
           </div>
         </div>
       </div>

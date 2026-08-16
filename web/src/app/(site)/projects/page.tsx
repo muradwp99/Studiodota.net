@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const d = await getBlock("page.projects");
-  return pageMetadata({ seo: d.seo, title: "Work", description: d.lede, path: "/projects" });
+  return pageMetadata({ seo: d.seo, title: d.title, description: d.lede, path: "/projects" });
 }
 
 export default async function ProjectsPage({

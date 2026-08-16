@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { EASE_CURTAIN } from "@/lib/motion";
 import VideoPlayer from "@/components/VideoPlayer";
 
 /**
@@ -14,6 +15,10 @@ import VideoPlayer from "@/components/VideoPlayer";
  * Plays a video when `youtubeId` is set, otherwise shows the still. Closes on
  * Escape or backdrop click, locks Lenis while open, and restores focus to
  * whatever opened it.
+ *
+ * Pass `layoutId` to morph the media in from a matching `motion.*` element
+ * elsewhere on the page (e.g. the grid tile that was clicked) via Framer
+ * Motion's shared layout animation — omit it for a plain fade/scale open.
  */
 
 export type LightboxMedia = {
@@ -29,12 +34,16 @@ export type LightboxMedia = {
 export default function MediaLightbox({
   active,
   onClose,
+  layoutId,
 }: {
   active: LightboxMedia | null;
   onClose: () => void;
+  /** Shared `layoutId` for the media frame — see the doc comment above. */
+  layoutId?: string;
 }) {
   const reduced = useReducedMotion();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const sharedId = reduced ? undefined : layoutId;
 
   useEffect(() => {
     if (!active) return;
@@ -63,7 +72,7 @@ export default function MediaLightbox({
           aria-label={active.sector ? `${active.title}, ${active.sector}` : active.title}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, pointerEvents: "none" }}
           transition={{ duration: reduced ? 0 : 0.3 }}
           className="fixed inset-0 z-[80] flex items-center justify-center p-4 md:p-10"
           style={{ background: "rgba(8,9,10,0.9)", backdropFilter: "blur(6px)" }}
@@ -77,7 +86,11 @@ export default function MediaLightbox({
             className="relative w-full max-w-[1100px] overflow-hidden rounded-2xl bg-[var(--surface)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative aspect-video w-full overflow-hidden bg-black">
+            <motion.div
+              layoutId={sharedId}
+              transition={{ duration: reduced ? 0 : 0.6, ease: EASE_CURTAIN }}
+              className="relative aspect-video w-full overflow-hidden bg-black"
+            >
               {isVideo ? (
                 <VideoPlayer
                   youtubeId={active.youtubeId}
@@ -97,7 +110,7 @@ export default function MediaLightbox({
                   className="object-contain"
                 />
               )}
-            </div>
+            </motion.div>
             <div className="flex items-center justify-between gap-4 p-5">
               <div>
                 <div className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-[var(--muted)]">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import SocialIcon from "@/components/SocialIcon";
+import Reveal from "@/components/Reveal";
 import type { BlockData } from "@/content/defaults";
 
 export default function Footer({ site, pages }: { site: BlockData["site"]; pages: { label: string; href: string }[] }) {
@@ -9,7 +10,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
       <div className="shell pt-20">
         <div className="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-[1.05fr_0.55fr_0.75fr_0.9fr_1.05fr]">
           {/* brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <Reveal delay={0} className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center">
               <Image src="/logo-wordmark.png" alt={site.name} width={2619} height={846} className="logo-light-only h-10 w-auto" />
               <Image src="/logo-wordmark-white.png" alt={site.name} width={2619} height={846} className="logo-dark-only h-10 w-auto" />
@@ -20,11 +21,11 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
             <p className="mt-6 max-w-[26ch] text-lg font-semibold leading-snug text-[var(--bone-dim)]">
               {site.footerHeadline}
             </p>
-          </div>
+          </Reveal>
 
-          <FooterCol title="Pages" items={pages} />
+          <Reveal delay={70}><FooterCol title="Pages" items={pages} /></Reveal>
 
-          <div>
+          <Reveal delay={140}>
             <h2 className="text-lg font-extrabold">Services</h2>
             <ul className="mt-6 space-y-4 text-[var(--bone-dim)]">
               {site.footerServices.map((s) => (
@@ -35,10 +36,10 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
 
           {/* contact — beside the other columns, per the client's markup */}
-          <div>
+          <Reveal delay={210}>
             <h2 className="text-lg font-extrabold">Contact</h2>
             <div className="mt-6 space-y-5 text-sm">
               <div>
@@ -77,13 +78,13 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
 
           {/* start-a-project CTA — was a map embed keyed to the still-placeholder
               office address (Settings → General), which geocoded to a real but
               unrelated LA location. A live contact prompt is honest in the
               meantime and gives the footer an actual conversion point. */}
-          <div className="flex min-h-[260px] flex-col justify-between gap-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-8 sm:col-span-2 lg:col-span-1">
+          <Reveal delay={280} className="flex min-h-[260px] flex-col justify-between gap-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-8 sm:col-span-2 lg:col-span-1">
             <div>
               <span className="eyebrow">Start a project</span>
               <p className="mt-3 max-w-[26ch] text-lg font-semibold leading-snug text-[var(--bone)]">
@@ -94,7 +95,7 @@ export default function Footer({ site, pages }: { site: BlockData["site"]; pages
               Get in touch
               <span className="btn-icon" aria-hidden="true">→</span>
             </Link>
-          </div>
+          </Reveal>
         </div>
 
         {/* watermark */}

@@ -3,9 +3,16 @@
 import { createElement, useState, Fragment, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import VideoPlayer from "@/components/VideoPlayer";
 import ContactForm from "@/components/ContactForm";
 import InlineText from "@/components/blocks/InlineText";
+import CountUp from "@/components/CountUp";
+import SplitReveal from "@/components/SplitReveal";
+import ScrollHighlightText from "@/components/ScrollHighlightText";
+import LineMask from "@/components/motion/LineMask";
+import ImageReveal from "@/components/motion/ImageReveal";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import type { PageBlock } from "@/lib/pageBlocks";
 import { nodeCss, wrapperAttrs } from "@/lib/nodes/css";
 
@@ -45,6 +52,40 @@ function T({
 /** In edit mode a link never navigates. */
 const linkGuard = (edit: Edit) => (edit ? (e: React.MouseEvent) => e.preventDefault() : undefined);
 
+type RevealDir = "up" | "left" | "right" | "scale";
+
+const REVEAL_FROM: Record<RevealDir, { x?: number; y?: number; scale?: number }> = {
+  up: { y: 64 },
+  left: { x: -72 },
+  right: { x: 72 },
+  scale: { scale: 0.94, y: 24 },
+};
+
+/**
+ * Generic scroll entrance+exit for CMS blocks/items. `viewport.once` is
+ * false, so it plays every time the element crosses the viewport edge (not
+ * just on first mount) — the page keeps feeling alive scrolling either
+ * direction, matching the maximalist brief. Reduced motion -> static.
+ */
+function BlockReveal({
+  children, dir = "up", delay = 0, className,
+}: { children: ReactNode; dir?: RevealDir; delay?: number; className?: string }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  const from = REVEAL_FROM[dir];
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, x: from.x ?? 0, y: from.y ?? 0, scale: from.scale ?? 1 }}
+      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+      viewport={{ once: false, amount: 0.2, margin: "-10% 0px -10% 0px" }}
+      transition={{ duration: 0.8, delay: delay / 1000, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function Hero({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   const full = S(p.height) === "full";
   return (
@@ -54,13 +95,32 @@ function Hero({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,11,12,0.86), rgba(11,11,12,0.2) 55%, rgba(11,11,12,0.5))" }} aria-hidden="true" />
       </div>
       <div className="shell relative w-full pb-14 pt-40 md:pb-20" style={{ color: "var(--on-media)" }}>
-        <T edit={edit} path={["eyebrow"]} value={S(p.eyebrow)} tag="span" className="eyebrow" style={{ color: "var(--gold-media)" }} hideEmpty placeholder="Eyebrow" />
-        <T edit={edit} path={["title"]} value={S(p.title)} tag="h1" className="display-l mt-5 max-w-[18ch]" style={{ textWrap: "balance" }} placeholder="Headline" />
-        <T edit={edit} path={["lede"]} value={S(p.lede)} tag="p" className="lede mt-6 max-w-[54ch]" style={{ color: "var(--on-media-dim)" }} multiline hideEmpty placeholder="Lede…" />
-        {(edit || S(p.buttonLabel)) && (
+        {edit ? (
+          <T edit={edit} path={["eyebrow"]} value={S(p.eyebrow)} tag="span" className="eyebrow" style={{ color: "var(--gold-media)" }} hideEmpty placeholder="Eyebrow" />
+        ) : S(p.eyebrow) ? (
+          <BlockReveal dir="up"><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{S(p.eyebrow)}</span></BlockReveal>
+        ) : null}
+        {edit ? (
+          <T edit={edit} path={["title"]} value={S(p.title)} tag="h1" className="display-l mt-5 max-w-[18ch]" style={{ textWrap: "balance" }} placeholder="Headline" />
+        ) : (
+          <LineMask text={S(p.title)} tag="h1" className="display-l mt-5 max-w-[18ch]" style={{ textWrap: "balance" }} trigger="load" />
+        )}
+        {edit ? (
+          <T edit={edit} path={["lede"]} value={S(p.lede)} tag="p" className="lede mt-6 max-w-[54ch]" style={{ color: "var(--on-media-dim)" }} multiline hideEmpty placeholder="Lede…" />
+        ) : S(p.lede) ? (
+          <BlockReveal dir="up" delay={150}><p className="lede mt-6 max-w-[54ch]" style={{ color: "var(--on-media-dim)" }}>{S(p.lede)}</p></BlockReveal>
+        ) : null}
+        {edit && (
           <Link href={S(p.buttonHref) || "/contact"} onClick={linkGuard(edit)} className="btn btn-grad mt-8">
             <T edit={edit} path={["buttonLabel"]} value={S(p.buttonLabel)} placeholder="Button" /><span className="btn-icon" aria-hidden="true">→</span>
           </Link>
+        )}
+        {!edit && S(p.buttonLabel) && (
+          <BlockReveal dir="up" delay={300} className="mt-8">
+            <Link href={S(p.buttonHref) || "/contact"} className="btn btn-grad">
+              {S(p.buttonLabel)}<span className="btn-icon" aria-hidden="true">→</span>
+            </Link>
+          </BlockReveal>
         )}
       </div>
     </header>
@@ -71,10 +131,16 @@ function Heading({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   const center = S(p.align) === "center";
   const cls = `display-l max-w-[24ch] ${center ? "mx-auto text-center" : ""}`;
   const isH3 = Number(p.level) === 3;
+  const finalCls = isH3 ? cls.replace("display-l", "display-m") : cls;
+  const tag = isH3 ? "h3" : "h2";
   return (
     <div className="section pb-0">
       <div className="shell">
-        <T edit={edit} path={["text"]} value={S(p.text)} tag={isH3 ? "h3" : "h2"} className={isH3 ? cls.replace("display-l", "display-m") : cls} placeholder="Heading" />
+        {edit ? (
+          <T edit={edit} path={["text"]} value={S(p.text)} tag={tag} className={finalCls} placeholder="Heading" />
+        ) : (
+          <SplitReveal text={S(p.text)} tag={tag} className={finalCls} />
+        )}
       </div>
     </div>
   );
@@ -104,7 +170,11 @@ function ImageBlock({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
         <figure>
           <div className={`relative aspect-[16/9] w-full overflow-hidden border border-[var(--line)] ${p.rounded === false ? "" : "rounded-2xl"}`}>
             {S(p.image) ? (
-              <Image src={S(p.image)} alt={S(p.caption)} fill sizes="100vw" className="object-cover" />
+              edit ? (
+                <Image src={S(p.image)} alt={S(p.caption)} fill sizes="100vw" className="object-cover" />
+              ) : (
+                <ImageReveal src={S(p.image)} alt={S(p.caption)} sizes="100vw" className="h-full w-full" />
+              )
             ) : (
               <div className="grid h-full w-full place-items-center text-sm text-[var(--muted)]">Pick an image in the panel →</div>
             )}
@@ -122,7 +192,13 @@ function ImageText({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
     <div className="section pb-0">
       <div className="shell grid items-center gap-10 md:grid-cols-2 lg:gap-16">
         <div className={`relative aspect-[4/3] w-full overflow-hidden rounded-2xl ${imgLeft ? "" : "md:order-2"}`}>
-          {S(p.image) && <Image src={S(p.image)} alt={S(p.title)} fill sizes="(max-width:768px) 100vw, 48vw" className="object-cover" />}
+          {S(p.image) && (
+            edit ? (
+              <Image src={S(p.image)} alt={S(p.title)} fill sizes="(max-width:768px) 100vw, 48vw" className="object-cover" />
+            ) : (
+              <ImageReveal src={S(p.image)} alt={S(p.title)} sizes="(max-width:768px) 100vw, 48vw" className="h-full w-full" />
+            )
+          )}
         </div>
         <div className={imgLeft ? "" : "md:order-1"}>
           <T edit={edit} path={["title"]} value={S(p.title)} tag="h3" className="display-m" hideEmpty placeholder="Title" />
@@ -147,17 +223,30 @@ function ImageText({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
 function Gallery({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   const images = Array.isArray(p.images) ? (p.images as Record<string, unknown>[]) : [];
   if (images.length === 0) return null;
+  // A same-size grid of every image reads as generic stock-filler. Giving the
+  // lead image a wide slot creates a focal point; the rest keep tessellating
+  // normally underneath, so this degrades gracefully for any image count.
+  const featureFirst = images.length >= 3;
   return (
     <div className="section pb-0 pt-10">
       <div className="shell grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {images.map((im, i) => (
-          <figure key={i}>
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
-              {S(im.image) && <Image src={S(im.image)} alt={S(im.caption)} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover" />}
-            </div>
-            <T edit={edit} path={["images", i, "caption"]} value={S(im.caption)} tag="figcaption" className="mt-2 text-sm text-[var(--muted)]" hideEmpty placeholder="Caption" />
-          </figure>
-        ))}
+        {images.map((im, i) => {
+          const featured = featureFirst && i === 0;
+          return (
+            <figure key={i} className={featured ? "sm:col-span-2" : undefined}>
+              <div className={`relative w-full overflow-hidden rounded-2xl ${featured ? "aspect-[21/9]" : "aspect-[4/3]"}`}>
+                {S(im.image) && (
+                  edit ? (
+                    <Image src={S(im.image)} alt={S(im.caption)} fill sizes={featured ? "100vw" : "(max-width:768px) 100vw, 33vw"} className="object-cover" />
+                  ) : (
+                    <ImageReveal src={S(im.image)} alt={S(im.caption)} sizes={featured ? "100vw" : "(max-width:768px) 100vw, 33vw"} className="h-full w-full" delay={i * 0.08} />
+                  )
+                )}
+              </div>
+              <T edit={edit} path={["images", i, "caption"]} value={S(im.caption)} tag="figcaption" className="mt-2 text-sm text-[var(--muted)]" hideEmpty placeholder="Caption" />
+            </figure>
+          );
+        })}
       </div>
     </div>
   );
@@ -181,11 +270,14 @@ function Buttons({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   return (
     <div className="section pb-0 pt-10">
       <div className="shell flex flex-wrap gap-4">
-        {items.map((b, i) => (
-          <Link key={i} href={S(b.href) || "/"} onClick={linkGuard(edit)} className={btnCls(b.style)}>
-            <T edit={edit} path={["items", i, "label"]} value={S(b.label)} placeholder="Label" /><span className="btn-icon" aria-hidden="true">→</span>
-          </Link>
-        ))}
+        {items.map((b, i) => {
+          const link = (
+            <Link href={S(b.href) || "/"} onClick={linkGuard(edit)} className={btnCls(b.style)}>
+              <T edit={edit} path={["items", i, "label"]} value={S(b.label)} placeholder="Label" /><span className="btn-icon" aria-hidden="true">→</span>
+            </Link>
+          );
+          return edit ? <Fragment key={i}>{link}</Fragment> : <BlockReveal key={i} dir="up" delay={i * 60}>{link}</BlockReveal>;
+        })}
       </div>
     </div>
   );
@@ -197,7 +289,13 @@ function Quote({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
       <div className="shell">
         <figure className="max-w-[46ch]">
           <span className="text-5xl leading-none text-[var(--gold)]" aria-hidden="true">&ldquo;</span>
-          <T edit={edit} path={["quote"]} value={S(p.quote)} tag="blockquote" className="mt-3 text-xl text-[var(--bone)]" multiline placeholder="Quote…" />
+          {edit ? (
+            <T edit={edit} path={["quote"]} value={S(p.quote)} tag="blockquote" className="mt-3 text-xl text-[var(--bone)]" multiline placeholder="Quote…" />
+          ) : (
+            <blockquote className="mt-3 text-xl text-[var(--bone)]">
+              <ScrollHighlightText text={S(p.quote)} />
+            </blockquote>
+          )}
           {(edit || S(p.name) || S(p.role)) && (
             <figcaption className="mt-5">
               <T edit={edit} path={["name"]} value={S(p.name)} tag="span" className="font-semibold" hideEmpty placeholder="Name" />
@@ -212,18 +310,35 @@ function Quote({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
 
 function Stats({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   const items = Array.isArray(p.items) ? (p.items as Record<string, unknown>[]) : [];
+  const reduced = useReducedMotion();
   return (
     <div className="section pb-0">
       <div className="shell grid gap-10 border-y border-[var(--line)] py-12 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((s, i) => (
-          <div key={i}>
-            <div className="display-m font-semibold">
-              <T edit={edit} path={["items", i, "value"]} value={S(s.value)} placeholder="00" />
-              <T edit={edit} path={["items", i, "suffix"]} value={S(s.suffix)} className="text-[var(--gold)]" hideEmpty placeholder="+" />
+        {items.map((s, i) => {
+          const raw = S(s.value);
+          const n = Number(raw);
+          const numeric = raw.trim() !== "" && Number.isFinite(n);
+          const item = (
+            <div>
+              <div className="display-m font-semibold">
+                {edit ? (
+                  <T edit={edit} path={["items", i, "value"]} value={raw} placeholder="00" />
+                ) : numeric && !reduced ? (
+                  <CountUp end={n} />
+                ) : (
+                  raw
+                )}
+                <T edit={edit} path={["items", i, "suffix"]} value={S(s.suffix)} className="text-[var(--gold)]" hideEmpty placeholder="+" />
+              </div>
+              <T edit={edit} path={["items", i, "label"]} value={S(s.label)} tag="p" className="mt-2 text-sm uppercase tracking-[0.15em] text-[var(--muted)]" placeholder="Label" />
             </div>
-            <T edit={edit} path={["items", i, "label"]} value={S(s.label)} tag="p" className="mt-2 text-sm uppercase tracking-[0.15em] text-[var(--muted)]" placeholder="Label" />
-          </div>
-        ))}
+          );
+          return edit ? (
+            <Fragment key={i}>{item}</Fragment>
+          ) : (
+            <BlockReveal key={i} dir="up" delay={i * 90}>{item}</BlockReveal>
+          );
+        })}
       </div>
     </div>
   );
@@ -231,24 +346,40 @@ function Stats({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
 
 function Features({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   const items = Array.isArray(p.items) ? (p.items as Record<string, unknown>[]) : [];
+  // An equal-width grid of identical cards has no focal point. With 3+ items
+  // the lead card runs wide (a bento accent, not a shadow/gradient trick);
+  // with 1-2 items there's no row to break up, so it's left alone.
+  const featureFirst = items.length >= 3;
   return (
     <div className="section pb-0">
       <div className="shell">
         <T edit={edit} path={["title"]} value={S(p.title)} tag="h2" className="display-l max-w-[20ch]" hideEmpty placeholder="Section title" />
         <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${S(p.title) ? "mt-12" : ""}`}>
-          {items.map((f, i) => (
-            <div key={i} className="card overflow-hidden">
-              {S(f.image) && (
-                <div className="relative aspect-[16/10] w-full overflow-hidden">
-                  <Image src={S(f.image)} alt={S(f.title)} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover" />
+          {items.map((f, i) => {
+            const featured = featureFirst && i === 0;
+            const card = (
+              <div className={`card h-full overflow-hidden ${featured ? "md:col-span-2" : ""}`}>
+                {S(f.image) && (
+                  <div className={`relative w-full overflow-hidden ${featured ? "aspect-[21/9]" : "aspect-[16/10]"}`}>
+                    {edit ? (
+                      <Image src={S(f.image)} alt={S(f.title)} fill sizes={featured ? "100vw" : "(max-width:768px) 100vw, 33vw"} className="object-cover" />
+                    ) : (
+                      <ImageReveal src={S(f.image)} alt={S(f.title)} sizes={featured ? "100vw" : "(max-width:768px) 100vw, 33vw"} className="h-full w-full" />
+                    )}
+                  </div>
+                )}
+                <div className={featured ? "p-6 md:p-8" : "p-6"}>
+                  <T edit={edit} path={["items", i, "title"]} value={S(f.title)} tag="h3" className={featured ? "text-xl font-semibold md:text-2xl" : "text-lg font-semibold"} placeholder="Title" />
+                  <T edit={edit} path={["items", i, "body"]} value={S(f.body)} tag="p" className="mt-2 text-sm text-[var(--muted)]" multiline placeholder="Body" />
                 </div>
-              )}
-              <div className="p-6">
-                <T edit={edit} path={["items", i, "title"]} value={S(f.title)} tag="h3" className="text-lg font-semibold" placeholder="Title" />
-                <T edit={edit} path={["items", i, "body"]} value={S(f.body)} tag="p" className="mt-2 text-sm text-[var(--muted)]" multiline placeholder="Body" />
               </div>
-            </div>
-          ))}
+            );
+            return edit ? (
+              <Fragment key={i}>{card}</Fragment>
+            ) : (
+              <BlockReveal key={i} dir="up" delay={i * 80} className={featured ? "md:col-span-2" : undefined}>{card}</BlockReveal>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -292,7 +423,11 @@ function Cta({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
             <div className="absolute inset-0" style={{ background: "rgba(10,11,13,0.72)" }} aria-hidden="true" />
           </div>
           <div className="relative">
-            <T edit={edit} path={["title"]} value={S(p.title)} tag="h2" className="display-l mx-auto max-w-[18ch]" placeholder="Title" />
+            {edit ? (
+              <T edit={edit} path={["title"]} value={S(p.title)} tag="h2" className="display-l mx-auto max-w-[18ch]" placeholder="Title" />
+            ) : (
+              <SplitReveal text={S(p.title)} tag="h2" className="display-l mx-auto max-w-[18ch]" />
+            )}
             <T edit={edit} path={["body"]} value={S(p.body)} tag="p" className="mx-auto mt-5 max-w-[48ch]" style={{ color: "var(--on-media-dim)" }} multiline hideEmpty placeholder="Body" />
             {(edit || S(p.buttonLabel)) && (
               <Link href={S(p.buttonHref) || "/contact"} onClick={linkGuard(edit)} className="btn btn-grad mt-8">
@@ -327,18 +462,21 @@ function Columns({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
   return (
     <div className="section pb-0">
       <div className={`shell grid gap-8 sm:grid-cols-2 ${cols >= 3 ? "lg:grid-cols-3" : ""} ${cols >= 4 ? "xl:grid-cols-4" : ""}`}>
-        {items.map((c, i) => (
-          <div key={i}>
-            <T edit={edit} path={["items", i, "heading"]} value={S(c.heading)} tag="h3" className="text-lg font-semibold" hideEmpty placeholder="Heading" />
-            <div className="mt-2 text-[var(--bone-dim)]">
-              {edit ? (
-                <InlineText tag="div" value={S(c.body)} multiline placeholder="Text…" onCommit={(v) => edit(["items", i, "body"], v)} />
-              ) : (
-                paragraphs(c.body).map((para, j) => <p key={j} className="mt-2 first:mt-0">{para}</p>)
-              )}
+        {items.map((c, i) => {
+          const col = (
+            <div>
+              <T edit={edit} path={["items", i, "heading"]} value={S(c.heading)} tag="h3" className="text-lg font-semibold" hideEmpty placeholder="Heading" />
+              <div className="mt-2 text-[var(--bone-dim)]">
+                {edit ? (
+                  <InlineText tag="div" value={S(c.body)} multiline placeholder="Text…" onCommit={(v) => edit(["items", i, "body"], v)} />
+                ) : (
+                  paragraphs(c.body).map((para, j) => <p key={j} className="mt-2 first:mt-0">{para}</p>)
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+          return edit ? <Fragment key={i}>{col}</Fragment> : <BlockReveal key={i} dir="up" delay={i * 70}>{col}</BlockReveal>;
+        })}
       </div>
     </div>
   );
@@ -369,9 +507,10 @@ function Clients({ p, edit }: { p: Record<string, unknown>; edit: Edit }) {
       <div className="shell text-center">
         <T edit={edit} path={["label"]} value={S(p.label)} tag="span" className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--muted)]" hideEmpty placeholder="Label" />
         <div className="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-5">
-          {names.map((n, i) => (
-            <T key={i} edit={edit} path={["names", i]} value={n} tag="span" className="text-2xl font-bold text-[var(--bone-dim)]" hideEmpty placeholder="Name" />
-          ))}
+          {names.map((n, i) => {
+            const name = <T edit={edit} path={["names", i]} value={n} tag="span" className="text-2xl font-bold text-[var(--bone-dim)]" hideEmpty placeholder="Name" />;
+            return edit ? <Fragment key={i}>{name}</Fragment> : <BlockReveal key={i} dir="scale" delay={i * 40}>{name}</BlockReveal>;
+          })}
         </div>
       </div>
     </div>
@@ -436,6 +575,13 @@ function renderNode(
   );
 }
 
+/** Per-type default direction for the top-level block entrance/exit. */
+function revealDirFor(block: PageBlock): RevealDir {
+  if (block.type === "imageText") return block.props.imageLeft === false ? "right" : "left";
+  if (block.type === "quote" || block.type === "cta" || block.type === "stats") return "scale";
+  return "up";
+}
+
 export default function BlockRenderer({
   blocks,
   ctx,
@@ -448,7 +594,17 @@ export default function BlockRenderer({
 }) {
   return (
     <>
-      {blocks.map((b) => renderNode(b, ctx, edit))}
+      {blocks.map((b, i) => {
+        const node = renderNode(b, ctx, edit);
+        // Skip the wrap in edit mode (fields must stay immediately visible/
+        // clickable) and for structural types that shouldn't animate as a unit.
+        if (edit || b.type === "hero" || b.type === "container") return node;
+        return (
+          <BlockReveal key={`reveal-${b.id}`} dir={revealDirFor(b)} delay={Math.min(i, 5) * 70}>
+            {node}
+          </BlockReveal>
+        );
+      })}
       {/* bottom rhythm so the last block breathes before the footer */}
       <div className="pb-[clamp(4rem,9vw,8rem)]" aria-hidden="true" />
     </>

@@ -175,7 +175,7 @@ summary:focus-visible,
 /* Statement display: large through CONTRAST with body (≈10×), not raw pixels.
    Capped ≤7rem — above ~96px a page shouts instead of designing. */
 .display-2xl {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 0.98;
@@ -185,7 +185,7 @@ summary:focus-visible,
 }
 /* Project/service index rows — names lead, imagery stays present beside them. */
 .display-index {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.04;
@@ -193,7 +193,7 @@ summary:focus-visible,
   overflow-wrap: anywhere;
 }
 .display-xl {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 0.9;
@@ -203,7 +203,7 @@ summary:focus-visible,
 /* The page-name treatment (BigTitle) - bigger than display-xl, reserved for
    the one giant word at the top of each page. */
 .display-huge {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 0.86;
@@ -212,7 +212,7 @@ summary:focus-visible,
   overflow-wrap: normal;
 }
 .display-l {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1.02;
@@ -220,14 +220,14 @@ summary:focus-visible,
   overflow-wrap: anywhere;
 }
 .display-m {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.08;
   font-size: clamp(1.55rem, 3vw, 2.5rem);
 }
 .font-display {
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
 }
 .font-mono {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -284,8 +284,15 @@ summary:focus-visible,
   padding-inline: var(--edge);
   width: 100%;
 }
-.section {
-  padding-block: clamp(5rem, 12vw, 10rem);
+/* In @layer components so page-local padding overrides (Tailwind's pt/pb
+   utilities, in @layer utilities) can override this default - unlayered CSS
+   beats ALL layered utilities regardless of source order, which was silently
+   killing every such override sitewide (found independently by 3 agents in
+   the 2026-08-14 design audit). */
+@layer components {
+  .section {
+    padding-block: clamp(5rem, 12vw, 10rem);
+  }
 }
 
 /* ---------- Surfaces ---------- */
@@ -678,7 +685,7 @@ summary:focus-visible,
 }
 /* bright gradient text for use OVER dark imagery (hero wordmark) */
 .grad-text-media {
-  background: linear-gradient(118deg, #ffffff 0%, #f2ddb0 52%, #d0a86f 100%);
+  background: linear-gradient(118deg, #ffffff 0%, #f2ddb0 52%, var(--gold-media) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -687,7 +694,7 @@ summary:focus-visible,
 
 /* Gradient (bronze) button — modern, branded, readable dark text */
 .btn-grad {
-  background: linear-gradient(120deg, #d0aa72 0%, #a87f3f 55%, #8f6c39 100%);
+  background: linear-gradient(120deg, #d0aa72 0%, var(--gold) 55%, var(--gold-hi) 100%);
   color: #17191c;
   border: none;
 }
@@ -788,7 +795,7 @@ summary:focus-visible,
   display: flex;
   align-items: baseline;
   gap: 0.3em;
-  font-family: var(--font-gilroy), system-ui, sans-serif;
+  font-family: var(--font-gilroy-display), system-ui, sans-serif;
   font-size: clamp(2.4rem, 8vw, 6.5rem);
   font-weight: 800;
   letter-spacing: -0.03em;

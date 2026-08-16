@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if ((d as { published?: boolean }).published === false) {
     return { title: "Page not found", robots: { index: false, follow: false } };
   }
-  return pageMetadata({ seo: d.seo, title: "Gallery", description: d.lede, path: "/gallery" });
+  return pageMetadata({ seo: d.seo, title: d.title, description: d.lede, path: "/gallery" });
 }
 
 export default async function GalleryPage() {

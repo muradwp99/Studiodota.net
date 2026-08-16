@@ -19,6 +19,13 @@ import type { BlockData } from "@/content/defaults";
  * CMS-editable via `d`.
  *
  * Frames are produced by scripts/build-hero-frames.mjs — keep the counts in sync.
+ *
+ * Two more ScrollTriggers ride alongside the scrub, both reduced-motion gated:
+ * the headline keeps swelling as frames advance (an independent trigger over
+ * the same range - it never touches the scrub/loader logic below), and once
+ * the sticky panel reaches its release stretch (the container's trailing "+1"
+ * screen), the lockup sinks/fades and a scrim fades the hero to the brand
+ * dark, so the handoff to the next section reads as a deliberate exit.
  */
 
 // The `-v2` suffix is a cache-bust, not decoration: these are served
@@ -86,6 +93,8 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const headRef = useRef<HTMLHeadingElement>(null);
   const subRef = useRef<HTMLDivElement>(null);
   const cueRef = useRef<HTMLDivElement>(null);
+  const lockupRef = useRef<HTMLDivElement>(null);
+  const exitScrimRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const loadedRef = useRef<boolean[]>([]);
   const cancelledRef = useRef(false);
@@ -353,6 +362,70 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     };
   }, [reduced, draw]);
 
+  // Scroll-scrubbed headline growth — an independent ScrollTrigger over the
+  // same trigger/start/end as the scrub above (never touches that effect),
+  // so the giant word keeps swelling as frames advance instead of sitting
+  // inert after its mount entrance. Targets the <h1> itself, never the
+  // [data-hero-word] spans the entrance timeline owns, so the two never
+  // fight over a property on the same element.
+  useEffect(() => {
+    if (reduced) return;
+    const head = headRef.current;
+    if (!head) return;
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.set(head, { transformOrigin: "0% 100%" });
+    const tween = gsap.fromTo(
+      head,
+      { scale: 1 },
+      {
+        scale: 1.06,
+        ease: "none",
+        scrollTrigger: {
+          trigger: trackRef.current!,
+          start: "top top",
+          end: () => "+=" + window.innerHeight * PIN_SCREENS,
+          scrub: SCRUB_SMOOTHING,
+        },
+      },
+    );
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+      gsap.set(head, { clearProps: "all" });
+    };
+  }, [reduced]);
+
+  // Exit choreography for the release stretch. The container's trailing "+1"
+  // screen (see PIN_SCREENS above) is exactly the distance the sticky panel
+  // takes to un-stick once the scrub has reached its last frame, so
+  // "bottom bottom" -> "bottom top" brackets that stretch with stock
+  // ScrollTrigger markers — no manual pixel math needed. The lockup sinks and
+  // dissolves while a flat scrim fades the hero to the brand dark, so the
+  // handoff to whatever follows reads as a deliberate cut rather than the pin
+  // just snapping loose. Deliberately leaves the canvas and the "Scroll" cue
+  // alone — both are still owned by the entrance timeline if this range is
+  // somehow reached before it settles, and a second tween grabbing the same
+  // property would fight it; the scrim (painted last, above everything) hides
+  // the cue for free as it fades in.
+  useEffect(() => {
+    if (reduced) return;
+    const track = trackRef.current;
+    const lockup = lockupRef.current;
+    const scrim = exitScrimRef.current;
+    if (!track || !lockup || !scrim) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: track, start: "bottom bottom", end: "bottom top", scrub: true },
+    });
+    tl.to(lockup, { autoAlpha: 0, y: 40, duration: 0.6, ease: "none" }, 0.05);
+    tl.to(scrim, { autoAlpha: 0.94, duration: 0.7, ease: "none" }, 0.15);
+    return () => {
+      tl.scrollTrigger?.kill();
+      tl.kill();
+      gsap.set([lockup, scrim], { clearProps: "all" });
+    };
+  }, [reduced]);
+
   return (
     <section
       ref={trackRef}
@@ -385,10 +458,10 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
 
         {/* headline lockup — bottom-anchored + restrained so the footage stays the hero */}
         <div className="absolute inset-x-0 bottom-0">
-          <div className="shell w-full pb-16 md:pb-20" style={{ color: "var(--on-media)" }}>
+          <div ref={lockupRef} className="shell w-full pb-16 md:pb-20 will-change-transform" style={{ color: "var(--on-media)" }}>
             <h1
               ref={headRef}
-              className="max-w-[18ch] font-light leading-[1.03] tracking-[-0.02em]"
+              className="max-w-[18ch] font-light leading-[1.03] tracking-[-0.02em] will-change-transform"
               style={{ fontSize: "clamp(2.1rem, 5vw, 4.25rem)" }}
               aria-label={`${d.titleAccent} ${d.titleRestLine1} ${d.titleRestLine2}`}
             >
@@ -399,14 +472,18 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
                 <span key={i}>
                   {i > 0 ? " " : null}
                   <span className="inline-flex overflow-hidden py-[0.06em] -my-[0.06em] align-bottom">
-                    <span data-hero-word aria-hidden="true" className={`inline-block will-change-transform ${accent ? "grad-text-media font-extrabold" : ""}`}>
+                    <span
+                      data-hero-word
+                      aria-hidden="true"
+                      className={`inline-block will-change-transform ${accent ? "grad-text-media font-display font-extrabold" : ""}`}
+                    >
                       {w}
                     </span>
                   </span>
                 </span>
               ))}
             </h1>
-            <div ref={subRef} className="mt-7 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div ref={subRef} className="mt-7 flex flex-col items-start gap-6 md:flex-row md:items-end md:justify-between">
               <p className="max-w-[46ch] leading-relaxed" style={{ color: "var(--on-media-dim)" }}>
                 {d.lede}
               </p>
@@ -441,6 +518,13 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
             Loading
           </div>
         )}
+
+        {/* exit scrim — fades the whole hero to the brand dark as the sticky
+            panel releases (see the exit-choreography effect above). Painted
+            last so it sits above the footage, gradients, lockup, and cue
+            alike; opacity-0 by default so reduced-motion users never see it,
+            with no JS needed to guarantee that resting state. */}
+        <div ref={exitScrimRef} aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[#0b0b0c] opacity-0 will-change-[opacity]" />
       </div>
     </section>
   );

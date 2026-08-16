@@ -10,6 +10,7 @@ import SplitReveal from "@/components/SplitReveal";
 import LineMask from "@/components/motion/LineMask";
 import { EASE_CURTAIN } from "@/lib/motion";
 import ImageMaskText from "@/components/ImageMaskText";
+import CountUp from "@/components/CountUp";
 import VideoPlayer from "@/components/VideoPlayer";
 import MediaLightbox from "@/components/MediaLightbox";
 import { ParallaxImage, ParallaxX } from "@/components/Parallax";
@@ -47,8 +48,6 @@ export type JournalCard = {
   authorRole: string;
 };
 
-const easeOut = (p: number) => 1 - Math.pow(1 - p, 3);
-
 /** largo-style curtain wipe over a media panel — place last inside a `relative` container. */
 function CurtainOnView({ delay = 0, color = "var(--ink-2)" }: { delay?: number; color?: string }) {
   const reduced = useReducedMotion();
@@ -79,33 +78,6 @@ function CTA({ href, label, variant = "primary", center }: { href: string; label
   );
 }
 
-/* ---------------- CountUp ---------------- */
-function CountUp({ end, prefix = "", suffix = "", duration = 1600 }: { end: number; prefix?: string; suffix?: string; duration?: number }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const done = useRef(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !done.current) {
-        done.current = true;
-        const start = performance.now();
-        const tick = (t: number) => {
-          const p = Math.min(1, (t - start) / duration);
-          setVal(end * easeOut(p));
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      }
-    }, { threshold: 0.4 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [end, duration]);
-  const display = end % 1 === 0 ? Math.round(val) : val.toFixed(1);
-  return <span ref={ref}>{prefix}{display}{suffix}</span>;
-}
-
 /* ---------------- About ---------------- */
 function About({ d }: { d: HomeData["about"] }) {
   // Statement + supporting copy up top; stats live in their own bronze-glass
@@ -117,7 +89,7 @@ function About({ d }: { d: HomeData["about"] }) {
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-16">
           <div>
             <Reveal><span className="eyebrow">{d.kicker}</span></Reveal>
-            <SplitReveal text={d.title} tag="h2" className="display-2xl mt-6 text-balance" by="letter" mode="fade" />
+            <SplitReveal text={d.title} tag="h2" className="display-2xl mt-6 text-balance" />
           </div>
           <Reveal delay={120}>
             <div className="space-y-5 text-[var(--bone-dim)]">
@@ -139,16 +111,25 @@ function About({ d }: { d: HomeData["about"] }) {
             <div className="pointer-events-none absolute -top-14 right-4 h-[170px] w-[170px] sm:right-8 sm:h-[220px] sm:w-[220px] lg:h-[300px] lg:w-[300px]">
               <GlossyObject />
             </div>
-            <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-              {d.stats.map((s, i) => (
-                <Reveal key={s.label} delay={i * 70}>
-                  <div className="rounded-2xl bg-[var(--surface)] p-6 shadow-[0_20px_45px_-20px_rgba(23,19,10,0.45)] lg:p-7">
-                    <div className="display-m grad-text font-semibold"><CountUp end={s.end} suffix={s.suffix} /></div>
-                    <div className="mt-4 font-semibold">{s.label}</div>
-                    <p className="mt-2 text-sm text-[var(--muted)]">{s.desc}</p>
-                  </div>
-                </Reveal>
-              ))}
+            {/* Uneven column widths + a single gradient-accented lead number give this
+                row one focal point instead of four identical boxes; grad-text is
+                reserved for that lead stat so the gold gradient stays an accent,
+                not a default applied uniformly to every number. */}
+            <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-6">
+              {d.stats.map((s, i) => {
+                const lead = i === 0;
+                return (
+                  <Reveal key={s.label} delay={i * 70}>
+                    <div className={`h-full rounded-2xl bg-[var(--surface)] p-6 shadow-[0_20px_45px_-20px_rgba(23,19,10,0.45)] lg:p-7 ${lead ? "lg:p-9" : ""}`}>
+                      <div className={lead ? "display-l grad-text font-semibold" : "display-m font-semibold text-[var(--bone)]"}>
+                        <CountUp end={s.end} suffix={s.suffix} />
+                      </div>
+                      <div className="mt-4 font-semibold">{s.label}</div>
+                      <p className="mt-2 text-sm text-[var(--muted)]">{s.desc}</p>
+                    </div>
+                  </Reveal>
+                );
+              })}
             </div>
           </div>
         </Reveal>
@@ -848,9 +829,9 @@ function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage
             {/* Row 3: prev/next + counter | name & role */}
             <div className="grid grid-cols-2 border-t border-[var(--line-strong)]">
               <div className="flex items-center gap-6 border-r border-[var(--line-strong)] p-6 lg:p-8">
-                <button onClick={() => goTo(-1)} aria-label="Previous testimonial" className="text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">←</button>
+                <button onClick={() => goTo(-1)} aria-label="Previous testimonial" className="-m-2.5 p-2.5 text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">←</button>
                 <span className="font-mono text-sm text-[var(--muted)]">{String(idx + 1).padStart(2, "0")}/{String(all.length).padStart(2, "0")}</span>
-                <button onClick={() => goTo(1)} aria-label="Next testimonial" className="text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">→</button>
+                <button onClick={() => goTo(1)} aria-label="Next testimonial" className="-m-2.5 p-2.5 text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">→</button>
               </div>
               <div className="flex items-center justify-between gap-4 p-6 lg:p-8">
                 <span className="font-semibold">{cur.name}</span>
@@ -929,14 +910,23 @@ function Clients({ d }: { d: HomeData["clients"] }) {
 
 /* ---------------- Statement band (image-masked wordmark) ---------------- */
 function StatementBand({ d }: { d: HomeData["statement"] }) {
+  const reduced = useReducedMotion();
+  const wordMotionProps = reduced
+    ? {}
+    : {
+        initial: { opacity: 0, scale: 0.82 },
+        whileInView: { opacity: 1, scale: 1 },
+        viewport: { once: false, amount: 0.4 },
+        transition: { duration: 1, ease: EASE_CURTAIN },
+      };
   return (
     <section data-nav-tone="dark" className="relative overflow-hidden rounded-t-[2.5rem] bg-[#111315] py-[clamp(5rem,15vw,11rem)]" style={{ color: "var(--on-media)" }}>
       <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(rgba(246,245,242,0.6) 1px, transparent 1px)", backgroundSize: "26px 26px" }} aria-hidden="true" />
       <div className="shell relative text-center">
         <span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.label}</span>
-        <h2 className="mt-6 font-extrabold leading-[0.84] tracking-[-0.04em] text-[clamp(2.7rem,13vw,12.5rem)]">
+        <motion.h2 className="mt-6 font-extrabold leading-[0.84] tracking-[-0.04em] text-[clamp(2.7rem,13vw,12.5rem)]" {...wordMotionProps}>
           <ImageMaskText text={d.word} image={d.image} />
-        </h2>
+        </motion.h2>
         <p className="mx-auto mt-8 max-w-[52ch]" style={{ color: "var(--on-media-dim)" }}>
           {d.body}
         </p>
@@ -989,9 +979,10 @@ function FAQ({ d }: { d: HomeData["faq"] }) {
               {d.label}
             </span>
           </Reveal>
-          <Reveal delay={70}>
-            <h2 className="display-l mt-6">{titleLead} <span className="grad-text">{titleLast}</span></h2>
-          </Reveal>
+          <h2 className="display-l mt-6 flex flex-wrap gap-x-3">
+            <LineMask text={titleLead} tag="span" />
+            <LineMask text={titleLast} tag="span" className="grad-text" delay={0.12} />
+          </h2>
           <Reveal delay={110}><div className="mt-5 h-1 w-16 rounded-full" style={{ background: GOLD_GRADIENT }} /></Reveal>
           <Reveal delay={140}><p className="mt-6 max-w-[42ch] text-[var(--bone-dim)]">{d.description}</p></Reveal>
 
@@ -1069,7 +1060,7 @@ function Journals({ d, posts }: { d: HomeData["journals"]; posts: JournalCard[] 
     <section className="section">
       <div className="shell">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <Reveal><h2 className="display-l max-w-[16ch]">{d.title}</h2></Reveal>
+          <LineMask text={d.title} tag="h2" className="display-l max-w-[16ch]" />
           <Reveal delay={80}><Link href="/journal" className="group inline-flex items-center gap-3 rounded-full py-2 pl-6 pr-2 font-semibold" style={{ background: "linear-gradient(120deg,#d0aa72,#a87f3f 55%,#8f6c39)", color: "#17191c" }}>{d.viewAllLabel} <span className="grid h-9 w-9 place-items-center rounded-full bg-[#17191c] text-[#f5f5f3] transition-transform duration-500 group-hover:translate-x-0.5">↗</span></Link></Reveal>
         </div>
         <Reveal className="mt-12">
