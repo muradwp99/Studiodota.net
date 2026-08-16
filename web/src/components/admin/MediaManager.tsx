@@ -7,6 +7,9 @@ import { btnPrimaryCls, inputCls, Notice } from "@/components/admin/ui";
 
 type MediaRow = { id: string; path: string; alt: string; size: number; mime: string; deletable: boolean };
 
+const formatSize = (bytes: number) =>
+  bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
 export default function MediaManager({ items }: { items: MediaRow[] }) {
   const [state, setState] = useState<{ ok?: boolean; error?: string } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -86,6 +89,7 @@ export default function MediaManager({ items }: { items: MediaRow[] }) {
             <img src={m.path} alt={m.alt} className="aspect-[4/3] w-full object-cover" loading="lazy" />
             <figcaption className="space-y-2 p-3">
               <div className="truncate font-mono text-[0.62rem] text-[var(--muted)]" title={m.path}>{m.path}</div>
+              <div className="font-mono text-[0.62rem] text-[var(--muted)]">{m.mime} · {formatSize(m.size)}</div>
               <div>
                 <input
                   aria-label={`Alt text for ${m.path}`}

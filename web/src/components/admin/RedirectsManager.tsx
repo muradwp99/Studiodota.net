@@ -32,6 +32,16 @@ export default function RedirectsManager({ initial, notFound }: { initial: Row[]
     document.getElementById("from")?.focus();
   };
 
+  const edit = (r: Row) => {
+    setFrom(r.from);
+    setTo(r.to);
+    setPerm(r.permanent);
+    setState(null);
+    document.getElementById("to")?.focus();
+  };
+
+  const editing = initial.some((r) => r.from === from);
+
   return (
     <div className="max-w-3xl space-y-6">
       <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
@@ -51,7 +61,7 @@ export default function RedirectsManager({ initial, notFound }: { initial: Row[]
         </label>
         <div className="mt-4"><Notice state={state} /></div>
         <button type="button" onClick={add} disabled={pending || !from || !to} className={`${btnPrimaryCls} mt-4`}>
-          {pending ? "Saving…" : "Add redirect"}
+          {pending ? "Saving…" : editing ? "Save redirect" : "Add redirect"}
         </button>
       </div>
 
@@ -66,6 +76,7 @@ export default function RedirectsManager({ initial, notFound }: { initial: Row[]
                 <span aria-hidden="true" className="text-[var(--muted)]">→</span>
                 <code className="min-w-0 flex-1 truncate font-mono text-xs text-[var(--gold-ink)]">{r.to}</code>
                 <span className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.08em] text-[var(--muted)]">{r.permanent ? "301" : "302"}</span>
+                <button type="button" onClick={() => edit(r)} disabled={pending} className={`${btnGhostCls} shrink-0`}>Edit</button>
                 <button type="button" onClick={() => remove(r.id)} disabled={pending} className={`${btnDangerCls} shrink-0`}>Delete</button>
               </div>
               <span className="text-[0.7rem] text-[var(--muted)]">{r.hitsLabel}</span>

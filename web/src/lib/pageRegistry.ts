@@ -143,7 +143,7 @@ export const BLOCK_SPECS: BlockSpec[] = [
       t("linkLabel", "Corner link label"),
       {
         kind: "list", key: "items", label: "Slides", addable: true,
-        item: [img("image", "Poster image"), t("title", "Title"), t("kicker", "Kicker"), t("youtubeId", "YouTube video ID")],
+        item: [img("image", "Poster image"), t("title", "Title"), t("kicker", "Kicker"), t("youtubeId", "YouTube video ID"), t("mp4", "Self-hosted MP4 URL (e.g. /media/clip.mp4) — takes priority over YouTube ID")],
       },
     ],
   },
@@ -224,7 +224,7 @@ export const BLOCK_SPECS: BlockSpec[] = [
     key: "page.services",
     title: "Services page",
     fields: [
-      t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image"),
+      t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results only - the giant on-page heading is fixed per page)"), ta("lede", "Hero lede"), img("image", "Hero image"),
       ta("statement", "Scroll statement", 3),
       {
         kind: "list", key: "items", label: "Service phases", addable: true,
@@ -237,7 +237,7 @@ export const BLOCK_SPECS: BlockSpec[] = [
     key: "page.about",
     title: "Who we are page",
     fields: [
-      t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"),
+      t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results only - the giant on-page heading is fixed per page)"), ta("lede", "Hero lede"),
       t("whyLabel", "Story label"), ta("why1", "Story paragraph 1", 4), ta("why2", "Story paragraph 2", 4),
       img("storyImage", "Story image"),
       t("quoteLabel", "Quote label"), ta("quote", "Founder quote", 4), t("quoteName", "Quote name"), t("quoteRole", "Quote role"),
@@ -250,26 +250,26 @@ export const BLOCK_SPECS: BlockSpec[] = [
   {
     key: "page.projects",
     title: "Projects page",
-    description: "Hero copy. The project list itself is managed under Projects.",
-    fields: [t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image")],
+    description: "Hero copy. This page's header is deliberately typographic-only (no hero image). The project list itself is managed under Projects.",
+    fields: [t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results only - the giant on-page heading is fixed per page)"), ta("lede", "Hero lede")],
   },
   {
     key: "page.gallery",
     title: "Gallery page",
     description: "Hero copy. The gallery grid is managed under Gallery.",
-    fields: [t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image")],
+    fields: [tog("published", "Published (unpublished shows a 404)"), t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results only - the giant on-page heading is fixed per page)"), ta("lede", "Hero lede"), img("image", "Hero image")],
   },
   {
     key: "page.journal",
     title: "Journal page",
     description: "Hero + banner. Articles are managed under Posts.",
-    fields: [t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image"), img("bannerImage", "Bottom banner image"), t("bannerAlt", "Banner alt text")],
+    fields: [t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results only - the giant on-page heading is fixed per page)"), ta("lede", "Hero lede"), img("image", "Hero image"), img("bannerImage", "Bottom banner image"), t("bannerAlt", "Banner alt text")],
   },
   {
     key: "page.contact",
     title: "Contact page",
     fields: [
-      t("eyebrow", "Hero eyebrow"), t("title", "Hero title"), ta("lede", "Hero lede"), img("image", "Hero image"),
+      t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results only - the giant on-page heading is fixed per page)"), ta("lede", "Hero lede"), img("image", "Hero image"),
       t("formLabel", "Form label"), t("formTitle", "Form heading"),
       ta("whatToSend", "Aside — what to send", 3), ta("turnaround", "Aside — turnaround", 3), img("asideImage", "Aside image"),
       { kind: "stringList", key: "serviceOptions", label: "Service dropdown options" },

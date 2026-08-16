@@ -48,7 +48,7 @@ export default function ProjectForm({ id, initial, categories, snapshotAt }: { i
 
   const remove = () => {
     if (!id) return;
-    if (!window.confirm(`Delete "${data.title}"? This can't be undone.`)) return;
+    if (!window.confirm(`Delete "${data.title}"? It moves to Trash - you can restore it any time.`)) return;
     startTransition(async () => {
       await deleteProject(id);
     });

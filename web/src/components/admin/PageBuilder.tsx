@@ -173,7 +173,7 @@ export default function PageBuilder({
 
   const destroy = () => {
     if (!pageId) return;
-    if (!window.confirm(`Delete "${page.title || page.slug}"? This can't be undone.`)) return;
+    if (!window.confirm(`Delete "${page.title || page.slug}"? It moves to Trash - you can restore it any time.`)) return;
     startTransition(async () => {
       await deletePage(pageId);
     });
