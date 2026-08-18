@@ -409,14 +409,18 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
   }, [playing, reduced, reel.length]);
   if (reel.length === 0) return null;
   return (
-    <section ref={wrap} className="relative bg-[var(--ink)]" style={{ height: `${reel.length * 40}vh` }}>
+    /* 60vh per item (not 40) so each tile holds long enough for the 900ms
+       flex/grayscale transition to actually read before the next one takes over. */
+    <section ref={wrap} className="relative bg-[var(--ink)]" style={{ height: `${reel.length * 60}vh` }}>
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
         <div className="shell relative z-10 w-full">
-          <div className="flex items-end justify-between">
-            <span className="eyebrow">{d.label}</span>
-            <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">{d.linkLabel}</Link>
-          </div>
-          <div className="relative mt-8">
+          <Reveal>
+            <div className="flex items-end justify-between">
+              <span className="eyebrow">{d.label}</span>
+              <Link href="/projects" className="link-underline hidden text-sm font-semibold text-[var(--gold-ink)] sm:inline-block">{d.linkLabel}</Link>
+            </div>
+          </Reveal>
+          <div className="relative mt-8 overflow-hidden">
             <div className="flex h-[64vh] min-h-[380px] flex-col items-stretch gap-3 sm:flex-row">
             {reel.map((r, i) => {
               const isActive = i === active;
@@ -458,6 +462,7 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
               );
             })}
           </div>
+            <CurtainOnView delay={0.15} color="var(--ink)" />
           </div>
         </div>
       </div>

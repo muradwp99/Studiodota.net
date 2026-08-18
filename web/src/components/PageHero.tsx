@@ -3,6 +3,7 @@
 import Reveal from "@/components/Reveal";
 import BigTitle from "@/components/motion/BigTitle";
 import { ParallaxImage } from "@/components/Parallax";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 /**
  * Cinematic media-led page hero: full-bleed parallax render, dark scrim,
@@ -26,10 +27,13 @@ export default function PageHero({
   /** Optional looping video background - `image` still renders as its poster/fallback. */
   video?: string;
 }) {
+  // The looping hero video is decorative — fall back to the still poster
+  // under reduced motion, matching VideoPlayer's ambient behaviour.
+  const reduced = useReducedMotion();
   return (
     <header data-nav-tone="dark" className="relative flex min-h-[70vh] items-end overflow-hidden">
       <div className="absolute inset-0">
-        {video ? (
+        {video && !reduced ? (
           <video
             className="h-full w-full object-cover"
             autoPlay

@@ -11,6 +11,19 @@ const R = (n: string) => `/media/renders/${n}.jpg`;
 /** Imported client project renders (see scripts/optimize-project-images.mjs). */
 const P = (slug: string, n: number) => `/projects/${slug}/${String(n).padStart(2, "0")}.webp`;
 const PLACEHOLDER = "/projects/placeholder.webp";
+/**
+ * Delivered flythrough per project slug — the single source of truth for which
+ * projects have motion. Consumed by the project detail page and by the
+ * homepage showreel defaults below, so a newly delivered animation only has to
+ * be named once. Files live in `public/media/` (see media-wiring.test.ts).
+ */
+export const PROJECT_VIDEOS: Record<string, string> = {
+  "affordable-housing-136": "/media/ah136-flythrough.mp4",
+  "crenshaw-apartments": "/media/crenshaw-330-flythrough.mp4",
+  "ball-residence": "/media/contact-hero.mp4",
+  "mixed-use-114": "/media/gallery-hero.mp4",
+  "fire-rebuild-mckendree-01": "/media/services-hero.mp4",
+};
 /** Per-entity SEO blob (RankMath-style) - spread into every page.* block and
  *  mirrored on Project/Post rows. Empty values fall back to the global defaults. */
 const emptySeo = {
@@ -159,12 +172,14 @@ export const BLOCK_DEFAULTS = {
   "home.showreel": {
     label: "Showreel",
     linkLabel: "Explore the gallery →",
+    /* Mirrors the live DB row, videos included, so the reel still plays when
+       the DB is unreachable and a fresh DB seeds with motion already wired. */
     items: [
-      { image: P("office-san-diego", 1), title: "Office at San Diego", kicker: "Office", youtubeId: "", mp4: "" },
-      { image: P("cannabis-lounge", 1), title: "Cannabis Lounge", kicker: "Hospitality", youtubeId: "", mp4: "" },
-      { image: P("moreno-valley", 1), title: "Moreno Valley", kicker: "Multifamily", youtubeId: "", mp4: "" },
-      { image: P("tustin-house", 1), title: "Tustin House", kicker: "Remodel", youtubeId: "", mp4: "" },
-      { image: P("truck-servicing-fontana", 1), title: "Truck Servicing at Fontana", kicker: "Industrial", youtubeId: "", mp4: "" },
+      { image: P("ball-residence", 1), title: "Ball Residence", kicker: "Single Family Residence", youtubeId: "", mp4: PROJECT_VIDEOS["ball-residence"] },
+      { image: P("mixed-use-114", 1), title: "Mixed Use - 114 Units", kicker: "Mixed Use", youtubeId: "", mp4: PROJECT_VIDEOS["mixed-use-114"] },
+      { image: P("fire-rebuild-mckendree-01", 1), title: "Fire Rebuild - McKendree", kicker: "Fire Rebuild", youtubeId: "", mp4: PROJECT_VIDEOS["fire-rebuild-mckendree-01"] },
+      { image: P("affordable-housing-136", 1), title: "Affordable Housing - 136 Units", kicker: "Affordable Housing", youtubeId: "", mp4: PROJECT_VIDEOS["affordable-housing-136"] },
+      { image: P("crenshaw-apartments", 1), title: "Crenshaw Apartments", kicker: "Multifamily", youtubeId: "", mp4: PROJECT_VIDEOS["crenshaw-apartments"] },
     ],
   },
 

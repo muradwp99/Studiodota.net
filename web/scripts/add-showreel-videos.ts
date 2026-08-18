@@ -15,6 +15,10 @@ const MP4_BY_TITLE: Record<string, string> = {
   "Ball Residence": "/media/contact-hero.mp4",
   "Mixed Use - 114 Units": "/media/gallery-hero.mp4",
   "Fire Rebuild - McKendree": "/media/services-hero.mp4",
+  // Delivered in f83ef46 but never actually wired — the commit shipped the
+  // file and skipped this map, so the reel showed a still for it.
+  "Crenshaw Apartments": "/media/crenshaw-330-flythrough.mp4",
+  "Affordable Housing - 136 Units": "/media/ah136-flythrough.mp4",
 };
 
 async function main() {

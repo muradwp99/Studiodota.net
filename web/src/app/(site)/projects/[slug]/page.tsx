@@ -7,6 +7,7 @@ import ImageReveal from "@/components/motion/ImageReveal";
 import ScrollExitImage from "@/components/motion/ScrollExitImage";
 import CountUp from "@/components/CountUp";
 import { getProject, getProjects } from "@/lib/content";
+import { PROJECT_VIDEOS } from "@/content/defaults";
 import { pageMetadata, type SeoBlob } from "@/lib/seo";
 
 export async function generateStaticParams() {
@@ -88,8 +89,8 @@ export default async function ProjectDetail({
           curtain="var(--ink)"
         />
 
-        {/* Flythrough video - only the one project it was delivered for. */}
-        {slug === "affordable-housing-136" && (
+        {/* Flythrough video - every project one was delivered for, per PROJECT_VIDEOS. */}
+        {PROJECT_VIDEOS[slug] && (
           <video
             className="mt-6 aspect-[16/9] w-full rounded-2xl border border-[var(--line)] object-cover"
             autoPlay
@@ -98,7 +99,7 @@ export default async function ProjectDetail({
             playsInline
             poster={project.heroImage}
           >
-            <source src="/media/ah136-flythrough.mp4" type="video/mp4" />
+            <source src={PROJECT_VIDEOS[slug]} type="video/mp4" />
           </video>
         )}
 
