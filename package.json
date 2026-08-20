@@ -1,0 +1,17 @@
+{
+  "name": "studiodota-net",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Repo-root shim: the Next.js app lives in web/. Hosts that require a root package.json (Hostinger GitHub deploy) build through these scripts.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "postinstall": "cd web && npm install --no-audit --no-fund",
+    "dev": "cd web && npm run dev",
+    "build": "cd web && npm run build",
+    "start": "cd web && npm run start",
+    "lint": "cd web && npm run lint",
+    "test": "cd web && npm run test"
+  }
+}
