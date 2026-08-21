@@ -6,6 +6,7 @@ import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { UPLOAD_DIR } from "@/lib/uploads";
 
 export type MediaState = { ok?: boolean; error?: string; path?: string };
 
@@ -40,7 +41,9 @@ export async function uploadMedia(formData: FormData): Promise<MediaState> {
   const month = new Date().toISOString().slice(0, 7);
   const name = `${base}-${randomBytes(4).toString("hex")}.${kind.ext}`;
   const rel = `/uploads/${month}/${name}`;
-  const abs = path.join(process.cwd(), "public", "uploads", month, name);
+  // UPLOAD_DIR, not public/uploads: on a host that deploys each build to a new
+  // directory, writing inside the build tree loses the file on next deploy.
+  const abs = path.join(UPLOAD_DIR, month, name);
 
   try {
     await mkdir(path.dirname(abs), { recursive: true });

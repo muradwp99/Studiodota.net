@@ -81,6 +81,21 @@ const MAX_TRIES = 2;
 // which is why the window felt network-bound there.
 const WINDOW_AHEAD = 96;
 const WINDOW_BEHIND = 24;
+// ...but 96 frames ahead is the STEADY-STATE window, not what the first paint
+// should pay for. Measured on production (2026-08-21): the homepage fired 93
+// frame requests totalling 13.38 MB before the visitor scrolled at all - 100%
+// of the page's transfer weight, at ~1.27s per frame (Hostinger's CDN reports
+// x-hcdn-cache-status: MISS on /media, so each one round-trips to origin).
+// The window only has to stay AHEAD of the scrub, and the scrub cannot move
+// until the hero is on screen, so the opening window can be far smaller and
+// then grow. draw() already falls back to the nearest loaded frame, so a
+// smaller buffer degrades to a slightly coarser scrub rather than a blank
+// canvas.
+const WINDOW_AHEAD_INITIAL = 16;
+// How long after the first painted frame to widen. Long enough that the widen
+// doesn't compete with the rest of the page's critical resources, short enough
+// to be resident well before a visitor scrolls through the pin.
+const WIDEN_DELAY_MS = 1200;
 // How hard GSAP smooths the scrub. Higher = the footage eases toward the
 // scroll position instead of tracking it rigidly, which is what reads as
 // "gentle". Above ~1.5 it starts to feel disconnected from the wheel.
@@ -102,6 +117,11 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
   const seqRef = useRef(SEQ_DESKTOP);
   const wantedRef = useRef(0); // frame the scrub currently needs
   const pumpRef = useRef<() => void>(() => {});
+  // Frames to prefetch ahead of the scrub. Starts narrow for a cheap first
+  // paint, widened to WINDOW_AHEAD once a frame is actually on screen (see the
+  // effect below). A ref, not state, so nextFrame() picks the new value up
+  // without re-running the loader effect and re-initialising the sequence.
+  const aheadRef = useRef(WINDOW_AHEAD_INITIAL);
   const [ready, setReady] = useState(false); // first frame painted
 
   // Draw frame `i` (cover-fit). If it isn't loaded yet, draw the nearest loaded
@@ -196,7 +216,7 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
     // but a few hundred array reads is nothing next to an image decode.
     const nextFrame = () => {
       const w = wantedRef.current;
-      const hi = Math.min(count, w + WINDOW_AHEAD);
+      const hi = Math.min(count, w + aheadRef.current);
       const lo = Math.max(0, w - WINDOW_BEHIND);
       for (let i = w; i < hi; i++) if (!imagesRef.current[i]) return i;
       for (let i = w - 1; i >= lo; i--) if (!imagesRef.current[i]) return i;
@@ -286,9 +306,31 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
 
     return () => {
       cancelledRef.current = true;
+      aheadRef.current = WINDOW_AHEAD_INITIAL; // next mount pays the small window again
       for (const t of timers) clearTimeout(t);
     };
   }, [draw, resizeCanvas]);
+
+  // Widen the prefetch window once a frame is actually on screen. Deferred to
+  // idle so the deep buffer never competes with the rest of the page's first
+  // load - that ordering is the entire point of the two-stage window.
+  useEffect(() => {
+    if (!ready || aheadRef.current === WINDOW_AHEAD) return;
+    let idleHandle: number | undefined;
+    const widen = () => {
+      aheadRef.current = WINDOW_AHEAD;
+      pumpRef.current(); // claim the newly-in-window frames
+    };
+    const timer = setTimeout(() => {
+      const ric = window.requestIdleCallback;
+      if (ric) idleHandle = ric(widen, { timeout: 2000 });
+      else widen();
+    }, WIDEN_DELAY_MS);
+    return () => {
+      clearTimeout(timer);
+      if (idleHandle !== undefined) window.cancelIdleCallback?.(idleHandle);
+    };
+  }, [ready]);
 
   // Hero intro — released by the Preloader's exit: the footage settles from a
   // slight over-scale while the headline rises out of line masks, then the
@@ -458,7 +500,16 @@ export default function HeroScrub({ d }: { d: BlockData["home.hero"] }) {
 
         {/* headline lockup — bottom-anchored + restrained so the footage stays the hero */}
         <div className="absolute inset-x-0 bottom-0">
-          <div ref={lockupRef} className="shell w-full pb-16 md:pb-20 will-change-transform" style={{ color: "var(--on-media)" }}>
+          {/* --consent-h is published by CookieConsent while its banner is on
+              screen (0px otherwise). Without it the fixed banner sat on top of
+              the "Show portfolio" CTA on mobile, where the lockup is only
+              pb-16 off the bottom edge - the page's primary call to action was
+              unclickable until the banner was dismissed. */}
+          <div
+            ref={lockupRef}
+            className="shell w-full pb-[calc(4rem+var(--consent-h,0px))] md:pb-[calc(5rem+var(--consent-h,0px))] will-change-transform"
+            style={{ color: "var(--on-media)" }}
+          >
             <h1
               ref={headRef}
               className="max-w-[18ch] font-light leading-[1.03] tracking-[-0.02em] will-change-transform"

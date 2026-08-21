@@ -95,6 +95,16 @@ const nextConfig: NextConfig = {
   // Order matters: where two rules match the same path and set the same key,
   // the LAST one wins, so the specific hero-sequence rules come after the
   // catch-all rather than before it.
+  // Stored media paths are `/uploads/<month>/<file>`. Returning a plain array
+  // makes these "afterFiles" rewrites, i.e. they only apply when nothing on the
+  // filesystem matched - so locally, where uploads live in public/uploads, the
+  // static file still wins and nothing changes. In production UPLOAD_DIR points
+  // outside the per-deploy build directory (see src/lib/uploads.ts), there is
+  // no static file to match, and this hands the request to the route handler
+  // that reads from UPLOAD_DIR.
+  async rewrites() {
+    return [{ source: "/uploads/:path*", destination: "/api/uploads/:path*" }];
+  },
   async headers() {
     return [
       {

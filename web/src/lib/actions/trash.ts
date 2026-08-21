@@ -1,10 +1,10 @@
 "use server";
 
 import { unlink } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { resolveStoredUpload } from "@/lib/uploads";
 
 export type TrashState = { ok?: boolean; error?: string };
 
@@ -71,10 +71,8 @@ export async function purgeItem(model: TrashModel, id: string): Promise<TrashSta
     if (model === "media") {
       const row = await db.media.findUnique({ where: { id } });
       await db.media.delete({ where: { id } });
-      if (row && row.path.startsWith("/uploads/")) {
-        const abs = path.join(process.cwd(), "public", row.path.replace(/^\//, ""));
-        await unlink(abs).catch(() => {});
-      }
+      const abs = row && resolveStoredUpload(row.path);
+      if (abs) await unlink(abs).catch(() => {});
     } else {
       await delegate(model).delete({ where: { id } });
     }
