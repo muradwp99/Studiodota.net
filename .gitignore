@@ -29,6 +29,16 @@ Thumbs.db
 # MCP server config — holds a live Hostinger API token
 .mcp.json
 
+# Database dumps. Hostinger deploys the repo root AS the public document root,
+# so anything committed here is downloadable from the live site - a committed
+# dump of the sbsabbir DB was publicly served until 2026-08-21.
+*.sql
+*.sql.gz
+
+# Loose client reference renders dropped in the repo root (the curated,
+# optimized derivatives live in web/public/projects/ and ARE committed).
+/2023*.jpg
+
 # Magnific hero renders (masters + clips, ~100 MB) — the 300-frame webp
 # sequence derived from them lives in web/public/media/hero-seq-v3/ and IS
 # committed. Keep the masters locally so the sequence can be rebuilt.
