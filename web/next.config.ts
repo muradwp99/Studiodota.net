@@ -47,6 +47,22 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Pin Turbopack's module-resolution root to THIS directory (web/), not the
+  // repo root. The repo-root package.json deploy shim brings its own
+  // package-lock.json, and Turbopack auto-detects the root by looking for a
+  // lockfile - so it picked the repo root and encoded the app as living at
+  // `<root>/web`. Hostinger then runs the build from
+  // hbuilds/versions/<uuid>/nodejs/ (i.e. web/ contents promoted to the top
+  // level), where that `web/` segment doesn't exist, so externalized packages
+  // resolved against the old layout blew up at runtime:
+  //   Failed to load external module @prisma/client-<hash>:
+  //   Cannot find module '@prisma/client-<hash>'
+  // thrown from middleware.js on every request -> site-wide 500.
+  // Rooting here keeps the app at `<root>/` in both the build and the deployed
+  // tree, so resolution survives the relocation.
+  turbopack: {
+    root: process.cwd(),
+  },
   experimental: {
     serverActions: {
       // Media uploads go through a server action; raw multipart body cap.
