@@ -26,6 +26,9 @@ Homepage_ref/
 Thumbs.db
 .mysql/
 
+# MCP server config — holds a live Hostinger API token
+.mcp.json
+
 # Magnific hero renders (masters + clips, ~100 MB) — the 300-frame webp
 # sequence derived from them lives in web/public/media/hero-seq-v3/ and IS
 # committed. Keep the masters locally so the sequence can be rebuilt.
