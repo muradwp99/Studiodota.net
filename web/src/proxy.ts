@@ -28,8 +28,19 @@ async function rules(): Promise<Map<string, Rule>> {
   return map;
 }
 
+// Site-wide "under construction" splash. Flip to false (or set
+// MAINTENANCE=off in the host's env) to put the real site back. /admin and
+// /api are already outside this proxy's matcher, so the CMS stays reachable.
+const MAINTENANCE = process.env.MAINTENANCE !== "off";
+
 export async function proxy(req: NextRequest, event: NextFetchEvent) {
   const path = norm(req.nextUrl.pathname);
+
+  if (MAINTENANCE && path !== "/under-construction") {
+    const res = NextResponse.rewrite(new URL("/under-construction", req.nextUrl.origin));
+    res.headers.set("X-Robots-Tag", "noindex");
+    return res;
+  }
   const hit = (await rules()).get(path);
 
   // No redirect — let it fall through to Next's router (page or 404). A true
