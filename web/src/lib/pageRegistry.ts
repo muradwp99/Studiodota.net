@@ -276,6 +276,28 @@ export const BLOCK_SPECS: BlockSpec[] = [
     ],
   },
   {
+    key: "page.clientVoices",
+    title: "Client Voices page",
+    description: "The testimonials page. Long-form letters render as full quotes; short notes fill the wall below. Leave a portrait blank and the card falls back to the client's initial.",
+    fields: [
+      t("eyebrow", "Hero eyebrow"), t("title", "Page title (browser tab & search results)"), ta("lede", "Hero lede", 5), img("heroImage", "Hero image"),
+      t("videoLabel", "Video section label"),
+      {
+        kind: "group", key: "video", label: "Video testimonial",
+        fields: [t("mp4", "Video file (mp4)"), img("poster", "Poster image"), t("name", "Client name"), t("role", "Client role"), ta("caption", "Caption", 2)],
+      },
+      {
+        kind: "list", key: "featured", label: "Long-form letters", addable: true,
+        item: [t("name", "Name"), t("role", "Role"), img("image", "Portrait (optional)"), { kind: "stringList", key: "paragraphs", label: "Paragraphs" }],
+      },
+      {
+        kind: "list", key: "items", label: "Short quotes", addable: true,
+        item: [ta("quote", "Quote", 4), t("name", "Name"), t("role", "Role")],
+      },
+      t("ctaTitle", "Closing headline"), t("ctaLabel", "Closing button label"),
+    ],
+  },
+  {
     key: "page.privacy",
     title: "Privacy page",
     fields: [
@@ -360,6 +382,7 @@ export const PAGES: { slug: string; title: string; blurb: string; blocks: BlockK
   { slug: "services", title: "Services", blurb: "Hero, statement, and the five service phases.", blocks: ["page.services"] },
   { slug: "about", title: "Who we are", blurb: "Story, founder quote, stats, and process.", blocks: ["page.about"] },
   { slug: "projects", title: "Projects", blurb: "Hero copy for the work index.", blocks: ["page.projects"] },
+  { slug: "client-voices", title: "Client Voices", blurb: "Testimonials, the video, and the closing CTA.", blocks: ["page.clientVoices"] },
   { slug: "gallery", title: "Gallery", blurb: "Hero copy for the gallery.", blocks: ["page.gallery"] },
   { slug: "journal", title: "Journal", blurb: "Hero copy and the bottom banner.", blocks: ["page.journal"] },
   { slug: "contact", title: "Contact", blurb: "Hero, form copy, and the aside.", blocks: ["page.contact"] },

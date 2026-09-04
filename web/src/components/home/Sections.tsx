@@ -338,7 +338,7 @@ function Featured({ d }: { d: HomeData["featured"] }) {
             <Link
               key={p.slug}
               href={`/projects/${p.slug}`}
-              className={`group relative block overflow-hidden rounded-2xl ${wide ? "aspect-[4/3] md:col-span-2 md:aspect-[16/8]" : "aspect-[4/3]"}`}
+              className={`group relative block overflow-hidden rounded-2xl ${wide ? "aspect-[3/2] md:col-span-2 md:aspect-[16/8]" : "aspect-[3/2]"}`}
             >
               <Image
                 src={p.image}
@@ -421,12 +421,17 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
             </div>
           </Reveal>
           <div className="relative mt-8 overflow-hidden">
+            {/* Stacked on mobile, only the active tile is rendered: at 11% of a
+                520px column an inactive tile is a 51px letterbox of a building
+                render, which reads as a smear and eats 200px of the reel. The
+                rail below takes over navigation there. Side by side from `sm`,
+                the 11% spine works as intended. */}
             <div className="flex h-[64vh] min-h-[380px] flex-col items-stretch gap-3 sm:flex-row">
             {reel.map((r, i) => {
               const isActive = i === active;
               return (
                 <div key={r.image + i}
-                  className={`group relative overflow-hidden rounded-2xl ${reduced ? "" : "transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
+                  className={`group relative overflow-hidden rounded-2xl ${isActive ? "" : "hidden sm:block"} ${reduced ? "" : "transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"}`}
                   style={{ flex: isActive ? "1 1 58%" : "1 1 11%", opacity: isActive ? 1 : 0.55, filter: isActive ? "none" : "grayscale(0.9)" }}>
                   {isActive && (r.youtubeId || r.mp4) && !playing ? (
                     <div className="absolute inset-0">
@@ -462,6 +467,24 @@ function Showreel({ d }: { d: HomeData["showreel"] }) {
               );
             })}
           </div>
+            {/* Mobile-only index rail - the tap target the hidden tiles used
+                to provide, at a size a thumb can actually hit. */}
+            <div className="mt-4 flex gap-2 sm:hidden">
+              {reel.map((r, i) => (
+                <button
+                  key={`rail-${r.image}${i}`}
+                  onClick={() => setActive(i)}
+                  aria-label={`Show ${r.title}`}
+                  aria-current={i === active}
+                  className="-my-4 flex-1 py-4"
+                >
+                  <span
+                    className={`block h-1 w-full rounded-full ${reduced ? "" : "transition-colors duration-500"}`}
+                    style={{ background: i === active ? "var(--gold)" : "rgba(255,255,255,0.24)" }}
+                  />
+                </button>
+              ))}
+            </div>
             <CurtainOnView delay={0.15} color="var(--ink)" />
           </div>
         </div>
@@ -536,7 +559,7 @@ function Process({ d }: { d: HomeData["process"] }) {
         onFocus={() => setPaused(true)}
         onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false); }}
       >
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl lg:sticky lg:top-28">
+        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl lg:sticky lg:top-28">
           {steps.map((s, i) => (
             <Image
               key={s.image + i}
@@ -634,7 +657,7 @@ function Timeline({ d }: { d: HomeData["timeline"] }) {
                   <div className="font-mono text-sm text-[var(--gold-ink)]">{t.year}</div>
                   <div className="display-m mt-3">{t.pre} <span className="text-[var(--gold-ink)]">{t.accent}</span> {t.post}</div>
                 </div>
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
+                <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl">
                   <Image src={t.image} alt={`${t.pre} ${t.accent} ${t.post}`} fill sizes="(max-width:768px) 100vw, 45vw" className="object-cover" />
                 </div>
               </div>
@@ -733,6 +756,7 @@ function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage
   }, [reduced, paused, all.length]);
 
   const cur = all[Math.min(idx, all.length - 1)];
+  const anyPortrait = all.some((t) => t.image);
   if (!cur) return null;
   const words = cur.quote.split(/\s+/).filter(Boolean);
   const goTo = (delta: number) => setIdx((i) => (i + delta + all.length) % all.length);
@@ -783,7 +807,11 @@ function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage
 
             {/* Row 2: portrait | quote */}
             <div className="grid border-t border-[var(--line-strong)] lg:grid-cols-[0.38fr_0.62fr]">
-              <div className="relative aspect-[4/5] min-h-[360px] overflow-hidden border-b border-[var(--line-strong)] lg:aspect-auto lg:min-h-[460px] lg:border-b-0 lg:border-r">
+              {/* Without portraits this column is just an initial, so the
+                  4:5 mobile box left ~300px of empty surface above the quote.
+                  Sized off the whole set, not `cur`, so it doesn't resize
+                  under the rotation. */}
+              <div className={`relative overflow-hidden border-b border-[var(--line-strong)] lg:aspect-auto lg:min-h-[460px] lg:border-b-0 lg:border-r ${anyPortrait ? "aspect-[4/5] min-h-[360px]" : "min-h-[140px]"}`}>
                 <AnimatePresence mode="popLayout">
                   <motion.div
                     key={idx}
@@ -832,13 +860,16 @@ function Testimonials({ d, heroImage }: { d: HomeData["testimonials"]; heroImage
             </div>
 
             {/* Row 3: prev/next + counter | name & role */}
-            <div className="grid grid-cols-2 border-t border-[var(--line-strong)]">
-              <div className="flex items-center gap-6 border-r border-[var(--line-strong)] p-6 lg:p-8">
+            {/* Stacked below `sm`: side by side at 375px the role column is
+                ~150px wide, which clipped "President, South Coast Construction
+                and Development" mid-word. */}
+            <div className="grid border-t border-[var(--line-strong)] sm:grid-cols-2">
+              <div className="flex items-center gap-6 border-b border-[var(--line-strong)] p-6 sm:border-b-0 sm:border-r lg:p-8">
                 <button onClick={() => goTo(-1)} aria-label="Previous testimonial" className="-m-2.5 p-2.5 text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">←</button>
                 <span className="font-mono text-sm text-[var(--muted)]">{String(idx + 1).padStart(2, "0")}/{String(all.length).padStart(2, "0")}</span>
                 <button onClick={() => goTo(1)} aria-label="Next testimonial" className="-m-2.5 p-2.5 text-xl text-[var(--muted)] transition-colors duration-300 hover:text-[var(--gold-ink)]">→</button>
               </div>
-              <div className="flex items-center justify-between gap-4 p-6 lg:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 p-6 lg:p-8">
                 <span className="font-semibold">{cur.name}</span>
                 <span className="text-sm text-[var(--muted)]">{cur.role}</span>
               </div>

@@ -7,6 +7,7 @@ import ImageReveal from "@/components/motion/ImageReveal";
 import ScrollExitImage from "@/components/motion/ScrollExitImage";
 import CountUp from "@/components/CountUp";
 import { getProject, getProjects } from "@/lib/content";
+import { categoryLabel } from "@/lib/projectCategories";
 import { PROJECT_VIDEOS } from "@/content/defaults";
 import { pageMetadata, type SeoBlob } from "@/lib/seo";
 
@@ -61,6 +62,7 @@ export default async function ProjectDetail({
   // Numeric specs worth an animated CountUp focus moment: a clean 4-digit
   // year, and a unit count some titles carry (e.g. "Affordable Housing - 72
   // Units") — there's no dedicated sq-ft/unit field on the Project model.
+  const backCategory = categoryLabel(project.category);
   const yearNum = /^\d{4}$/.test(project.year) ? Number(project.year) : null;
   const unitsMatch = project.title.match(/(\d+)\s*Units?/i);
   const units = unitsMatch ? Number(unitsMatch[1]) : null;
@@ -69,8 +71,14 @@ export default async function ProjectDetail({
     <article>
       <header className="shell pb-10 pt-40 md:pt-52">
         <Reveal>
-          <Link href="/projects" className="eyebrow eyebrow-muted link-underline">
-            ← All work
+          {/* Back into the category this project belongs to, not the
+              unfiltered index — leaving a sector to look at one building and
+              landing back in "All work" loses the visitor's place. */}
+          <Link
+            href={backCategory ? `/projects?category=${project.category}` : "/projects"}
+            className="eyebrow eyebrow-muted link-underline"
+          >
+            ← {backCategory ?? "All work"}
           </Link>
         </Reveal>
         <LineMask text={project.title} tag="h1" className="display-xl mt-6 max-w-[16ch]" delay={0.08} />

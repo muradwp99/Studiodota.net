@@ -38,17 +38,20 @@ export const EMPTY_SEO = emptySeo;
 export const BLOCK_DEFAULTS = {
   site: {
     name: "Studiodota",
-    tagline: "Architecture & Design Studio",
+    tagline: "Where Architecture Meets Imagination",
     email: "studioa.arch@gmail.com",
     phone: "+1 (213) 587-1256",
     address1: "1420 Sepulveda Blvd, Suite 310",
     address2: "Los Angeles, CA 90025",
-    metaTitle: "Studiodota - Architecture & Design Studio",
+    metaTitle: "Studiodota - Where Architecture Meets Imagination",
     metaDescription:
       "Studiodota is an architecture and design practice creating buildings and spaces defined by clarity, craft, and lasting value - from concept to completion.",
     // A real project render, not R("hero") - that is a template stock image, and
     // this value is the site-wide og:image and the Organization schema's `image`.
-    ogImage: P("office-san-diego", 1),
+    // Must be a wide, high-res render: the previous office-san-diego/01 is
+    // 654x654, well under the 1200x630 social-card minimum, so every share
+    // scaled it up and cropped it square. This one is a true 1920x1080.
+    ogImage: P("apartments-hesperia", 1),
     twitterHandle: "",
     footerHeadline: "An architecture & design studio shaping spaces built to endure.",
     footerServices: [
@@ -104,10 +107,13 @@ export const BLOCK_DEFAULTS = {
     paragraph2:
       "Our approach is rooted in the unique characteristics of each site and its context - reimagining traditional design paradigms and exploring the intersections between buildings, landscape, and environment. The result: distinctive, evocative spaces that challenge conventions.",
     ctaLabel: "Meet the studio",
+    /* Counts are the live portfolio, not marketing rounding: 38 published
+       projects across 14 sectors in 14 Southern California cities. Re-run
+       scripts/count-portfolio.mjs after publishing new work. */
     stats: [
       { end: 5, suffix: "+", label: "Years of practice", desc: "Founded by Nubaira Haque in 2021." },
-      { end: 25, suffix: "+", label: "Projects in the portfolio", desc: "From single-family homes to 158-unit communities." },
-      { end: 7, suffix: "", label: "Sectors served", desc: "Residential through commercial, office, and senior living." },
+      { end: 38, suffix: "", label: "Projects in the portfolio", desc: "From single-family homes to 330-unit communities." },
+      { end: 14, suffix: "", label: "Sectors served", desc: "Residential through commercial, industrial, and senior living." },
       { end: 2, suffix: "", label: "Disciplines under one roof", desc: "Architecture and engineering, working as one team." },
     ],
   },
@@ -149,9 +155,12 @@ export const BLOCK_DEFAULTS = {
     body: "A full-service Architecture + Engineering practice committed to thoughtful, buildable spaces - creativity, technical skill, and attention to detail in every drawing set.",
     ctaLabel: "Explore our work",
     cardLeft: { image: P("town-homes-la-habra", 2), prefix: "", end: 600, suffix: "+", label: "Homes and units across the studio's active designs." },
-    cardMidTop: { end: 29, suffix: "", label: "Projects in the portfolio - concept studies to construction documents." },
-    cardMidBottom: { end: 10, suffix: "+", label: "Cities across Southern California, from San Diego to the High Desert." },
-    cardRight: { image: P("moreno-valley", 3), end: 7, suffix: "", label: "Sectors - single-family to senior living, office, and mixed use." },
+    /* Same live counts as home.about.stats - both bands claim to count the
+       same portfolio, so they are recounted together by
+       scripts/apply-2026-09-04-updates.ts. */
+    cardMidTop: { end: 38, suffix: "", label: "Projects in the portfolio - concept studies to construction documents." },
+    cardMidBottom: { end: 14, suffix: "", label: "Cities across Southern California, from San Diego to the High Desert." },
+    cardRight: { image: P("moreno-valley", 3), end: 14, suffix: "", label: "Sectors - single-family to senior living, office, and mixed use." },
   },
 
   "home.featured": {
@@ -175,11 +184,14 @@ export const BLOCK_DEFAULTS = {
     /* Mirrors the live DB row, videos included, so the reel still plays when
        the DB is unreachable and a fresh DB seeds with motion already wired. */
     items: [
-      { image: P("ball-residence", 1), title: "Ball Residence", kicker: "Single Family Residence", youtubeId: "", mp4: PROJECT_VIDEOS["ball-residence"] },
+      /* Titles name what each film actually shows, not the project row the
+         still was borrowed from - contact-hero.mp4 is the Hawthorne site
+         approach, crenshaw-330 is the 330/222-unit pair, ah136 the 62/136. */
+      { image: P("ball-residence", 1), title: "13727 S Inglewood Ave, Hawthorne", kicker: "Mixed Use", youtubeId: "", mp4: PROJECT_VIDEOS["ball-residence"] },
+      { image: P("affordable-housing-72", 1), title: "Mixed 330 Units & 222 Units", kicker: "Multifamily", youtubeId: "", mp4: PROJECT_VIDEOS["crenshaw-apartments"] },
+      { image: P("affordable-housing-136", 1), title: "Mixed 62 Units & 136 Units", kicker: "Affordable Housing", youtubeId: "", mp4: PROJECT_VIDEOS["affordable-housing-136"] },
       { image: P("mixed-use-114", 1), title: "Mixed Use - 114 Units", kicker: "Mixed Use", youtubeId: "", mp4: PROJECT_VIDEOS["mixed-use-114"] },
       { image: P("fire-rebuild-mckendree-01", 1), title: "Fire Rebuild - McKendree", kicker: "Fire Rebuild", youtubeId: "", mp4: PROJECT_VIDEOS["fire-rebuild-mckendree-01"] },
-      { image: P("affordable-housing-136", 1), title: "Affordable Housing - 136 Units", kicker: "Affordable Housing", youtubeId: "", mp4: PROJECT_VIDEOS["affordable-housing-136"] },
-      { image: P("crenshaw-apartments", 1), title: "Crenshaw Apartments", kicker: "Multifamily", youtubeId: "", mp4: PROJECT_VIDEOS["crenshaw-apartments"] },
     ],
   },
 
@@ -276,7 +288,8 @@ export const BLOCK_DEFAULTS = {
       { id: "showreel", enabled: true },
       { id: "process", enabled: true },
       { id: "timeline", enabled: true },
-      { id: "testimonials", enabled: true },
+      /* Off: the testimonials live on their own page now (/client-voices). */
+      { id: "testimonials", enabled: false },
       { id: "clients", enabled: true },
       { id: "statement", enabled: true },
       { id: "faq", enabled: true },
@@ -309,7 +322,9 @@ export const BLOCK_DEFAULTS = {
         num: "01",
         title: "Pre-Design",
         blurb: "Feasibility, programming, and site intelligence - before a line is drawn.",
-        image: P("office-san-diego", 1),
+        /* A concept study, which is what this phase actually produces. Also
+           retires the 654x654 office-san-diego render that was here. */
+        image: "/media/predesign-concept.webp",
         tags: [
           "Master Planning / Programming",
           "Space Schematics / Flow Diagrams",
@@ -341,11 +356,15 @@ export const BLOCK_DEFAULTS = {
         ],
       },
       {
-        id: "design-development",
+        /* Renamed from "Design Development" at the client's request. The nav's
+           mega-menu links are built from this id (layout.tsx), so both move
+           together; scripts/apply-2026-09-04-updates.ts leaves a redirect off
+           the old anchor. */
+        id: "architecture-design",
         num: "03",
-        title: "Design Development",
+        title: "Architecture Design",
         blurb: "Architecture, structure, and systems developed together - materials and details locked in.",
-        image: P("moreno-valley", 2),
+        image: P("moreno-valley", 3),
         tags: [
           "Architectural Design / Documents",
           "Structural Design / Documents",
@@ -407,10 +426,37 @@ export const BLOCK_DEFAULTS = {
     quoteRole: "Founder, Studiodot A",
     stats: [
       { value: "2021", suffix: "", label: "Founded by Nubaira Haque" },
-      { value: "25", suffix: "+", label: "Projects in the portfolio" },
-      { value: "7", suffix: "", label: "Sectors across Southern California" },
+      { value: "38", suffix: "", label: "Projects in the portfolio" },
+      { value: "14", suffix: "", label: "Sectors across Southern California" },
       { value: "2", suffix: "", label: "Disciplines - architecture + engineering" },
     ],
+    /* "What we do", "Our capabilities" and "Our qualifications" - the three
+       sections of the studio's Who We Are document that the page was missing. */
+    doLabel: "What we do",
+    doTitle: "There is the creativity. There is the complexity. We bring them together.",
+    doIntro:
+      "We provide a comprehensive range of services in architecture, structural and civil engineering, as well as electromechanical engineering. Our offerings also include master planning, feasibility studies, programming, construction documents, and construction management, with a focus on small to mid-size projects.",
+    doBody: [
+      "We believe successful design begins long before a drawing is produced. It begins with understanding the opportunities, constraints, and ambitions of a project - and transforming them into a clear design direction.",
+      "In our designs, we skillfully weave together the fundamental elements of light, air, water, and earth, integrating them seamlessly into every project we undertake. Light, in particular, stands as a cornerstone of our design philosophy, imbuing spaces with a sense of vibrant tranquility.",
+      "While each project we embark upon is inherently distinctive, they all share a common thread: to create spaces that are thoughtful, memorable, and emotionally engaging.",
+    ],
+    capabilitiesLabel: "Our capabilities",
+    capabilitiesTitle: "From the first idea to the final approval, we stay engaged.",
+    capabilitiesImage: P("condominium-temple-simi-valley", 1),
+    capabilities: [
+      "Our foremost commitment is the long-term success of each project. We work closely with our clients to understand their goals, establish realistic strategies, navigate complex requirements, and guide the project through planning, design, approvals, documentation, and construction.",
+      "Our hands-on approach allows us to bridge the gap between creative vision and technical execution. We collaborate closely with consultants, contractors, agencies, and clients to keep the design intent intact while addressing the realities of budget, schedule, code, constructability, and approvals.",
+    ],
+    capabilitiesClose: "We don't just design buildings. We help move projects forward.",
+    qualificationsLabel: "Our qualifications",
+    qualificationsTitle: "Experience. Collaboration. Accountability.",
+    qualifications: [
+      "At Studiodot A, passion is matched by experience and a hands-on commitment to every project. Founded in 2021, the practice has developed experience across residential, commercial, urban infill, and development projects, with a particular understanding of the complexities involved in navigating planning, permitting, and construction.",
+      "Our strength lies in bringing together creative thinking, technical knowledge, and practical problem-solving. We approach every project with attention to detail, open communication, and a commitment to seeing the work through - from the initial concept to project completion.",
+    ],
+    qualificationsClose:
+      "Our measure of success is simple: a well-designed project, a smooth process, and a client who feels confident every step of the way.",
     processTitle: "How we work.",
     process: [
       { step: "01", title: "Brief & feasibility", body: "We define goals, site, budget, and constraints - then test what's genuinely possible." },
@@ -419,6 +465,74 @@ export const BLOCK_DEFAULTS = {
       { step: "04", title: "Construction & handover", body: "On-site support through construction to a resolved, snag-free, occupied building." },
     ],
     ctaTitle: "Let's reimagine your project together.",
+    ctaLabel: "Get in touch",
+  },
+
+  /* Client Voices - every testimonial the studio has collected, in one place.
+     `featured` are the long-form letters that carry their own paragraph
+     breaks; `items` are the shorter notes laid out as a wall. Real people,
+     so `image` stays empty rather than borrowing a stock portrait - the page
+     falls back to a set initial. */
+  "page.clientVoices": {
+    ...seoDefaults,
+    seo: { ...emptySeo, title: "Client Voices", description: "What our clients say about working with Studiodot A - architecture and engineering across Southern California.", focusKeyword: "client testimonials architect" },
+    eyebrow: "Client Voices",
+    title: "Client Voices",
+    lede: "Architecture is a journey we take together. From the first conversation to the final detail, we believe in creating an experience built on trust, collaboration, and thoughtful design. We are grateful for every client who has trusted us with their vision. Here are a few words from our clients about their journey with us.",
+    heroImage: P("affordable-housing-136", 1),
+    /* The video section renders only when `mp4` is set. Julio Vargas sent a
+       filmed testimonial; it runs as written copy for now, so the path is
+       parked here and the section stays hidden until someone pastes it back
+       into Pages -> Client Voices. */
+    videoLabel: "In their own words",
+    video: {
+      mp4: "",
+      poster: "/media/testimonial-vargas.jpg",
+      name: "Julio Vargas",
+      role: "President, Vargas International Properties",
+      caption: "A walkthrough of the finished units, filmed by the client.",
+    },
+    featured: [
+      {
+        name: "Ofir Jacob",
+        role: "President, South Coast Construction and Development",
+        image: "",
+        paragraphs: [
+          "Studio Dot A have been our design partner for more than two years now. She is creative, organized, and always on top of the details, which makes the whole process simple for us. From the first meeting to the final drawings, she takes the time to understand what we are trying to accomplish and then delivers a design that fits both the vision and the budget. Every project has been handled with care and finished the right way.",
+          "What stands out most is how she treats people. She has been great to our customers - patient with their questions, clear in her explanations, and genuinely invested in making sure they are happy with the result. That kind of service is hard to find, and it reflects well on everyone involved.",
+          "They have been great to us and to our company, and we look forward to working with them for years to come.",
+        ],
+      },
+      {
+        /* Transcribed from Julio's filmed testimonial. TODO: paste the
+           transcript into `paragraphs` - the entry is hidden until it is
+           non-empty, so the page never ships an empty quote. */
+        name: "Julio Vargas",
+        role: "President, Vargas International Properties",
+        image: "",
+        paragraphs: [] as string[],
+      },
+      {
+        name: "Howard B., Esq.",
+        role: "Pacific Palisades",
+        image: "",
+        paragraphs: [
+          "Nubaira has been a pleasure to work with and a real asset in our efforts to rebuild the home we lost in the Palisades Fire. While I had a general idea of what I wanted the new home to look like, it took Nubaira's skill and patience to help put that idea into a concrete design and bring my vision to life.",
+          "The suggestions and improvements she made along the way resulted in a final plan that was much better than what I had originally envisioned. And she did it all at a very reasonable price and well within the timeline we had originally set out (delays from the city notwithstanding).",
+        ],
+      },
+    ],
+    items: [
+      { quote: "We want to express our heartfelt appreciation for your exceptional services, invaluable advice, and insightful guidance over the past year. Witnessing our vision come to life under your skilled direction has been truly exhilarating. Your meticulous attention to detail and dedication have ensured that every aspect of the project has proceeded seamlessly. We cannot thank you enough for your outstanding contribution.", name: "Hieu Tran", role: "Director, Pham Development" },
+      { quote: "We consider ourselves incredibly fortunate to have engaged Nubaira Haque as our designer for a challenging project. From the outset, Nubaira demonstrated professionalism and courtesy. Despite having to revise the design multiple times to align with our preferences and marketing objectives, she exhibited patience and dedication throughout the process.", name: "Jacob", role: "Home owner, Altadena, CA" },
+      { quote: "Nubaira exemplifies professionalism in every aspect. We enlisted her expertise for our ADU project in Eastvale, CA, and it was undoubtedly the right decision. She delivered the plans promptly and within budget, guiding us seamlessly through the complex city approval process. Furthermore, her responsiveness to calls and texts was exemplary. We wholeheartedly recommend Nubaira's firm for your future construction endeavors.", name: "Susan G", role: "Home owner, LA" },
+      { quote: "I had an exceptional experience with Studiodot A, particularly impressed by their reliable, timely, and professional services. Nubaira, the principal designer, demonstrated profound knowledge, responsibility, and unwavering support in meeting all our requirements, extending her assistance throughout the entire permit phase with the city. I highly recommend engaging their services for any architectural and interior projects, with the assurance of having a dependable, trustworthy, and efficient company supporting you every step of the way. Given the chance to go back in time, I wouldn't hesitate to choose Studiodot A again.", name: "Bill Walter", role: "Developer" },
+      { quote: "We are thrilled with the finished result and owe a huge thanks to Nubaira for recognizing potential in our space that we never could have seen ourselves.", name: "Stan, Perris", role: "Owner, Westside CLLCTV" },
+      { quote: "I just wanted to extend a heartfelt thank you to Nubaira for all her exceptional work in creating our amazing new space. We absolutely love it! We were continually impressed by her professionalism, meticulous attention to detail, and the consistent support she provided throughout this project. Nubaira made the entire process seamless for us, and for that, we are incredibly grateful. We would highly recommend her services to anyone looking for outstanding results.", name: "Amin and Rubi", role: "Home owners, CA" },
+      { quote: "Thank you for your assistance with our property. The concept documents you prepared were invaluable, helping us visualize the potential improvements we could make. They truly made a difference in shaping our approach to the renovations.", name: "Lennie", role: "CA" },
+      { quote: "We are delighted with both the design and construction of our house. Nubaira and her team were not only highly competent professionals but also personable. We appreciated receiving excellent feedback from them throughout the construction process.", name: "Mary & Ben", role: "CA" },
+    ],
+    ctaTitle: "Let's start your journey.",
     ctaLabel: "Get in touch",
   },
 
@@ -483,6 +597,7 @@ export const BLOCK_DEFAULTS = {
       { label: "Who we are", href: "/about", children: [] },
       { label: "Services", href: "/services", children: [] },
       { label: "Projects", href: "/projects", children: [] },
+      { label: "Client Voices", href: "/client-voices", children: [] },
       { label: "Blog", href: "/journal", children: [] },
       { label: "Contact", href: "/contact", children: [] },
     ] as { label: string; href: string; children: { label: string; href: string }[] }[],
@@ -490,6 +605,7 @@ export const BLOCK_DEFAULTS = {
       { label: "Home", href: "/" },
       { label: "Who we are", href: "/about" },
       { label: "Portfolio", href: "/projects" },
+      { label: "Client Voices", href: "/client-voices" },
       { label: "Journal", href: "/journal" },
       { label: "Contact", href: "/contact" },
     ],
@@ -619,7 +735,9 @@ export const SEED_PROJECTS = [
   { slug: "condominium-temple-simi-valley", title: "Condominium & Temple", summary: "A condominium development paired with a temple in Simi Valley - two programs resolved on one site, from massing to entry sequence.", category: "mixed-use", sector: "Mixed Use", location: "Simi Valley, CA", year: "2024", services: ["Architectural Design", "3D Visualization"], heroImage: P("condominium-temple-simi-valley", 1), interiorImage: P("condominium-temple-simi-valley", 2), gallery: G("condominium-temple-simi-valley", 6), published: true, sort: 22 },
 
   // ---- Commercial ----
-  { slug: "office-san-diego", title: "Office at San Diego", summary: "A corporate office concept - clean lines, a louvered screening wall against harsh sun, and lake-view planning, presented from first sketch to final front view.", category: "commercial", sector: "Office", location: "San Diego, CA", year: "2021", services: ["Architectural Design", "3D Visualization"], heroImage: P("office-san-diego", 1), interiorImage: P("office-san-diego", 3), gallery: [P("office-san-diego", 1), P("office-san-diego", 3), P("office-san-diego", 4), P("office-san-diego", 5), P("office-san-diego", 6), P("office-san-diego", 7)], published: true, sort: 23 },
+  { slug: "office-san-diego", title: "Office at San Diego", summary: "A corporate office concept - clean lines, a louvered screening wall against harsh sun, and lake-view planning, presented from first sketch to final front view.", category: "commercial", sector: "Office", location: "San Diego, CA", year: "2021", /* 07 not 01: the 01 render is square (654x654), so a 16:9 hero cropped
+   ~44% of it away and upscaled the rest ~2.7x. 07 is a true 16:9. */
+services: ["Architectural Design", "3D Visualization"], heroImage: P("office-san-diego", 7), interiorImage: P("office-san-diego", 3), gallery: [P("office-san-diego", 1), P("office-san-diego", 3), P("office-san-diego", 4), P("office-san-diego", 5), P("office-san-diego", 6), P("office-san-diego", 7)], published: true, sort: 23 },
   { slug: "hesperia-commercial", title: "Hesperia at Commercial", summary: "A commercial pad development in Hesperia - three exterior studies of signage, storefront glazing, and parking approach.", category: "commercial", sector: "Commercial", location: "Hesperia, CA", year: "2025", services: ["Architectural Design", "3D Visualization"], heroImage: P("hesperia-commercial", 1), interiorImage: P("hesperia-commercial", 2), gallery: G("hesperia-commercial", 3), published: true, sort: 24 },
   { slug: "auto-part-riverside", title: "Auto Part at Riverside", summary: "An auto-parts retail building in Riverside - bold volumes, contrasting cladding, and a clear customer entry beneath an orange canopy.", category: "commercial", sector: "Commercial", location: "Riverside, CA", year: "2022", services: ["Architectural Design", "3D Visualization"], heroImage: P("auto-part-riverside", 1), interiorImage: P("auto-part-riverside", 2), gallery: G("auto-part-riverside", 2), published: true, sort: 25 },
   { slug: "truck-servicing-fontana", title: "Truck Servicing at Fontana", summary: "A truck-servicing facility in Fontana - service bays, yard circulation, and street frontage studied at eye level and from above.", category: "commercial", sector: "Industrial", location: "Fontana, CA", year: "2023", services: ["Architectural Design", "3D Visualization"], heroImage: P("truck-servicing-fontana", 1), interiorImage: P("truck-servicing-fontana", 2), gallery: G("truck-servicing-fontana", 2), published: true, sort: 26 },

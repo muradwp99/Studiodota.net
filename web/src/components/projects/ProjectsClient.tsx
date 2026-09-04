@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageReveal from "@/components/motion/ImageReveal";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { EASE_CURTAIN } from "@/lib/motion";
+import { CATEGORY_LABELS } from "@/lib/projectCategories";
 
 export type ProjectCardData = {
   slug: string;
@@ -18,25 +19,6 @@ export type ProjectCardData = {
   heroImage: string;
 };
 
-/**
- * Display order + labels. Affordable housing leads; "office" is gone, folded
- * into commercial. Keep this in step with projectCategories in the taxonomies
- * block and with scripts/update-project-structure.mjs.
- */
-const CATEGORY_LABELS: [key: string, label: string][] = [
-  ["affordable-housing", "Affordable housing"],
-  ["single-family", "Single family"],
-  ["multifamily", "Multifamily"],
-  ["mixed-use", "Mixed use"],
-  ["commercial", "Commercial"],
-  ["senior-living", "Senior living"],
-  ["adu", "ADU"],
-  ["interior", "Interior"],
-  // legacy demo categories — shown only if such rows still exist
-  ["residential", "Residential"],
-  ["institutional", "Institutional"],
-  ["masterplan", "Masterplan"],
-];
 
 /**
  * Categories that appear in the filter bar even with nothing in them yet.
@@ -64,6 +46,39 @@ export default function ProjectsClient({
   );
   const list = projects.filter((p) => cat === "all" || p.category === cat);
 
+  /**
+   * Mirror the active filter into the URL so it survives a round trip into a
+   * project and back. Picking a filter used to be state-only, so opening a
+   * project pushed history on top of a bare `/projects` — browser Back then
+   * landed on "All work" and threw away whatever the visitor was browsing.
+   *
+   * `replaceState` (not push) so the filter bar doesn't fill the back stack
+   * with one entry per tap; Next's router reads these natively.
+   */
+  const select = (key: string) => {
+    setCat(key);
+    window.history.replaceState(null, "", key === "all" ? "/projects" : `/projects?category=${key}`);
+  };
+
+  /**
+   * Re-read the filter from the URL whenever the visitor moves through
+   * history. `replaceState` above rewrites the address bar without asking the
+   * server to re-render, so the RSC payload cached against this history entry
+   * still carries `initial="all"` — coming back from a project restored the
+   * right URL but the wrong filter until this listener ran.
+   */
+  useEffect(() => {
+    const sync = () => {
+      const key = new URLSearchParams(window.location.search).get("category") ?? "all";
+      setCat(filters.some((f) => f.key === key) ? key : "all");
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+    // `filters` is derived from the project list, which never changes here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     // pt-10! (not a typo): .section's padding-block in globals.css is unlayered
     // CSS, which beats any @layer-utilities class in Tailwind v4 - a plain pt-10
@@ -78,7 +93,7 @@ export default function ProjectsClient({
             return (
               <button
                 key={f.key}
-                onClick={() => setCat(f.key)}
+                onClick={() => select(f.key)}
                 aria-pressed={on}
                 className={`rounded-full px-4 py-2 text-sm transition-colors duration-300 ${on ? "bg-[var(--gold)] text-[#17191c]" : "text-[var(--bone-dim)] hover:bg-[var(--surface-2)] hover:text-[var(--gold-ink)]"}`}
               >
@@ -122,7 +137,11 @@ export default function ProjectsClient({
                       src={p.heroImage}
                       alt={`${p.title} - ${p.sector}`}
                       sizes={feature ? "100vw" : "(max-width:768px) 100vw, 50vw"}
-                      className={`w-full rounded-2xl ${feature ? "aspect-[16/9]" : "aspect-[4/3]"}`}
+                      /* 3:2, not 4:3. Measured across all published heroes:
+                         a 4:3 box throws away 19.6% of the average render
+                         (most are 16:9), 3:2 only 14.8%, and 3:2 stays kinder
+                         to the handful of portrait shots than a 16:9 box. */
+                      className={`w-full rounded-2xl ${feature ? "aspect-[16/9]" : "aspect-[3/2]"}`}
                       imgClassName={`object-cover ${reduced ? "" : "transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"}`}
                       curtain="var(--ink-2)"
                       delay={feature ? 0 : 0.06}

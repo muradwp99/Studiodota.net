@@ -65,7 +65,12 @@ export default async function ServicesPage() {
                   src={s.image}
                   alt={`${s.title} - project example`}
                   sizes="(max-width:1024px) 100vw, 42vw"
-                  className="mt-10 aspect-[4/3] rounded-2xl"
+                  /* 3:2, not 4:3. Three of the five phase images are 16:9 and
+                     the rest 1.3-1.5, so a 1.33 box cropped a quarter off the
+                     sides of most of them - worst on the Pre-Design concept
+                     study, where the cut edges are drawn linework. 1.5 is the
+                     closest single ratio to the whole set. */
+                  className="mt-10 aspect-[3/2] rounded-2xl"
                   imgClassName="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
                   curtain="var(--ink)"
                 />

@@ -132,8 +132,116 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* How we work */}
+      {/* What we do - the three-beat title is the docx's own rhythm, so each
+          sentence gets its own line and its own reveal rather than being
+          flattened into one paragraph. */}
       <section className="section">
+        <div className="shell">
+          <Reveal><span className="eyebrow eyebrow-muted">{d.doLabel}</span></Reveal>
+          {/* Each sentence is its own line. The measure has to live on the
+              heading itself - `ch` on a wrapper resolves against the wrapper's
+              body-size font, which crushes a display-scale line to one word
+              per row. */}
+          <div className="mt-8">
+            {d.doTitle.split(/(?<=\.)\s+/).map((line, i) => (
+              <LineMask
+                key={line}
+                text={line}
+                tag="h2"
+                className={`display-m max-w-[24ch] ${i === 2 ? "text-[var(--gold-ink)]" : ""}`}
+                delay={i * 0.12}
+              />
+            ))}
+          </div>
+          <div className="mt-14 grid gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+            <Reveal>
+              <p className="text-lg leading-relaxed text-[var(--bone-dim)]">{d.doIntro}</p>
+            </Reveal>
+            {/* Numbered rules turn three loose paragraphs into a read you can
+                track, echoing the ledger treatment on the stats band above. */}
+            <ol className="space-y-8">
+              {d.doBody.map((p, i) => (
+                <ReplayReveal key={i} delay={i * 90}>
+                  <li className="flex gap-6 border-t border-[var(--line)] pt-6">
+                    <span aria-hidden="true" className="font-mono text-sm text-[var(--gold)]">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <p className="text-lg leading-relaxed text-[var(--bone-dim)]">{p}</p>
+                  </li>
+                </ReplayReveal>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* Our capabilities - copy against a drifting render, closing on the
+          docx's own one-line statement blown up to display scale. */}
+      <section className="section border-t border-[var(--line)]">
+        <div className="shell grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div>
+            <Reveal><span className="eyebrow eyebrow-muted">{d.capabilitiesLabel}</span></Reveal>
+            <LineMask text={d.capabilitiesTitle} tag="h2" className="display-m mt-8 max-w-[18ch]" />
+            <div className="mt-10 space-y-7">
+              {d.capabilities.map((p, i) => (
+                <Reveal key={i} delay={i * 110}>
+                  <p className="text-lg leading-relaxed text-[var(--bone-dim)]">{p}</p>
+                </Reveal>
+              ))}
+            </div>
+            <Reveal delay={240}>
+              <p className="mt-12 border-l-2 border-[var(--gold)] pl-6 font-display text-2xl leading-snug md:text-[2rem]">
+                {d.capabilitiesClose}
+              </p>
+            </Reveal>
+          </div>
+          <Parallax amount={24} className="lg:mt-16">
+            <ImageReveal
+              src={d.capabilitiesImage}
+              alt="Studiodot A - mixed-use development study"
+              sizes="(max-width:1024px) 100vw, 46vw"
+              className="aspect-[4/5] rounded-2xl"
+              curtain="var(--ink)"
+            />
+          </Parallax>
+        </div>
+      </section>
+
+      {/* Our qualifications - three words, three beats, on the dark band so
+          the section lands as a statement rather than more body copy. */}
+      <section data-nav-tone="dark" className="relative overflow-hidden bg-[#111315] py-[clamp(5rem,10vw,8rem)]" style={{ color: "var(--on-media)" }}>
+        <Arcs className="absolute -right-[18vw] -bottom-[20vw] w-[56vw] min-w-[420px]" stroke="rgba(230,203,146,0.22)" />
+        <div className="shell relative">
+          <Reveal><span className="eyebrow" style={{ color: "var(--gold-media)" }}>{d.qualificationsLabel}</span></Reveal>
+          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2">
+            {d.qualificationsTitle.split(/\s+/).filter(Boolean).map((word, i) => (
+              <SplitReveal
+                key={word}
+                text={word}
+                tag="span"
+                className="display-l"
+                stagger={0.03}
+                delay={i * 0.14}
+              />
+            ))}
+          </div>
+          <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:gap-16">
+            {d.qualifications.map((p, i) => (
+              <Reveal key={i} delay={i * 120}>
+                <p className="text-lg leading-relaxed" style={{ color: "var(--on-media-dim)" }}>{p}</p>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={280}>
+            <p className="mt-14 max-w-[40ch] font-display text-2xl leading-snug md:text-[2.1rem]">
+              {d.qualificationsClose}
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* How we work */}
+      <section className="section border-t border-[var(--line)]">
         <div className="shell">
           <LineMask text={d.processTitle} tag="h2" className="display-l max-w-[14ch]" />
           <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--line)] md:grid-cols-2 lg:grid-cols-4">
