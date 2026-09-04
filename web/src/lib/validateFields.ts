@@ -58,10 +58,24 @@ export function validateFields(fields: FieldSpec[], input: unknown, defaults: un
       }
       case "stringList": {
         const arr = Array.isArray(raw) ? raw : Array.isArray(dRaw) ? dRaw : [];
-        out[f.key] = arr
-          .slice(0, MAX_LIST)
-          .map((x) => String(x).trim())
-          .filter((x) => x.length > 0 && x.length <= MAX_TEXT);
+        // Over-length entries used to be dropped by a .filter and entries past
+        // MAX_LIST by a .slice — both silently, so a save looked like it
+        // succeeded while the text was gone. `list` and `text` already throw on
+        // the same conditions; these now match. Blank entries are still
+        // dropped rather than rejected: an empty row in the admin's list editor
+        // means "not filled in", not an error.
+        const limit = f.maxLength ?? MAX_TEXT;
+        if (arr.length > MAX_LIST) {
+          throw new ValidationError(`"${f.label}" has too many items (max ${MAX_LIST}).`);
+        }
+        const items = arr.map((x) => String(x).trim()).filter((x) => x.length > 0);
+        const over = items.findIndex((x) => x.length > limit);
+        if (over !== -1) {
+          throw new ValidationError(
+            `"${f.label}" item ${over + 1} is too long (${items[over].length} characters, max ${limit}).`,
+          );
+        }
+        out[f.key] = items;
         break;
       }
       case "group": {

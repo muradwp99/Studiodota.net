@@ -542,7 +542,9 @@ export const BLOCK_DEFAULTS = {
     eyebrow: "The work",
     title: "Projects across Southern California.",
     lede: "From single-family homes and fire rebuilds to 150-unit communities - architecture and engineering delivered across Southern California.",
-    image: P("apartments-hesperia", 1),
+    /* No `image`: this page's header is typographic-only and never read one.
+       An unused defaults key has no spec field, so the validator would drop it
+       on every admin save anyway. */
   },
 
   "page.gallery": {

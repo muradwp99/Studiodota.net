@@ -1,4 +1,5 @@
 import type { BlockKey } from "@/content/defaults";
+import { MAX_TEXTAREA } from "@/lib/validateFields";
 
 /**
  * Declarative field specs for every editable block. Drives BOTH the admin form
@@ -11,7 +12,10 @@ export type FieldSpec =
   | { kind: "toggle"; key: string; label: string; help?: string }
   | { kind: "image"; key: string; label: string; help?: string }
   | { kind: "select"; key: string; label: string; options: { value: string; label: string }[]; help?: string }
-  | { kind: "stringList"; key: string; label: string; help?: string }
+  // maxLength overrides the per-entry MAX_TEXT cap — set it where a list holds
+  // prose rather than labels (testimonial paragraphs, body copy), otherwise a
+  // legitimate paragraph is rejected at 600 characters.
+  | { kind: "stringList"; key: string; label: string; help?: string; maxLength?: number }
   | { kind: "seo"; key: string; label: string; help?: string }
   | { kind: "group"; key: string; label: string; fields: FieldSpec[] }
   | { kind: "list"; key: string; label: string; item: FieldSpec[]; addable?: boolean; help?: string };
@@ -23,6 +27,8 @@ const ta = (key: string, label: string, rows = 3): FieldSpec => ({ kind: "textar
 const num = (key: string, label: string): FieldSpec => ({ kind: "number", key, label });
 const img = (key: string, label: string): FieldSpec => ({ kind: "image", key, label });
 const tog = (key: string, label: string): FieldSpec => ({ kind: "toggle", key, label });
+/** A stringList of prose, not labels — raises the per-entry cap to textarea size. */
+const prose = (key: string, label: string): FieldSpec => ({ kind: "stringList", key, label, maxLength: MAX_TEXTAREA });
 
 const statItem = [num("end", "Number"), t("suffix", "Suffix"), t("label", "Label"), ta("desc", "Description", 2)];
 const quoteItem = [ta("quote", "Quote", 3), t("name", "Name"), t("role", "Role / company"), img("image", "Portrait")];
@@ -242,6 +248,18 @@ export const BLOCK_SPECS: BlockSpec[] = [
       img("storyImage", "Story image"),
       t("quoteLabel", "Quote label"), ta("quote", "Founder quote", 4), t("quoteName", "Quote name"), t("quoteRole", "Quote role"),
       { kind: "list", key: "stats", label: "Stats", item: [t("value", "Value"), t("suffix", "Suffix"), t("label", "Label")] },
+      // "What we do", "Our capabilities" and "Our qualifications". Without
+      // these entries the validator drops the keys on save, so the sections
+      // could not be edited at all — every save reverted them to defaults.
+      t("doLabel", "What we do — label"), ta("doTitle", "What we do — heading (one sentence per line)", 2),
+      ta("doIntro", "What we do — intro", 4),
+      prose("doBody", "What we do — numbered paragraphs"),
+      t("capabilitiesLabel", "Capabilities — label"), ta("capabilitiesTitle", "Capabilities — heading", 2),
+      prose("capabilities", "Capabilities — paragraphs"),
+      ta("capabilitiesClose", "Capabilities — closing statement", 2), img("capabilitiesImage", "Capabilities image"),
+      t("qualificationsLabel", "Qualifications — label"), t("qualificationsTitle", "Qualifications — heading (each word animates in)"),
+      prose("qualifications", "Qualifications — paragraphs"),
+      ta("qualificationsClose", "Qualifications — closing statement", 3),
       t("processTitle", "Process heading"),
       { kind: "list", key: "process", label: "Process steps", addable: true, item: [t("step", "Number"), t("title", "Title"), ta("body", "Body", 2)] },
       t("ctaTitle", "Bottom CTA title"), t("ctaLabel", "Bottom CTA button"),
