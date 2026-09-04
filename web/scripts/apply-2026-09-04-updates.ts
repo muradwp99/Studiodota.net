@@ -17,6 +17,7 @@ import { PrismaClient } from "@prisma/client";
 import { BLOCK_DEFAULTS } from "../src/content/defaults";
 
 const useProd = process.argv.includes("--prod");
+const dryRun = process.argv.includes("--dry-run");
 const envFile = useProd ? ".env.prod" : ".env";
 const url = readFileSync(envFile, "utf8").match(/DATABASE_URL="([^"]+)"/)![1];
 const db = new PrismaClient({ datasources: { db: { url } } });
@@ -25,17 +26,44 @@ type Row = Record<string, unknown>;
 const asRow = (v: unknown): Row | null =>
   v && typeof v === "object" && !Array.isArray(v) ? (v as Row) : null;
 
-/** Merge `patch` into the stored row, seeding from defaults if absent. */
+/**
+ * Merge `patch` into the stored row, seeding from defaults if absent.
+ *
+ * With --dry-run nothing is written: it prints, key by key, what the write
+ * would change. Same code path as the real run, so the rehearsal can't drift
+ * from what actually executes.
+ */
 async function patchBlock(key: string, patch: Row) {
   const row = await db.block.findUnique({ where: { key } });
   const base = asRow(row?.data) ?? (BLOCK_DEFAULTS[key as keyof typeof BLOCK_DEFAULTS] as Row) ?? {};
   const data = { ...base, ...patch } as never;
+
+  if (dryRun) {
+    const changed = Object.keys(patch).filter((k) => JSON.stringify(base[k]) !== JSON.stringify(patch[k]));
+    const added = Object.keys(patch).filter((k) => base[k] === undefined);
+    console.log(`  ${row ? "would update" : "would CREATE"}  ${key}`);
+    if (!row) {
+      console.log(`      seeds ${Object.keys(patch).length} keys from defaults`);
+    } else if (!changed.length) {
+      console.log(`      no change (already applied)`);
+    } else {
+      for (const k of changed) {
+        const tag = added.includes(k) ? "add   " : "change";
+        console.log(`      ${tag} ${k}: ${JSON.stringify(base[k])?.slice(0, 80) ?? "(absent)"}`);
+        console.log(`             -> ${JSON.stringify(patch[k])?.slice(0, 80)}`);
+      }
+    }
+    const untouched = Object.keys(base).filter((k) => !(k in patch));
+    if (untouched.length) console.log(`      keeps: ${untouched.join(", ")}`);
+    return;
+  }
+
   await db.block.upsert({ where: { key }, create: { key, data }, update: { data } });
   console.log(`  ${row ? "updated" : "created"}  ${key}`);
 }
 
 async function main() {
-  console.log(`Applying content updates to ${useProd ? "Hostinger" : "local"} ...`);
+  console.log(`${dryRun ? "DRY RUN against" : "Applying content updates to"} ${useProd ? "Hostinger (PRODUCTION)" : "local"} ...`);
 
   // 1 + 2 — recount from the source of truth so the stats can't drift again
   // the next time projects are published.
@@ -52,24 +80,55 @@ async function main() {
   // The "Why choose us" cards count the same portfolio as the stats band —
   // they drifted apart before (29 vs 25 projects, 7 sectors vs 14), so both
   // are recounted from the same query here.
+  // Only the counts and their suffixes are this pass's business — the card
+  // images and labels stay as stored.
   const why = BLOCK_DEFAULTS["home.whyChoose"];
+  const whyStored = asRow((await db.block.findUnique({ where: { key: "home.whyChoose" } }))?.data) ?? {};
+  const card = (key: "cardMidTop" | "cardMidBottom" | "cardRight", end: number) => ({
+    ...(asRow(whyStored[key]) ?? (why[key] as unknown as Row)),
+    end,
+    suffix: why[key].suffix,
+  });
   await patchBlock("home.whyChoose", {
-    cardMidTop: { ...why.cardMidTop, end: projects.length },
-    cardMidBottom: { ...why.cardMidBottom, end: cities },
-    cardRight: { ...why.cardRight, end: sectors },
+    cardMidTop: card("cardMidTop", projects.length),
+    cardMidBottom: card("cardMidBottom", cities),
+    cardRight: card("cardRight", sectors),
   });
 
-  await patchBlock("home.showreel", { items: BLOCK_DEFAULTS["home.showreel"].items });
+  // Showreel: only the titles and kickers were wrong. Merge them onto the
+  // STORED items rather than replacing the array, so each entry keeps whatever
+  // image/mp4/youtubeId the live row carries.
+  const reelStored = (asRow((await db.block.findUnique({ where: { key: "home.showreel" } }))?.data)?.items as Row[]) ?? [];
+  const reelWanted = BLOCK_DEFAULTS["home.showreel"].items;
+  await patchBlock("home.showreel", {
+    items: (reelStored.length ? reelStored : (reelWanted as unknown as Row[])).map((stored, i) => {
+      const want = reelWanted[i];
+      return want ? { ...stored, title: want.title, kicker: want.kicker } : stored;
+    }),
+  });
 
   // The social card was a 654x654 render — under the 1200x630 minimum, so
   // every share upscaled and square-cropped it.
   await patchBlock("site", { ogImage: BLOCK_DEFAULTS.site.ogImage });
 
-  // Pre-Design now carries the concept study the client supplied, replacing
-  // another use of that same 654x654 render; phase 03 is renamed to
-  // "Architecture Design", which moves its anchor id too.
-  await patchBlock("page.services", { items: BLOCK_DEFAULTS["page.services"].items });
-  await db.redirect.upsert({
+  // Services: this pass changes exactly two phases — Pre-Design gets the
+  // client's concept study, and phase 03 is renamed to "Architecture Design"
+  // (which moves its anchor id). Every other phase keeps its stored value:
+  // production's images for Schematic Design, Construction Documentation and
+  // Additional Services were picked in the admin and differ from defaults.ts,
+  // so writing the defaults array wholesale would quietly revert them.
+  const svcStored = (asRow((await db.block.findUnique({ where: { key: "page.services" } }))?.data)?.items as Row[]) ?? [];
+  const svcWanted = BLOCK_DEFAULTS["page.services"].items;
+  await patchBlock("page.services", {
+    items: (svcStored.length ? svcStored : (svcWanted as unknown as Row[])).map((stored, i) => {
+      const want = svcWanted[i];
+      if (!want) return stored;
+      if (want.id === "pre-design") return { ...stored, image: want.image };
+      if (want.id === "architecture-design") return { ...stored, id: want.id, title: want.title, image: want.image };
+      return stored;
+    }),
+  });
+  if (!dryRun) await db.redirect.upsert({
     where: { from: "/services#design-development" },
     create: { from: "/services#design-development", to: "/services#architecture-design", permanent: true },
     update: { to: "/services#architecture-design", permanent: true },
@@ -78,13 +137,21 @@ async function main() {
   // Site tagline / meta title.
   await patchBlock("site", { tagline: BLOCK_DEFAULTS.site.tagline, metaTitle: BLOCK_DEFAULTS.site.metaTitle });
 
+  // Stats: merge onto the stored rows matched by label, so a stat the client
+  // added in the admin survives instead of being dropped by a 4-item replace.
   const homeAbout = BLOCK_DEFAULTS["home.about"];
+  const statsStored = (asRow((await db.block.findUnique({ where: { key: "home.about" } }))?.data)?.stats as Row[]) ?? [];
+  const wantStat = (label: unknown) => homeAbout.stats.find((s) => s.label === label);
   await patchBlock("home.about", {
-    stats: homeAbout.stats.map((s) =>
-      s.label === "Projects in the portfolio" ? { ...s, end: projects.length }
-      : s.label === "Sectors served" ? { ...s, end: sectors }
-      : s,
-    ),
+    stats: (statsStored.length ? statsStored : (homeAbout.stats as unknown as Row[])).map((stored) => {
+      const want = wantStat(stored.label);
+      if (!want) return stored;
+      const end =
+        want.label === "Projects in the portfolio" ? projects.length
+        : want.label === "Sectors served" ? sectors
+        : want.end;
+      return { ...stored, end, suffix: want.suffix, desc: want.desc };
+    }),
   });
 
   // 3 — the homepage section goes dark; the content lives on its own page.
