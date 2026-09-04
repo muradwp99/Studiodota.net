@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/about",
     "/services",
     "/projects",
+    "/client-voices",
     "/journal",
     // "/gallery" is a draft (page.gallery.published === false) and 404s, so it
     // must not be advertised here.

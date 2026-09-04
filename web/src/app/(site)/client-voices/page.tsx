@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Reveal from "@/components/Reveal";
 import LineMask from "@/components/motion/LineMask";
 import BigTitle from "@/components/motion/BigTitle";
@@ -45,12 +46,21 @@ export default async function ClientVoicesPage() {
             >
               <Reveal delay={i * 60}>
                 <div className="lg:sticky lg:top-32">
-                  <span
-                    aria-hidden="true"
-                    className="block select-none font-display text-[4.5rem] font-extrabold leading-none text-[var(--gold)] opacity-[0.22]"
-                  >
-                    &ldquo;
-                  </span>
+                  {/* Portrait when one is set, the opening quote mark when not.
+                      The field is editable in the admin, so it has to render
+                      somewhere — otherwise uploading a portrait does nothing. */}
+                  {f.image ? (
+                    <span className="relative block h-24 w-24 overflow-hidden rounded-full bg-[var(--surface-2)]">
+                      <Image src={f.image} alt={`${f.name} - portrait`} fill sizes="96px" className="object-cover" />
+                    </span>
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="block select-none font-display text-[4.5rem] font-extrabold leading-none text-[var(--gold)] opacity-[0.22]"
+                    >
+                      &ldquo;
+                    </span>
+                  )}
                   <div className="mt-4 font-display text-2xl">{f.name}</div>
                   <div className="mt-2 max-w-[26ch] text-sm text-[var(--muted)]">{f.role}</div>
                 </div>
@@ -69,7 +79,7 @@ export default async function ClientVoicesPage() {
 
       {/* Video testimonial - click to play with sound, through the same
           lightbox the showreel and gallery use. */}
-      {d.video?.mp4 ? (
+      {d.video?.mp4 && d.video.poster ? (
         <section data-nav-tone="dark" className="relative overflow-hidden bg-[#111315] py-[clamp(4rem,9vw,7rem)]" style={{ color: "var(--on-media)" }}>
           <Arcs className="absolute -left-[16vw] top-1/2 w-[52vw] min-w-[420px] -translate-y-1/2" stroke="rgba(230,203,146,0.28)" />
           <div className="shell relative">
@@ -85,13 +95,17 @@ export default async function ClientVoicesPage() {
         </section>
       ) : null}
 
-      {/* The shorter notes, as a masonry-ish wall that reveals on scroll. */}
+      {/* The shorter notes, as a masonry-ish wall that reveals on scroll.
+          Heading and section drop together when there are no short quotes —
+          "More from our clients." over empty space reads as a broken page. */}
+      {d.items.length > 0 ? (
       <section className="section">
         <div className="shell">
           <LineMask text="More from our clients." tag="h2" className="display-l max-w-[16ch]" />
           <VoiceWall items={d.items} />
         </div>
       </section>
+      ) : null}
 
       {/* A single project render to close the page on the work itself. */}
       {d.heroImage ? (

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageReveal from "@/components/motion/ImageReveal";
 import { useReducedMotion } from "@/lib/useReducedMotion";
@@ -41,43 +41,30 @@ export default function ProjectsClient({
       ([key, label]) => ({ key, label }),
     ),
   ];
-  const [cat, setCat] = useState<string>(
-    filters.some((f) => f.key === initial) ? initial : "all",
-  );
+  /**
+   * The URL is the single source of truth for the filter — not component
+   * state. A `useState` seeded from `initial` only re-seeds when the subtree
+   * remounts, and a client-side <Link> to /projects from the projects page
+   * (header nav, footer "Portfolio", every Projects mega-panel thumbnail)
+   * changes only the search params: React reconciles this component in place,
+   * so the stale filter survived while the address bar said otherwise, and no
+   * popstate fired to correct it. Next patches history.pushState/replaceState
+   * to feed useSearchParams, so `select` below still works by rewriting the URL.
+   */
+  const params = useSearchParams();
+  const requested = params.get("category") ?? initial;
+  const cat = filters.some((f) => f.key === requested) ? requested : "all";
   const list = projects.filter((p) => cat === "all" || p.category === cat);
 
   /**
-   * Mirror the active filter into the URL so it survives a round trip into a
-   * project and back. Picking a filter used to be state-only, so opening a
-   * project pushed history on top of a bare `/projects` — browser Back then
-   * landed on "All work" and threw away whatever the visitor was browsing.
-   *
-   * `replaceState` (not push) so the filter bar doesn't fill the back stack
-   * with one entry per tap; Next's router reads these natively.
+   * `replaceState` (not push) so tapping through the filter bar doesn't fill
+   * the back stack with one entry per tap, while still leaving the category in
+   * the URL — which is what makes browser Back out of a project land on the
+   * category the visitor was browsing instead of "All work".
    */
   const select = (key: string) => {
-    setCat(key);
     window.history.replaceState(null, "", key === "all" ? "/projects" : `/projects?category=${key}`);
   };
-
-  /**
-   * Re-read the filter from the URL whenever the visitor moves through
-   * history. `replaceState` above rewrites the address bar without asking the
-   * server to re-render, so the RSC payload cached against this history entry
-   * still carries `initial="all"` — coming back from a project restored the
-   * right URL but the wrong filter until this listener ran.
-   */
-  useEffect(() => {
-    const sync = () => {
-      const key = new URLSearchParams(window.location.search).get("category") ?? "all";
-      setCat(filters.some((f) => f.key === key) ? key : "all");
-    };
-    sync();
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
-    // `filters` is derived from the project list, which never changes here.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     // pt-10! (not a typo): .section's padding-block in globals.css is unlayered

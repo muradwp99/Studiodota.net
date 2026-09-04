@@ -160,15 +160,18 @@ export default async function AboutPage() {
             {/* Numbered rules turn three loose paragraphs into a read you can
                 track, echoing the ledger treatment on the stats band above. */}
             <ol className="space-y-8">
+              {/* The <li> has to be the ol's direct child — wrapping it in
+                  ReplayReveal put a <div> between them, which is invalid list
+                  markup and drops the items from the a11y tree. */}
               {d.doBody.map((p, i) => (
-                <ReplayReveal key={i} delay={i * 90}>
-                  <li className="flex gap-6 border-t border-[var(--line)] pt-6">
+                <li key={i} className="flex gap-6 border-t border-[var(--line)] pt-6">
+                  <ReplayReveal delay={i * 90} className="flex flex-1 gap-6">
                     <span aria-hidden="true" className="font-mono text-sm text-[var(--gold)]">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <p className="text-lg leading-relaxed text-[var(--bone-dim)]">{p}</p>
-                  </li>
-                </ReplayReveal>
+                  </ReplayReveal>
+                </li>
               ))}
             </ol>
           </div>

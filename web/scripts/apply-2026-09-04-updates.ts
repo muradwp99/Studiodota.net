@@ -128,14 +128,20 @@ async function main() {
       return stored;
     }),
   });
-  if (!dryRun) await db.redirect.upsert({
-    where: { from: "/services#design-development" },
-    create: { from: "/services#design-development", to: "/services#architecture-design", permanent: true },
-    update: { to: "/services#architecture-design", permanent: true },
-  });
+  // No redirect for the old #design-development anchor: proxy.ts matches on
+  // req.nextUrl.pathname, and a fragment is never sent to the server, so such a
+  // row could never fire. The in-site links are generated from this id
+  // (layout.tsx builds the mega-menu hrefs from it), so they moved with it; an
+  // external deep link just lands on /services at the top of the page.
 
   // Site tagline / meta title.
   await patchBlock("site", { tagline: BLOCK_DEFAULTS.site.tagline, metaTitle: BLOCK_DEFAULTS.site.metaTitle });
+
+  // The admin's category dropdown had drifted from the public filter bar:
+  // "fire-rebuild" could not be picked at all (so the category this pass
+  // introduces was unreachable from the editor) and "office" was selectable
+  // but had no filter, stranding anything filed under it.
+  await patchBlock("taxonomies", { projectCategories: BLOCK_DEFAULTS.taxonomies.projectCategories });
 
   // Stats: merge onto the stored rows matched by label, so a stat the client
   // added in the admin survives instead of being dropped by a 4-item replace.
@@ -161,7 +167,29 @@ async function main() {
     s.id === "testimonials" ? { ...s, enabled: false } : s,
   );
   await patchBlock("home.layout", { sections });
-  await patchBlock("page.clientVoices", BLOCK_DEFAULTS["page.clientVoices"] as unknown as Row);
+  // SEED ONLY, never overwrite. Passing the whole defaults object as a patch
+  // would make every top-level key win over the stored row — so a second run
+  // would blank exactly the two fields this block exists to have filled in
+  // later: featured[].paragraphs (the Vargas transcript) and video.mp4. The
+  // header promises this script is safe to run twice, so it has to be.
+  // Missing keys are still added, which is how a new field reaches an existing
+  // row without touching what an editor has written.
+  {
+    const key = "page.clientVoices";
+    const row = await db.block.findUnique({ where: { key } });
+    const stored = asRow(row?.data);
+    const seed = BLOCK_DEFAULTS[key] as unknown as Row;
+    if (!stored) {
+      await patchBlock(key, seed);
+    } else {
+      const additions = Object.fromEntries(Object.entries(seed).filter(([k]) => stored[k] === undefined));
+      if (Object.keys(additions).length) {
+        await patchBlock(key, additions);
+      } else {
+        console.log(`  kept      ${key} (already seeded — editor content left alone)`);
+      }
+    }
+  }
 
   // 4 — menus. Insert once, after Projects, leaving any client reordering of
   // the other items alone.
